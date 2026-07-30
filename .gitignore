@@ -1,0 +1,6 @@
+result
+.direnv
+.cache
+*.qcow2
+*.iso
+*.log
