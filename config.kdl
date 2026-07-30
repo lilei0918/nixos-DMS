@@ -1,0 +1,407 @@
+//装饰主要受DMS控制
+
+spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+spawn-at-startup "fcitx5" "-d"
+
+// 保留这个，继续提供历史记录
+spawn-at-startup "bash" "-c" "wl-paste --type text --watch cliphist store"
+
+// 新增这个，解决关闭源程序后无法粘贴的问题
+spawn-at-startup "wl-clip-persist" "--clipboard" "regular"
+
+//spawn-at-startup "ghostty" "-e" "fish"
+//spawn-at-startup "alacritty" "-e" "fish"
+//spawn-at-startup "bash" "-c" "sleep 6 && obsidian"
+spawn-at-startup "bash" "-c" "sleep 6 && /home/anan/Documents/siyuan-3.6.5-linux/siyuan"
+spawn-at-startup "bash" "-c" "sleep 5 && linuxqq"
+
+spawn-at-startup "blueman-applet"
+//spawn-at-startup "/home/anan/Documents/daA/venv/bin/python" "/home/anan/Documents/daA/stock_board_qt.py"
+
+// Chrome autostart: 3 instances (frameless X + frameless LiveNews + normal)
+//spawn-at-startup "bash" "-c" "sleep 3 && ~/hermes_files/start-all-chrome.sh"
+
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        numlock
+
+    }
+
+    touchpad {
+        tap
+        dwt
+        dwtp
+        natural-scroll
+        scroll-method "two-finger"
+        //accel-speed 0.4
+        click-method "button-areas"
+        // accel-profile "flat"
+        tap-button-map "left-middle-right"
+    }
+
+     // disable-power-key-handling
+    // warp-mouse-to-focus
+    focus-follows-mouse
+    //warp-mouse-to-focus
+    workspace-auto-back-and-forth
+}
+
+
+output "eDP-1" {
+    // off
+    scale 1.0
+    position x=0 y=0
+    mode "1920x1080@165.004"
+}
+
+output "DP-2" {
+    // off
+    scale 1.25
+    position x=-64 y=-1280
+    mode "2560x1600@60.001"
+}
+
+
+layout {
+    background-color  "#00000000" // # 背景透明
+    focus-ring {
+        //off
+        width 1
+        // catppuccin-mocha Sapphire
+        active-color "#ABC7FF"
+        // catppuccin-mocha Surface2
+        inactive-color "#585b70"
+    }
+
+    preset-column-widths {
+        proportion 0.25
+        proportion 0.5
+        proportion 0.75
+        proportion 1.0
+    }
+    default-column-width { proportion 0.75; }
+
+    gaps 4
+
+    struts {
+        left 8 //如果是2 会导致如chrome等无法触发鼠标滑动左右边缘切换到其他应用 注意被DMS抢占参数
+        right 8
+        top 1
+        bottom 1
+    }
+
+
+
+    // center-focused-column "on-overflow"
+    // center-focused-column "always"
+}
+
+cursor {
+    // xcursor-theme "breeze_cursors"
+    // xcursor-theme "arstieonart"
+    // xcursor-size 48
+
+    xcursor-size 24
+
+    hide-when-typing
+    hide-after-inactive-ms 1000
+}
+
+window-rule {
+     geometry-corner-radius 8 8 0 0
+    clip-to-geometry true
+}
+
+prefer-no-csd
+
+
+environment {
+    // GNOME / GTK / Qt 统一走 Wayland
+    CLUTTER_BACKEND "wayland"
+    GDK_BACKEND "wayland,x11"
+    QT_QPA_PLATFORM "wayland"
+    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+
+    // Electron 应用
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+
+    // Qt 主题
+    QT_QPA_PLATFORMTHEME "gtk3"
+    QT_QPA_PLATFORMTHEME_QT6 "gtk3"
+
+    // NVIDIA 视频与 GL
+    //LIBVA_DRIVER_NAME "nvidia"
+    //__GLX_VENDOR_LIBRARY_NAME "nvidia"
+
+    // Firefox / Zen 使用 Wayland
+    MOZ_ENABLE_WAYLAND "1"
+
+    // 会话标识
+    XDG_SESSION_TYPE "wayland"
+    XDG_CURRENT_DESKTOP "niri"
+
+    // 输入法（fcitx）
+    GTK_IM_MODULE "fcitx"
+    QT_IM_MODULE "fcitx"
+    XMODIFIERS "@im=fcitx"
+    GLFW_IM_MODULE "fcitx"
+
+
+    // 多 GPU 输出顺序（按你真实的 by-path 路径）
+    //WLR_DRM_DEVICES "/dev/dri/by-path/pci-0000:06:00.0-card" //强制 Niri 用 AMD
+    WLR_DRM_DEVICES "/dev/dri/by-path/pci-0000:06:00.0-card:/dev/dri/by-path/pci-0000:01:00.0-card"
+
+    // 下面这些可按需开启（先保持注释状态）
+    // GTK_THEME "WhiteSur-Dark"
+    // GTK_ICON_THEME "WhiteSur"
+    // GTK_FONT_NAME "Sans 10"
+
+}
+
+
+
+
+// screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+
+window-rule {
+    match app-id="Alacritty" //区别大小写
+    match app-id="com.mitchellh.ghostty"
+    //match app-id="Adwaita"
+    // opacity 0.9
+    // opacity 0.5
+    // opacity 0.98
+
+    // open-on-output "HDMI-A-1"
+    //default-column-width { proportion 0.3; }
+    default-column-width { fixed 800; }
+    // default-column-width {}
+    // open-maximized true
+    // open-fullscreen true
+    // block-out-from "screencast"
+
+    // min-width 400
+    // max-width 400
+    // min-height 400
+    // max-height 400
+
+    focus-ring {
+        // on
+        // active-gradient from="red" to="green"
+        // active-color "lightgreen"
+        // width 1
+    }
+
+    border {
+        // off
+        // on
+        // width 12
+        // width 0
+        // active-color "#ff808080"
+        // active-color "red"
+    }
+
+    // draw-border-with-background true
+    // draw-border-with-background false
+
+    // geometry-corner-radius 12 24 32 64
+    // geometry-corner-radius 999
+    // geometry-corner-radius 1
+    //geometry-corner-radius 6
+    //clip-to-geometry true
+}
+
+
+// Ghostty: 主屏 (eDP-1), 工作区 2
+window-rule {
+    match app-id="com.mitchellh.ghostty" // 注意：ghostty 的实际 app-id 通常是这个
+    //open-on-output "HDMI-A-1"
+    //open-on-workspace "2"
+}
+
+window-rule {
+    match app-id="thunar"
+    default-column-width { proportion 0.5; }
+}
+
+
+// Obsidian: 主屏 (eDP-1), 工作区 3
+window-rule {
+    match app-id=r#"^SiYuan$"#
+    //open-on-output "HDMI-A-1"
+    //open-on-workspace "2"
+    default-column-width { proportion 1.0; }
+}
+
+window-rule {
+    match is-active=false
+    //opacity 0.9
+}
+
+window-rule {
+    //match app-id=r#"^org\.telegram\.desktop$"# title="^Media viewer$"
+    match app-id=r#"^org\.telegram\.desktop$"#
+    match app-id=r#"^org\.gnome\.FileRoller$"#
+    match app-id="^tauonmb$"
+    match app-id="^wechat$"
+    match app-id="^QQ$"
+    open-floating true
+}
+
+
+// 让弹窗类窗口自动居中浮动
+window-rule {
+    match is-floating=true
+    open-floating true
+    default-column-width { fixed 800; }
+    default-window-height { fixed 800; }
+    //opacity 0.9
+
+}
+
+window-rule {
+    match app-id=r#"^dev.zed.Zed$"#
+    match app-id=r#"^google-chrome"#
+    match app-id=r#"^vscodium$"#
+    match app-id=r#"^Trae$"#
+    match app-id=r#"^codium$"# // 某些发行版 ID 是 codium
+    match app-id=r#"^daA$"#
+    default-column-width { proportion 1.0; }
+}
+
+// Frameless Chrome: harness (X) 和 LiveNews — 无边框
+// 移动由 launch script 的 move-chrome-to-output.sh 处理
+// open-on-output 对 Chrome app-mode 无效（标题异步设置）
+window-rule {
+    match title=r#"/ X"# app-id=r#"^(google-chrome|chrome-)"#
+    border { off; }
+    default-column-width { proportion 0.5; }
+}
+window-rule {
+    match title=r#"LIVE NEWS"# app-id=r#"^(google-chrome|chrome-)"#
+    border { off; }
+    default-column-width { proportion 0.5; }
+}
+
+
+// 针对下载对话框或简单的确认窗口
+window-rule {
+    match title="^Open File$"
+    match title="^Save File$"
+    match app-id="xdg-desktop-portal-gnome"
+    open-floating true
+    default-column-width { fixed 800; }
+}
+
+
+
+binds {
+
+    // Suggested: Mod + Shift + C for "Clean"
+    Mod+Shift+C { spawn "ghostty" "-e" "fish" "-c" "clean; exec fish"; }
+
+
+    // 快速切换左右列 (类似 H/L)
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+
+    // 滚轮控制：Mod + 滚轮 快速左右滑动视图
+    Mod+WheelScrollDown      cooldown-ms=150 { focus-column-right; }
+    Mod+WheelScrollUp        cooldown-ms=150 { focus-column-left; }
+
+    // 类似 macOS 的窗口居中展示 (Consume/Expel)
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+
+    // 快速最大化/恢复
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+
+    //Mod+V { toggle-window-floating; }
+    Mod+T { switch-focus-between-floating-and-tiling; }
+    Mod+V { spawn "sh" "-c" "~/.config/niri/toggle-float-center.sh"; }
+
+    // 居中当前焦点列
+    Mod+C { center-column; }
+
+    //在 Wayland 和 X11 之间手动同步剪贴板。
+    //Mod+Shift+C { spawn "sh" "-c" "t env DISPLAY=:0 xsel -ob | wl-copy"; }
+    //Mod+Shift+V { spawn "sh" "-c" "wl-paste -n | t env DISPLAY=:0 xsel -ib"; }
+
+    Mod+Return { spawn "ghostty" "-e" "fish"; }
+   // Mod+Return { spawn "alacritty" "-e" "fish"; }
+    Mod+D { spawn "fuzzel"; }
+    Mod+E { spawn "thunar"; }
+    Mod+B { spawn "google-chrome-stable"; }
+    Mod+S { spawn "fsearch"; }
+
+
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"; }
+    XF86AudioMute        allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86AudioMicMute     allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
+
+    Mod+Q { close-window; }
+
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Down  { move-window-down; }
+    Mod+Ctrl+Up    { move-window-up; }
+    Mod+Ctrl+Right { move-column-right; }
+
+    Mod+Tab { focus-workspace-previous; }
+
+    Mod+Page_Down      { focus-workspace-down; }
+    Mod+Page_Up        { focus-workspace-up; }
+
+
+    Mod+1 { set-column-width "25%"; }
+    Mod+2 { set-column-width "50%"; }
+    Mod+3 { set-column-width "75%"; }
+    Mod+4 { set-column-width "100%"; }
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+
+    Alt+Print { screenshot-window; }
+    Ctrl+Print { screenshot-screen; }
+    Print { screenshot; } //自定义窗口截图
+    Mod+P { screenshot; } //自定义窗口截图
+    Mod+Space { spawn "ghostty" "-e" "fish" "-c" "fd -t f -H . /home/anan/Documents/OBbackup/ | sk --height 40% --border | xargs -r xdg-open 2>/dev/null || true"; }
+}
+
+debug {
+    // preview-render "screencast"
+    // preview-render "screen-capture"
+    // dbus-interfaces-in-non-session-instances
+    // wait-for-frame-completion-before-queueing
+    // enable-overlay-planes
+    // disable-cursor-plane  //禁用 硬件光标平面（cursor plane）
+    // disable-direct-scanout
+    // render-drm-device "/dev/dri/renderD129"
+    // render-drm-device "/dev/dri/card1"
+    // enable-color-transformations-capability
+    // emulate-zero-presentation-time
+}
+
+
+include "dms/colors.kdl"
+include "dms/layout.kdl"
+include "dms/alttab.kdl"
+include "dms/binds.kdl"
+//include "dms/outputs.kdl"
+include "dms/windowrules.kdl"
+include "dms/cursor.kdl"

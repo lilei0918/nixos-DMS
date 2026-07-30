@@ -1,0 +1,23 @@
+.git
+result
+result-*
+.nix-*
+.direnv
+dist
+build
+node_modules
+.cache
+.cargo/registry
+.target
+venv
+secrets
+*.key
+*.pem
+*.crt
+*.age
+*.enc
+*.gpg
+*.sqlite*
+*.qcow2
+ssh/ # 若你把 SSH 放仓库里
+hardware-configuration-backups
