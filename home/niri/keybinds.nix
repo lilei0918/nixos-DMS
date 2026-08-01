@@ -18,7 +18,6 @@ in {
     "super+f".action = fullscreen-window; # 全屏窗口（Mod+F）
     "super+shift+f".action = maximize-column; # 最大化列（Mod+Shift+F）
     "super+t".action = toggle-window-floating; # 切换浮动（Mod+T）
-    "super+v".action = spawn "sh" "-c" "~/.config/niri/toggle-float-center.sh"; # 自定义浮动居中脚本
 
     # 居中当前列
     "super+c".action = center-column;
@@ -33,7 +32,8 @@ in {
     "super+4".action = set-column-width "100%";
 
     # 🖥️ 启动程序
-    "super+return".action = spawn ghostty ["-e" "zsh"];
+    "super+shift+return".action = spawn "ghostty";
+    "super+return".action = spawn "alacritty";
     "super+d".action = spawn walker []; # 应用启动器
     "super+e".action = spawn thunar []; # 文件管理器
     "super+b".action = spawn google-chrome []; # 浏览器

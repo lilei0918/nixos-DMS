@@ -3,7 +3,7 @@
     enable = true;
     settings = {
       logo = {
-        source = "~/nixos/assets/icons/nix-lavender.png";
+        source = "~/nixos-DMS/assets/icons/nix-lavender.png";
         padding = {
           top = 2;
           left = 3;

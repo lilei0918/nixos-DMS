@@ -11,8 +11,7 @@
       icon-theme = "WhiteSur";
       cursor-theme = "macOS-White";
 
-      font-name = "Sans 10";
-      monospace-font-name = "Nerd Font 10";
+      monospace-font-name = "JetBrainsMono Nerd Font 10";
     };
 
     "org/gnome/desktop/wm/preferences" = {

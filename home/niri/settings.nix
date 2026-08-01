@@ -4,14 +4,8 @@
   ...
 }:
 {
-  # 工作区定义
-  workspaces = {
-    "browser" = { };
-    "terminal" = { };
-    "files" = { };
-    "notes" = { };
-    "media" = { };
-  };
+  # 工作区完全动态，不预定义任何工作区
+  #（rules.nix 中引用的 code/terminal/media 等工作区按需自动创建）
 
   # 禁用客户端装饰
   prefer-no-csd = true;

@@ -1,6 +1,20 @@
+# Nix
 result
+
+# dms 动态主题生成文件
+niri-colors.generated.kdl
+
+# secrets
+*.key
+*.age
+
+# editors
+.vscode/
+.idea/
+
+# temporary
+*.swp
+*.tmp
+
+# direnv
 .direnv
-.cache
-*.qcow2
-*.iso
-*.log

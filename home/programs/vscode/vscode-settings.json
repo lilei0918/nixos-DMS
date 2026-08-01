@@ -1,0 +1,245 @@
+{
+
+  // ===============================
+  // Nix
+  // ===============================
+
+
+  "nix.enableLanguageServer": true,
+
+
+  "nix.serverPath": "nil",
+
+
+  "nix.formatterPath": "alejandra",
+
+
+  "nix.serverSettings": {
+
+    "nil": {
+
+      "formatting": {
+
+        "command": [
+
+          "alejandra"
+
+        ]
+
+      },
+
+
+      "diagnostics": {
+
+        "excludedFiles": [
+
+          "result/**"
+
+        ]
+
+      }
+
+    }
+
+  },
+
+
+  "[nix]": {
+
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
+
+  },
+
+
+
+  // ===============================
+  // Editor
+  // ===============================
+
+
+  "editor.fontFamily":
+
+    "'JetBrainsMono Nerd Font', 'Noto Sans CJK SC'",
+
+
+  "editor.fontSize": 14,
+
+
+  "editor.fontLigatures": true,
+
+
+  "editor.formatOnSave": true,
+
+
+  "editor.tabSize": 2,
+
+
+  "editor.insertSpaces": true,
+
+
+  "editor.minimap.enabled": false,
+
+
+  "editor.renderWhitespace": "selection",
+
+
+  "editor.smoothScrolling": true,
+
+
+  "editor.cursorSmoothCaretAnimation": "on",
+
+
+  "editor.stickyScroll.enabled": true,
+
+
+  "editor.wordWrap": "on",
+
+
+  "editor.bracketPairColorization.enabled": true,
+
+
+  "editor.guides.bracketPairs": true,
+
+
+
+  // ===============================
+  // Files
+  // ===============================
+
+
+  "files.autoSave": "off",
+
+
+  "files.trimTrailingWhitespace": true,
+
+
+  "files.insertFinalNewline": true,
+
+
+  "files.exclude": {
+
+    "**/.git": true,
+
+    "**/.direnv": true,
+
+    "**/result": true
+
+  },
+
+
+  "search.exclude": {
+
+    "**/.git": true,
+
+    "**/.direnv": true,
+
+    "**/result": true,
+
+    "**/.cache": true
+
+  },
+
+
+  "files.associations": {
+
+    "flake.lock": "json"
+
+  },
+
+
+
+  // ===============================
+  // Git
+  // ===============================
+
+
+  "git.autofetch": true,
+
+
+  "git.confirmSync": false,
+
+
+  "git.enableSmartCommit": true,
+
+
+  "git.openRepositoryInParentFolders": "always",
+
+
+
+  // ===============================
+  // Terminal
+  // ===============================
+
+
+  "terminal.integrated.defaultProfile.linux": "fish",
+
+
+  "terminal.integrated.fontFamily":
+
+    "'JetBrainsMono Nerd Font'",
+
+
+  "terminal.integrated.fontSize": 14,
+
+
+  "terminal.integrated.cursorBlinking": false,
+
+
+  "terminal.integrated.smoothScrolling": true,
+
+
+
+  // ===============================
+  // UI
+  // ===============================
+
+
+  "workbench.iconTheme":
+
+    "material-icon-theme",
+
+
+  "workbench.colorTheme":
+
+    "Material Theme Darker High Contrast",
+
+
+  "workbench.list.smoothScrolling": true,
+
+
+  "explorer.compactFolders": false,
+
+
+
+  // ===============================
+  // Performance
+  // ===============================
+
+
+  "editor.hover.delay": 300,
+
+
+  "extensions.autoUpdate": false,
+
+
+  "telemetry.telemetryLevel": "off",
+
+
+  "security.workspace.trust.enabled": true,
+
+
+  "breadcrumbs.enabled": true,
+
+
+
+  // ===============================
+  // Linux Wayland
+  // ===============================
+
+
+  "window.titleBarStyle": "custom",
+
+
+  "window.menuBarVisibility": "toggle"
+
+}

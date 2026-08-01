@@ -43,7 +43,12 @@
     # 📌 新增：剪贴板持久化（解决关闭源程序后无法粘贴的问题）
     {
       command = [
-        "wl-clip-persist --clipboard regular --reconnect-tries 0"
+        "sh"
+        "-c"
+        ''
+          sleep 2
+          wl-clip-persist --clipboard regular
+        ''
       ];
     }
 
@@ -55,7 +60,7 @@
       command = [
         "bash"
         "-c"
-        "sleep 5 && QQ"
+        "sleep 10 && exec qq"
       ];
     }
     # {

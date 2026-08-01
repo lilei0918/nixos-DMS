@@ -5,16 +5,14 @@
   inputs,
   self,
   ...
-}:
-let
+}: let
   allPackages = import ./packages.nix {
     inherit pkgs;
   };
-in
-{
+in {
   home.username = "lilei";
   home.homeDirectory = "/home/lilei";
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 
   imports = [
     # DMS
@@ -25,18 +23,26 @@ in
     inputs.niri.homeModules.niri
 
     # other modules
-    ../../system/zsh.nix
-    ../../home/programs/vscode.nix
-    ../../home/programs/ghostty.nix
+    ../../home/programs/rime.nix
+    ../../home/programs/vscode/vscode.nix
     ../../home/programs/firefox.nix
+    ../../home/programs/chrome.nix
     ../../home/programs/cliphist.nix
     ../../home/programs/hermes.nix
     ../../home/programs/walker.nix
     ../../home/programs/thunar.nix
     ../../home/programs/theme.nix
-    ../../home/programs/starship.nix
     ../../home/programs/dconf.nix
     ../../home/programs/fastfetch.nix
+    ../../home/programs/git.nix
+    ../../home/programs/btop.nix
+    ../../home/terminal/alacritty.nix
+    ../../home/terminal/fish.nix
+    ../../home/terminal/starship.nix
+    ../../home/terminal/tmux.nix
+    ../../home/terminal/ghostty.nix
+    ../../home/terminal/zsh.nix
+
     #../../home/programs/xfsettingsd.nix
   ];
 
@@ -130,5 +136,4 @@ in
   ############################################
 
   programs.home-manager.enable = true;
-
 }

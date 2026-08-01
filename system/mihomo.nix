@@ -16,8 +16,8 @@
     path = [pkgs.mihomo];
   };
 
+  # 防火墙放行（TUN 接口 "Meta" 已在 system/network.nix 的 trustedInterfaces 中配置）
   networking.firewall = {
-    trustedInterfaces = ["mihomo"];
     checkReversePath = "loose";
     allowedTCPPorts = [9090 7890 7891]; # 放行控制面板及代理端口
   };

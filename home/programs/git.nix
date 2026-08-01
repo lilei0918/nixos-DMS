@@ -1,17 +1,16 @@
 {
-  config,
-  pkgs,
-  ...
-}: {
   programs.git = {
     enable = true;
 
-    userName = "lilei";
-    userEmail = "lilei0918@gmail.com";
-
     lfs.enable = true;
 
-    extraConfig = {
+    settings = {
+
+      user = {
+        name = "lilei";
+        email = "lilei0918@gmail.com";
+      };
+
       init.defaultBranch = "main";
 
       pull.rebase = true;
@@ -23,29 +22,41 @@
 
       color.ui = "auto";
 
-      diff.colorMoved = "default";
+      diff = {
+        colorMoved = "default";
+      };
 
-      merge.conflictstyle = "zdiff3";
+      merge = {
+        conflictstyle = "zdiff3";
+      };
 
-      credential.helper = "store";
-    };
+      alias = {
+        st = "status";
+        co = "checkout";
+        br = "branch";
+        lg = "log --oneline --graph --decorate";
+      };
 
-    aliases = {
-      st = "status";
-      co = "checkout";
-      br = "branch";
-      lg = "log --oneline --graph --decorate";
     };
   };
 
-  programs.git.delta = {
+  programs.delta = {
+
     enable = true;
 
+    enableGitIntegration = true;
+
     options = {
+
       side-by-side = true;
+
       navigate = true;
+
       line-numbers = true;
+
       syntax-theme = "Catppuccin Mocha";
+
     };
+
   };
 }

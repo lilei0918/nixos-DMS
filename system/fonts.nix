@@ -1,81 +1,126 @@
 {
-  config,
-  pkgs,
   lib,
+  pkgs,
   ...
-}:
-{
-
+}: {
   fonts = {
-
     # 开启 fontconfig
     fontDir.enable = true;
 
-    # 字体包
-    packages =
-      with pkgs;
+    packages = with pkgs;
       [
-
+        # =========================
         # 中文字体
+        # =========================
+
+        # 中文 UI / 网页
         noto-fonts-cjk-sans
+
+        # 中文阅读 / PDF
         noto-fonts-cjk-serif
 
+        # =========================
         # Emoji
+        # =========================
+
         noto-fonts-color-emoji
 
+        # =========================
         # 英文 UI
+        # =========================
+
         inter
 
+        # =========================
         # 编程字体
+        # =========================
+
         fira-code
 
-        # Nerd Fonts
+        # =========================
+        # Nerd Font
+        # =========================
+
+        # 终端 / Starship / VSCodium
         nerd-fonts.jetbrains-mono
-        nerd-fonts.fira-code
-        nerd-fonts.hack
 
+        # =========================
+        # 通用字体
+        # =========================
+
+        noto-fonts
       ]
-
       # Material Symbols
-      ++ (lib.optionals (pkgs ? material-symbols) [
+      ++ lib.optionals (pkgs ? material-symbols) [
         pkgs.material-symbols
-      ])
-
-      ++ (lib.optionals (!(pkgs ? material-symbols) && (pkgs ? material-design-icons)) [
+      ]
+      ++ lib.optionals
+      (!(pkgs ? material-symbols) && (pkgs ? material-design-icons))
+      [
         pkgs.material-design-icons
-      ]);
+      ];
 
     fontconfig = {
-
       enable = true;
 
-      defaultFonts = {
+      # =========================
+      # 默认字体 fallback
+      # =========================
 
-        # 普通 UI 字体
+      defaultFonts = {
+        # GTK / 浏览器 / UI
+
         sansSerif = [
-          "Inter"
           "Noto Sans CJK SC"
+
+          "Inter"
+
+          "Noto Sans"
         ];
 
-        # 文档/阅读
+        # 阅读 / PDF
+
         serif = [
           "Noto Serif CJK SC"
+
+          "Noto Serif"
         ];
 
-        # 终端/代码
+        # Terminal / Coding
+
         monospace = [
           "JetBrainsMono Nerd Font"
+
+          "Noto Sans Mono CJK SC"
         ];
 
         # Emoji
-        emoji = [
-          "noto-fonts-color-emoji"
-        ];
 
+        emoji = [
+          "Noto Color Emoji"
+        ];
       };
 
+      # =========================
+      # 字体渲染
+      # =========================
+
+      antialias = true;
+
+      hinting = {
+        enable = true;
+
+        style = "slight";
+      };
+
+      # Wayland 推荐
+      # 避免外接屏幕颜色边缘
+
+      subpixel = {
+        rgba = "none";
+
+        lcdfilter = "default";
+      };
     };
-
   };
-
 }

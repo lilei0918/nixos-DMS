@@ -1,41 +1,144 @@
-{
-  config,
-  pkgs,
-  inputs,
-  ...
-}:
-{
+{pkgs, ...}: {
   environment.systemPackages = with pkgs; [
-    # 🧰 常用工具
+    # ─────────────────────────────
+    # 🧰 系统基础工具
+    # ─────────────────────────────
+
     wget
+    curl
+
     git
-    pavucontrol
-    xwayland
+    lazygit
+
     nh
-    pciutils # 查看 OpenGL 信息
-    ddcutil
+
+    jq
+    socat
+
+    tree
+
+    ripgrep
+    fd
+    bat
+    eza
+
+    # ─────────────────────────────
+    # 🖥️ Terminal
+    # ─────────────────────────────
+
+    alacritty
+
+    tmux
+
+    starship
+
+    fzf
+
+    zoxide
+
+    direnv
+
+    # ─────────────────────────────
+    # 📦 压缩 / 解压
+    # ─────────────────────────────
+
+    zip
+    unzip
+
+    p7zip
+
+    rar
+
+    dtrx
+
+    # ─────────────────────────────
+    # 💻 Nix 开发工具
+    # ─────────────────────────────
+
+    nil
+
+    alejandra
+
+    statix
+
+    deadnix
+
+    nix-tree
+
+    nix-output-monitor
+
+    sops
+
+    age
+
+    # ─────────────────────────────
+    # 🔨 编译工具
+    # ─────────────────────────────
+
+    gcc
+
+    gnumake
+
+    # ─────────────────────────────
+    # 🖥️ Wayland / Niri
+    # ─────────────────────────────
+
+    xwayland
+
+    xwayland-satellite
+
     grim
+
     slurp
 
-    # 🎨 桌面美化
-    waypaper
-    apple-cursor
+    wl-clipboard
 
-    # 🔊 多媒体支持
+    wl-clip-persist
 
-    playerctl
-    spicetify-cli
+    # ─────────────────────────────
+    # 🔍 硬件检测
+    # ─────────────────────────────
 
-    # 🌐 Node 工具
-    #nodePackages.prettier
+    pciutils
 
-    wsdd # gvfs 里启用了 Windows 网络发现
+    ddcutil
+
+    # ─────────────────────────────
+    # 💾 文件系统
+    # ─────────────────────────────
+
+    btrfs-progs
+
+    ntfs3g
+
+    # ─────────────────────────────
+    # 🌐 网络兼容
+    # ─────────────────────────────
+
+    wsdd
+
+    # ─────────────────────────────
+    # 🔐 Secret
+    # ─────────────────────────────
+
     libsecret
 
-    # 🧪 预留模块（注释留用）
-    #arrpc
-    #alvr
-    #mesa（已启用）
-    #brillo
+    # ─────────────────────────────
+    # 🎧 系统控制
+    # ─────────────────────────────
+
+    playerctl
+
+    brightnessctl
+
+    libnotify
+
+    # ─────────────────────────────
+    # 编辑器
+    # ─────────────────────────────
+
+    vim
+
+    micro
   ];
 }

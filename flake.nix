@@ -1,25 +1,66 @@
 {
-  description = "Nixos config flake";
+  description = "Lei NixOS configuration";
 
   inputs = {
+    # =============================
+    # Nixpkgs
+    # =============================
+
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    #chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+
+    # =============================
+    # Home Manager
+    # =============================
+
+    home-manager = {
+      url = "github:nix-community/home-manager";
+
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # =============================
+    # NUR
+    # =============================
+
     nur.url = "github:nix-community/NUR";
-    home-manager.url = "github:nix-community/home-manager";
+
+    # =============================
+    # DankMaterialShell
+    # =============================
 
     dms = {
       url = "github:AvengeMedia/DankMaterialShell/stable";
+
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # ✅ ADD THIS: niri-flake for compositor
+    # =============================
+    # Niri
+    # =============================
+
     niri = {
       url = "github:sodiboo/niri-flake";
+
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # =============================
+    # Hermes Agent
+    # =============================
 
     hermes-agent = {
       url = "github:NousResearch/hermes-agent/1cdb8ce361e91c79cfbd6bee550ee6c09d290261";
+
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # =============================
+    # Secrets
+    # =============================
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -28,22 +69,48 @@
     self,
     nixpkgs,
     home-manager,
-    #chaotic,
     nur,
     dms,
     niri,
     hermes-agent,
+    sops-nix,
     ...
   } @ inputs: {
-    nixosConfigurations.default = nixpkgs.lib.nixosSystem {
+    # =============================
+    # NixOS Host
+    # =============================
+
+    nixosConfigurations.legion = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inherit self inputs; };
+
+      specialArgs = {
+        inherit self inputs;
+      };
+
       modules = [
-        ./hosts/default/configuration.nix
-        inputs.home-manager.nixosModules.default
-        hermes-agent.nixosModules.default  
-        #chaotic.nixosModules.default
-              ];
+        # 主机配置
+
+        ./hosts/legion/configuration.nix
+
+        # Home Manager
+
+        home-manager.nixosModules.default
+
+        # Hermes
+
+        hermes-agent.nixosModules.default
+
+        # Secrets
+
+        sops-nix.nixosModules.sops
+      ];
     };
+
+    # =============================
+    # Formatter
+    # =============================
+
+    formatter.x86_64-linux =
+      nixpkgs.legacyPackages.x86_64-linux.alejandra;
   };
 }

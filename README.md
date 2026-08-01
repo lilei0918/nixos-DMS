@@ -1,48 +1,55 @@
-![NixOS Configuration](https://i.imgur.com/LcVA9sp.jpeg)
-[Video](https://files.catbox.moe/3zeqvz.mp4)
+# nixos-DMS
 
-Click on the image to see the demo.
+Lei 的 NixOS 配置仓库（flake 化），目标主机：Lenovo Legion R7000P 2021。
 
-> ⚠️ **Important:** This repository includes my personal `hardware-configuration.nix`, which is specific to my hardware setup.  
-> You **must replace it** with one generated for your system using `nixos-generate-config` to avoid compatibility issues.
+## 技术栈
 
-# NixOS Configuration
+- **NixOS**：nixos-unstable（`system.stateVersion = 25.05`）
+- **窗口管理器**：niri（滚动式 Wayland compositor）
+- **桌面壳**：DankMaterialShell（dms）
+- **登录**：greetd + tuigreet
+- **Home Manager**：用户级配置（`home.stateVersion = 25.05`）
+- **机密管理**：sops-nix（age 加密）
 
-This repository contains my personal NixOS configuration for a customized desktop and development environment. 🎨💻
+## 快速开始
 
-## Directory Structure
+```bash
+# 切换系统（主机配置名 legion）
+sudo nixos-rebuild switch --flake .#legion
 
-- **`assets/`** 🎨  
-  Contains custom icons and wallpapers.
+# 或使用 nh（会自动提权，不要加 sudo）
+nh os switch .#legion
 
-  - **`icons/`**: Custom icon set.
-  - **`wallpapers/`**: Collection of wallpapers.
+# 仅测试构建，不切换
+sudo nixos-rebuild test --flake .#legion
+```
 
-- **`dev-shells/`** 🧑‍💻  
-  Development environments.
+## 目录结构
 
-- **`hosts/`** 🖥️  
-  Host-specific configurations.
+```text
+nixos-DMS/
+├── flake.nix          # 入口：定义 inputs 和 outputs
+├── Hermes.md          # AI 助手参考手册（配置详解）
+├── hosts/legion/      # 主机专属配置
+│   ├── configuration.nix   # NixOS 系统配置入口
+│   ├── home.nix            # Home Manager 入口
+│   └── packages.nix        # 用户级软件包
+├── system/            # 系统级模块（nix/boot/hardware/network/services/fonts/input/...）
+├── home/              # 用户级模块（niri/terminal/programs）
+├── secrets/           # sops 加密的机密文件
+└── assets/            # 图标与主题资源
+```
 
-  - **`default/`**: Default host configuration including `hardware-configuration.nix`, `home.nix`, and `packages.nix`.
+## 主要特点
 
-- **`modules/`** ⚙️  
-  Custom NixOS modules for desktop, editors, programs, and more.
+- AMD iGPU（amdgpu）驱动；NVIDIA 独显默认屏蔽（`nvidia-block.nix`），`nvidia.nix` 保留完整独显配置备用（启用时二者选其一）
+- Btrfs 子卷布局（`@`/`@home`/`@nix`/`@log`），无 swap
+- 多系统引导：Arch GRUB 主引导，NixOS systemd-boot 次引导
+- Fcitx5 + Rime（rime-ice）输入法
+- Tuna/USTC 镜像源加速
+- Hermes Agent 系统服务（deepseek 模型，密钥走 sops）
 
-  - **`desktop/`**: Configuration for Hyprland, Waybar, and related tools.
-  - **`editors/`**: Neovim and VSCode configurations.
-  - **`programs/`**: Additional program configurations (e.g., Fastfetch, Ghostty).
-  - **`quickshell/`**: The current quickshell setup, thanks to [Rexcrazy804](https://github.com/Rexcrazy804) for creating it.
+## 注意事项
 
-- **`system/`** 🔧  
-  System-wide configurations.
-  - **`environment.nix`**: Global environment settings.
-  - **`greeter/`**: Greetd configuration for login.
-  - **`shell/`**: Shell configurations for Bash and Fish.
-  - **`xdg.nix`**: XDG settings.
-
-## Getting Started
-
-Clone this repository and adjust the configurations based on your system. Modify the host-specific files and modules to suit your needs.
-
-Feel free to customize and contribute!
+- `secrets/secrets.yaml` 已用 sops 加密，可安全提交；age 私钥（`/etc/sops/age/keys.txt`）**绝不可提交**
+- 详细配置说明见 [`Hermes.md`](./Hermes.md)

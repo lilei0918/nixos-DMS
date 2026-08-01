@@ -1,0 +1,9 @@
+keys:
+  - &lilei age14hwqm9aumaek4k6gn2zn8269ztzemgyvt8kqu4aq4lpxqtpl8uys5q42qn
+
+creation_rules:
+  - path_regex: secrets/.*\.yaml$
+
+    key_groups:
+      - age:
+          - *lilei

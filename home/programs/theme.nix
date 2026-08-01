@@ -4,66 +4,168 @@
   lib,
   ...
 }:
+
 let
-  theme = {
+
+  gtkTheme = {
     name = "WhiteSur-Dark";
-    icon = "WhiteSur";
-    cursor = "macOS-White";
-    cursorSize = 24;
   };
+
+  iconTheme = {
+    name = "WhiteSur";
+  };
+
+  cursorTheme = {
+    name = "macOS-White";
+    size = 24;
+  };
+
 in
 {
-  # 用户级 GTK 主题
+
+  # ======================================
+  # GTK
+  # ======================================
+
   gtk = {
+
     enable = true;
+
+    # GTK4 使用系统默认（null），不再强制 WhiteSur
+    # （旧默认是跟随 gtk.theme，home.stateVersion < 26.05 时会警告）
+    gtk4.theme = null;
+
+    # GTK3 应用
     theme = {
-      name = theme.name;
+
+      name = gtkTheme.name;
+
       package = pkgs.whitesur-gtk-theme;
+
     };
+
+
     iconTheme = {
-      name = theme.icon;
+
+      name = iconTheme.name;
+
       package = pkgs.whitesur-icon-theme;
+
     };
+
+
     cursorTheme = {
-      name = theme.cursor;
-      size = theme.cursorSize;
+
+      name = cursorTheme.name;
+
+      size = cursorTheme.size;
+
     };
-    gtk4.theme = config.gtk.theme;
+
+
+    # 不再强制 GTK4 使用 WhiteSur
+    #
+    # 原来的：
+    # gtk4.theme = config.gtk.theme;
+    #
+    # 删除
+
+
+    font = {
+
+      name = "Noto Sans CJK";
+
+      size = 11;
+
+    };
+
   };
 
-  # Qt 主题（修正）
+
+
+  # ======================================
+  # Qt
+  # ======================================
+
   qt = {
+
     enable = true;
+
 
     platformTheme = {
+
       name = "gtk3";
+
     };
+
 
     style = {
+
       name = "gtk3";
+
     };
-    # 如果你不需要 style，可以注释掉
-    # style = null;
+
   };
 
-  # 用户光标设置
+
+
+  # ======================================
+  # Cursor
+  # ======================================
+
   home.pointerCursor = {
+
     gtk.enable = true;
+
     enable = true;
 
+
     package = pkgs.apple-cursor;
-    name = theme.cursor;
-    size = theme.cursorSize;
+
+
+    name = cursorTheme.name;
+
+
+    size = cursorTheme.size;
+
   };
 
+
+
+  # ======================================
   # 环境变量
+  # ======================================
+
   home.sessionVariables = {
-    GTK_THEME = theme.name;
+
+    # 删除 GTK_THEME
+    #
+    # GTK_THEME=WhiteSur-Dark
+    # 会破坏 GTK4
+
+
+    # 让 Qt/GTK 使用 dark preference
+
+    GTK_APPLICATION_PREFER_DARK_THEME = "1";
+
   };
 
-  # 安装主题包
+
+
+  # ======================================
+  # Themes
+  # ======================================
+
   home.packages = with pkgs; [
+
     whitesur-gtk-theme
+
     whitesur-icon-theme
+
+    adwaita-icon-theme
+
+    gnome-themes-extra
+
   ];
+
 }

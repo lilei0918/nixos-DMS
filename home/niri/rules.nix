@@ -120,11 +120,7 @@
       open-on-workspace = "terminal";
       default-column-width = {proportion = 0.5;};
     }
-    {
-      matches = [{app-id = "thunar";}];
-      open-on-workspace = "files";
-      default-column-width = {proportion = 0.75;};
-    }
+    
     {
       matches = [{app-id = "mpv";}];
       open-on-workspace = "media";
@@ -143,10 +139,6 @@
       open-on-workspace = "terminal";
       open-floating = true;
     }
-    {
-      matches = [{app-id = "vesktop";}];
-      open-on-workspace = "vesktop";
-    }
 
     # 10. 非活动窗口透明度（如果需要）
     # {
@@ -159,5 +151,21 @@
       matches = [{app-id = "SiYuan";}];
       default-column-width = {proportion = 1.0;};
     }
+
+    {  matches = [ { app-id = "thunar"; }  ];
+
+      
+      open-floating = true;
+
+      
+      default-column-width = {
+          fixed = 1200;
+      };
+
+      default-window-height = {
+          fixed = 800;
+      };
+    }
+
   ];
 }
