@@ -93,7 +93,7 @@ nixos-DMS/
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── cliphist.nix     # 剪贴板历史
 │       ├── dconf.nix        # GNOME dconf 主题设置
-│       ├── fastfetch.nix    # 系统信息（⚠️ logo 路径 bug，见"已知问题"）
+│       ├── fastfetch.nix    # 系统信息（logo 指向 ~/nixos-DMS/assets/）
 │       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置）
 │       ├── git.nix          # git + delta
 │       ├── hermes.nix       # Hermes Desktop
@@ -322,7 +322,7 @@ nixos-DMS/
   - `inputs.dms.homeModules.niri`
   - `inputs.niri.homeModules.niri`
   - `../../home/programs/rime.nix`
-  - `../../home/programs/vscode/vscode.nix` ⚠️（重复导入，见已知问题）
+  - `../../home/programs/vscode/vscode.nix`
   - `../../home/programs/firefox.nix`
   - `../../home/programs/chrome.nix`
   - `../../home/programs/cliphist.nix`
@@ -331,7 +331,7 @@ nixos-DMS/
   - `../../home/programs/thunar.nix`
   - `../../home/programs/theme.nix`
   - `../../home/programs/dconf.nix`
-  - `../../home/programs/fastfetch.nix` ⚠️（重复导入，见已知问题）
+  - `../../home/programs/fastfetch.nix`
   - `../../home/programs/git.nix`
   - `../../home/programs/btop.nix`
   - `../../home/terminal/alacritty.nix`
@@ -498,8 +498,8 @@ sops.templates."hermes-env" = {
 | `walker.nix` | walker + elephant（剪贴板依赖，systemd user service） |
 | `vscode/vscode.nix` | **VSCodium**（不是 VSCode）：nix-ide、gitlens、material-icon、material-theme、markdown-all-in-one、yaml、code-spell-checker；首次激活时复制 vscode-settings.json |
 | `btop.nix` | presets、TTY 配色、desktop entry（ghostty -e btop） |
-| `fastfetch.nix` | 自定义 logo 与模块布局 ⚠️（logo 路径 bug） |
-| `rime.nix` | rime-ice（fetchFromGitHub main 分支，hash 固定）、首次激活时复制到 fcitx5/rime、librime + librime-lua |
+| `fastfetch.nix` | 自定义 logo 与模块布局（logo 指向 ~/nixos-DMS/assets/） |
+| `rime.nix` | rime-ice（锁定 commit `8a3d9470`，声明式 home.file 管理）、librime + librime-lua。⚠️ **rebuild/重启后若雾凇未出现，手动运行 `fcitx5-remote -r` 触发部署**（详见文件头注释） |
 | `cliphist.nix` | 剪贴板历史（允许图片） |
 | `obs.nix` | 【未启用】wrapOBS + obs-vkcapture/webgtk/vaapi/composite-blur 插件 |
 | `xfsettingsd.nix` | 【未启用】XFCE 设置守护进程 user service |
@@ -617,6 +617,7 @@ sops.templates."hermes-env" = {
 8. **NixOS 版本**：实际使用 unstable（当前 26.11），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
 9. **用户组**：`lilei` 已加入 `hermes` 组，这是使用 Hermes 服务的前提。
 10. **机密文件**：`secrets/secrets.yaml` 已加密，可以提交到 GitHub，但 age 私钥绝不可提交（已在 `.gitignore` 中忽略）。
+11. **Rime 部署**：rebuild/重启后若雾凇输入法未出现，手动运行 `fcitx5-remote -r` 触发部署（rime 目录由 home.file 声明式管理，部署懒触发）。详见 `home/programs/rime.nix` 头部注释。
 
 ---
 

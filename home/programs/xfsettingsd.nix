@@ -1,12 +1,8 @@
-{
-  pkgs,
-  ...
-}: {
-
+{pkgs, ...}: {
   systemd.user.services.xfsettingsd = {
     Unit = {
       Description = "XFCE Settings Daemon";
-      After = [ "graphical-session.target" ];
+      After = ["graphical-session.target"];
     };
 
     Service = {
@@ -15,8 +11,7 @@
     };
 
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = ["graphical-session.target"];
     };
   };
-
 }

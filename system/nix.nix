@@ -1,9 +1,4 @@
-{
-  inputs,
-  ...
-}:
-
-{
+{inputs, ...}: {
   nixpkgs.overlays = [
     (final: prev: {
       nur = import inputs.nur {
@@ -14,7 +9,6 @@
   ];
 
   nix.settings = {
-
     experimental-features = [
       "nix-command"
       "flakes"
@@ -31,19 +25,15 @@
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     ];
-
   };
 
   nix.gc = {
-
     automatic = true;
 
     dates = "daily";
 
     options = "--delete-older-than 5d";
-
   };
 
   nixpkgs.config.allowUnfree = true;
-
 }

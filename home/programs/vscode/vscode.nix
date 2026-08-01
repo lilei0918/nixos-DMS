@@ -1,7 +1,5 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }: {
 
@@ -10,8 +8,13 @@
     enable = true;
 
 
-    profiles.default.extensions =
-      with pkgs.vscode-extensions; [
+    profiles.default = {
+
+      # =========================
+      # Extensions
+      # =========================
+
+      extensions = with pkgs.vscode-extensions; [
 
         # =========================
         # Nix
@@ -46,19 +49,107 @@
 
 
         # =========================
-        # Spell
+        # Spell Check
         # =========================
 
         streetsidesoftware.code-spell-checker
 
       ];
 
+
+
+      # =========================
+      # VSCodium Settings
+      # =========================
+
+      userSettings = {
+
+
+        # -------------------------
+        # Nix Language Server
+        # -------------------------
+
+        "nix.enableLanguageServer" = true;
+
+        "nix.serverPath" = "nil";
+
+
+
+        # -------------------------
+        # Nix Formatter
+        # -------------------------
+
+        "nix.formatterPath" = "alejandra";
+
+
+
+        "[nix]" = {
+
+          "editor.defaultFormatter" =
+            "jnoortheen.nix-ide";
+
+
+          "editor.formatOnSave" = true;
+
+
+          "editor.tabSize" = 2;
+
+
+          "editor.insertSpaces" = true;
+
+        };
+
+
+
+        # -------------------------
+        # General Editor
+        # -------------------------
+
+        "editor.formatOnSave" = true;
+
+
+        "editor.minimap.enabled" = false;
+
+
+        "editor.wordWrap" = "on";
+
+
+        "files.autoSave" = "off";
+
+
+
+        # -------------------------
+        # Theme
+        # -------------------------
+
+        "workbench.colorTheme" =
+          "One Dark Pro";
+
+
+        "workbench.iconTheme" =
+          "material-icon-theme";
+
+
+
+        # -------------------------
+        # Terminal
+        # -------------------------
+
+        "terminal.integrated.fontFamily" =
+          "JetBrainsMono Nerd Font";
+
+
+      };
+
+    };
+
   };
 
 
-  # ===============================
-  # Nix 开发工具
-  # ===============================
+
+  # =========================
+  # Nix Development Tools
+  # =========================
 
   home.packages = with pkgs; [
 
@@ -67,35 +158,5 @@
     alejandra
 
   ];
-
-
-
-  # ===============================
-  # 初始化 VSCodium 配置
-  #
-  # 第一次生成真实文件
-  # 后续由 VSCodium 自己管理
-  # ===============================
-
-  home.activation.vscodiumSettings =
-    lib.hm.dag.entryAfter ["writeBoundary"] ''
-
-      VSCODIUM_CONFIG="$HOME/.config/VSCodium/User"
-
-      SETTINGS="$VSCODIUM_CONFIG/settings.json"
-
-
-      if [ ! -e "$SETTINGS" ]; then
-
-        mkdir -p "$VSCODIUM_CONFIG"
-
-
-        cp ${./vscode-settings.json} \
-          "$SETTINGS"
-
-
-      fi
-
-    '';
 
 }

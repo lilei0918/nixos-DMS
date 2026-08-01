@@ -120,7 +120,7 @@
       open-on-workspace = "terminal";
       default-column-width = {proportion = 0.5;};
     }
-    
+
     {
       matches = [{app-id = "mpv";}];
       open-on-workspace = "media";
@@ -152,20 +152,18 @@
       default-column-width = {proportion = 1.0;};
     }
 
-    {  matches = [ { app-id = "thunar"; }  ];
+    {
+      matches = [{app-id = "thunar";}];
 
-      
       open-floating = true;
 
-      
       default-column-width = {
-          fixed = 1200;
+        fixed = 1200;
       };
 
       default-window-height = {
-          fixed = 800;
+        fixed = 800;
       };
     }
-
   ];
 }

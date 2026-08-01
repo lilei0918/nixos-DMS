@@ -32,28 +32,28 @@
   # ─────────────────────────────────────────────────────
   # ✅ 文件系统挂载（Btrfs 子卷）
   # ─────────────────────────────────────────────────────
-   fileSystems."/" = {
+  fileSystems."/" = {
     device = "/dev/disk/by-uuid/6c9764ff-c293-4be8-801c-982bdb6ed30a";
     fsType = "btrfs";
-    options = [ "subvol=@" "compress=zstd" "noatime" "discard=async" ];
+    options = ["subvol=@" "compress=zstd" "noatime" "discard=async"];
   };
 
   fileSystems."/home" = {
     device = "/dev/disk/by-uuid/6c9764ff-c293-4be8-801c-982bdb6ed30a";
     fsType = "btrfs";
-    options = [ "subvol=@home" "compress=zstd" "noatime" "discard=async" ];
+    options = ["subvol=@home" "compress=zstd" "noatime" "discard=async"];
   };
 
   fileSystems."/nix" = {
     device = "/dev/disk/by-uuid/6c9764ff-c293-4be8-801c-982bdb6ed30a";
     fsType = "btrfs";
-    options = [ "subvol=@nix" "compress=zstd" "noatime" "discard=async" ];
+    options = ["subvol=@nix" "compress=zstd" "noatime" "discard=async"];
   };
 
   fileSystems."/var/log" = {
     device = "/dev/disk/by-uuid/6c9764ff-c293-4be8-801c-982bdb6ed30a";
     fsType = "btrfs";
-    options = [ "subvol=@log" "compress=zstd" "noatime" "discard=async" ];
+    options = ["subvol=@log" "compress=zstd" "noatime" "discard=async"];
   };
 
   fileSystems."/tmp" = {
@@ -67,7 +67,6 @@
     fsType = "vfat";
     options = ["fmask=0022" "dmask=0022"];
   };
-
 
   # ─────────────────────────────────────────────────────
   # ✅ 交换空间配置

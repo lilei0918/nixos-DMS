@@ -2,8 +2,7 @@
   config,
   pkgs,
   ...
-}:
-{
+}: {
   # 工作区完全动态，不预定义任何工作区
   #（rules.nix 中引用的 code/terminal/media 等工作区按需自动创建）
 
@@ -33,10 +32,10 @@
 
     # 预设列宽
     preset-column-widths = [
-      { proportion = 0.25; }
-      { proportion = 0.5; }
-      { proportion = 0.75; }
-      { proportion = 1.0; }
+      {proportion = 0.25;}
+      {proportion = 0.5;}
+      {proportion = 0.75;}
+      {proportion = 1.0;}
     ];
 
     default-column-width = {

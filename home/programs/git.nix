@@ -5,7 +5,6 @@
     lfs.enable = true;
 
     settings = {
-
       user = {
         name = "lilei";
         email = "lilei0918@gmail.com";
@@ -36,18 +35,15 @@
         br = "branch";
         lg = "log --oneline --graph --decorate";
       };
-
     };
   };
 
   programs.delta = {
-
     enable = true;
 
     enableGitIntegration = true;
 
     options = {
-
       side-by-side = true;
 
       navigate = true;
@@ -55,8 +51,6 @@
       line-numbers = true;
 
       syntax-theme = "Catppuccin Mocha";
-
     };
-
   };
 }

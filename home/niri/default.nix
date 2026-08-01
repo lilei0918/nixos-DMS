@@ -4,8 +4,7 @@
   inputs,
   lib,
   ...
-}:
-let
+}: let
   settings = import ./settings.nix {
     inherit
       config
@@ -39,5 +38,5 @@ let
       ;
   };
 in
-# 使用 // 合并（后面的覆盖前面的，但通常各键不同，无冲突）
-settings // keybinds // rules // autostart
+  # 使用 // 合并（后面的覆盖前面的，但通常各键不同，无冲突）
+  settings // keybinds // rules // autostart

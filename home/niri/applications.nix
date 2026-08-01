@@ -1,4 +1,4 @@
-{ pkgs }: {
+{pkgs}: {
   # 🧭 常用程序路径定义
   browser = "${pkgs.google-chrome}/bin/google-chrome-stable";
   terminal = "${pkgs.ghostty}/bin/ghostty";

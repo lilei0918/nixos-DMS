@@ -2,17 +2,15 @@
   lib,
   pkgs,
   ...
-}:
-{
+}: {
   spawn-at-startup = [
-
     # 🖥️ XWayland 卫星服务
     {
-      command = [ "xwayland-satellite" ];
+      command = ["xwayland-satellite"];
     }
     # 🔐 权限管理
     {
-      command = [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ];
+      command = ["${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"];
     }
 
     # ⌨️ 输入法
@@ -37,7 +35,7 @@
 
     # 🔵 蓝牙托盘程序
     {
-      command = [ "blueman-applet" ];
+      command = ["blueman-applet"];
     }
 
     # 📌 新增：剪贴板持久化（解决关闭源程序后无法粘贴的问题）

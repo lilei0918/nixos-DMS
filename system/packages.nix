@@ -139,6 +139,6 @@
 
     vim
 
-    micro
+    gnome-text-editor
   ];
 }

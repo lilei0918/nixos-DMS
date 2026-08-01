@@ -3,13 +3,9 @@
   pkgs,
   inputs,
   ...
-}:
-
-{
+}: {
   imports = [
-
     ./hardware-configuration.nix
-
 
     ################################
     # system modules
@@ -25,7 +21,6 @@
 
     ../../system/services.nix
 
-
     ################################
     # desktop
     ################################
@@ -35,7 +30,6 @@
     ../../system/input.nix
 
     ../../system/xdg.nix
-
 
     ################################
     # programs
@@ -47,38 +41,31 @@
 
     ../../system/packages.nix
 
-
     ################################
     # greeter
     ################################
 
     ../../system/greetd.nix
 
-
     ################################
     # secrets
     ################################
 
     ../../system/secrets.nix
-
   ];
-
 
   ################################
   # User
   ################################
 
   users.users.lilei = {
-
     isNormalUser = true;
 
     description = "lilei";
 
     shell = pkgs.zsh;
 
-
     extraGroups = [
-
       "wheel"
 
       "networkmanager"
@@ -88,50 +75,36 @@
       "input"
 
       "hermes"
-
     ];
 
-
-    hashedPassword =
-      "***REMOVED***";
-
+    hashedPassword = "***REMOVED***";
   };
-
 
   ################################
   # Home Manager
   ################################
 
   home-manager = {
-
     useGlobalPkgs = true;
 
     useUserPackages = true;
 
-
     # 给 home.nix / hermes.nix 使用 flake inputs
 
     extraSpecialArgs = {
-
       inherit inputs;
-
     };
-
 
     users.lilei = import ./home.nix;
 
-
     backupFileExtension = "backup";
-
   };
-
 
   ################################
   # dconf
   ################################
 
   programs.dconf.enable = true;
-
 
   ################################
   # Locale
@@ -141,13 +114,11 @@
 
   console.keyMap = "us";
 
-
   ################################
   # Shell
   ################################
 
   programs.zsh.enable = true;
-
 
   ################################
   # NixOS version
@@ -155,13 +126,11 @@
 
   system.stateVersion = "25.05";
 
-
   ################################
   # rebuild log
   ################################
 
   system.activationScripts.logRebuildTime = {
-
     text = ''
 
       LOG_FILE="/var/log/nixos-rebuild-log.json"
@@ -175,7 +144,5 @@
       chmod 644 "$LOG_FILE"
 
     '';
-
   };
-
 }

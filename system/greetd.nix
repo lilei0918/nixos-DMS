@@ -3,9 +3,7 @@
   pkgs,
   inputs,
   ...
-}:
-
-{
+}: {
   services.greetd = {
     enable = true;
     settings = {
@@ -24,7 +22,7 @@
   systemd = {
     # To prevent getting stuck at shutdown
     settings.Manager = {
-        DefaultTimeoutStopSec = "10s";
+      DefaultTimeoutStopSec = "10s";
     };
     services.greetd.serviceConfig = {
       Type = "idle";
