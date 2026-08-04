@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   inputs,
   ...
@@ -35,11 +34,17 @@
     # programs
     ################################
 
-    ../../system/programs/nvidia-block.nix
+    ../../system/nvidia/nvidia-block.nix
 
     ../../system/mihomo.nix
 
     ../../system/packages.nix
+
+    ../../system/vault/vaultwarden.nix
+
+    ../../system/vault/vaultwarden-backup.nix
+
+    ../../system/vault/vault.nix
 
     ################################
     # greeter

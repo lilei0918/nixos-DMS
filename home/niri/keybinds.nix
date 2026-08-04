@@ -3,12 +3,8 @@
   config,
   pkgs,
   ...
-}: let
-  apps = import ./applications.nix {inherit pkgs;};
-  ghostty = lib.getExe' pkgs.ghostty "ghostty"; # 自动获取正确路径
-in {
+}: {
   binds = with config.lib.niri.actions; let
-    ghostty = lib.getExe' pkgs.ghostty "ghostty";
     google-chrome = lib.getExe' pkgs.google-chrome "google-chrome-stable";
     thunar = lib.getExe' pkgs.thunar "thunar";
     walker = lib.getExe' pkgs.walker "walker"; # ← fuzzel 改为 walker

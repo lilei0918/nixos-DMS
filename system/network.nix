@@ -2,13 +2,9 @@
   networking = {
     hostName = "nixos";
 
-    networkmanager.enable = true;
-
-    wireless = {
-      userControlled = false;
-    };
-
     networkmanager = {
+      enable = true;
+
       wifi.backend = "wpa_supplicant";
 
       wifi.powersave = false;

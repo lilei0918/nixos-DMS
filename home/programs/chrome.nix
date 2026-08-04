@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+_: {
   # Google Chrome Stable 启动参数
   xdg.configFile."chromium-flags.conf".text = ''
     --ozone-platform=wayland

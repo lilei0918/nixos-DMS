@@ -1,10 +1,11 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
-  # 工作区完全动态，不预定义任何工作区
-  #（rules.nix 中引用的 code/terminal/media 等工作区按需自动创建）
+{...}: {
+  # 命名工作区（供 rules.nix 的 open-on-workspace 使用）
+  # ⚠️ niri 的 open-on-workspace 不会自动创建工作区，必须在此声明，否则窗口落到当前工作区
+  workspaces = {
+    "browser" = {};
+    "note" = {};
+    "code" = {};
+  };
 
   # 禁用客户端装饰
   prefer-no-csd = true;

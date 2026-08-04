@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+_: {
   programs.ghostty = {
     enable = true;
 
@@ -21,7 +21,7 @@
         "JetBrainsMono Nerd Font"
       ];
 
-      font-size = 14;
+      font-size = 12;
 
       # =============================
       # Rendering

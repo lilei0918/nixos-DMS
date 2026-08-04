@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   # Enable OpenGL
   hardware.graphics = {
     enable = true;
@@ -14,7 +9,10 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = ["nvidia"];
+  services.xserver = {
+    enable = true;
+    videoDrivers = ["nvidia"];
+  };
 
   hardware.nvidia = {
     # Modesetting is required.

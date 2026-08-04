@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   spawn-at-startup = [
     # 🖥️ XWayland 卫星服务
     {

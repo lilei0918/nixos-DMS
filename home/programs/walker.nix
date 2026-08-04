@@ -1,19 +1,16 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}: {
+{pkgs, ...}: {
   home.packages = with pkgs; [
     walker
     elephant # 剪贴板历史依赖
   ];
 
   systemd.user.services.elephant = {
-    Unit.Description = "Elephant Service for Walker";
-    # 关键：明确要求此服务在 graphical-session.target 之后启动
-    Unit.After = ["graphical-session.target"];
-    Unit.PartOf = ["graphical-session.target"];
+    Unit = {
+      Description = "Elephant Service for Walker";
+      # 关键：明确要求此服务在 graphical-session.target 之后启动
+      After = ["graphical-session.target"];
+      PartOf = ["graphical-session.target"];
+    };
 
     Service = {
       Type = "simple";
@@ -23,7 +20,9 @@
       RestartSec = 3;
     };
 
-    Install.WantedBy = ["graphical-session.target"];
+    Install = {
+      WantedBy = ["graphical-session.target"];
+    };
   };
   # 可选：自定义 walker 配置
   # home.file.".config/walker/config.json".text = builtins.toJSON {

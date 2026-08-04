@@ -11,11 +11,7 @@
 # 若 -r 后 5-10 秒仍无雾凇，检查：
 #   ls ~/.local/share/fcitx5/rime/rime_ice.schema.yaml   # 应存在
 #   ls ~/.local/share/fcitx5/rime/symbols_v.yaml         # 应存在（缺失会导致 resource could not be loaded）
-
-{
-  pkgs,
-  ...
-}: let
+{pkgs, ...}: let
   rimeIceSrc = pkgs.fetchFromGitHub {
     owner = "iDvel";
     repo = "rime-ice";
@@ -24,12 +20,8 @@
 
     hash = "sha256-+C/4Z44+hguaGgA8SShNLs1wKbgVYOFTLkJqGFiOqb8=";
   };
-
-in
-{
-
+in {
   home.sessionVariables = {
-
     GTK_IM_MODULE = "fcitx";
 
     QT_IM_MODULE = "fcitx";
@@ -37,24 +29,18 @@ in
     XMODIFIERS = "@im=fcitx";
 
     SDL_IM_MODULE = "fcitx";
-
   };
 
   # rime-ice 配置
   home.file.".local/share/fcitx5/rime" = {
-
     source = rimeIceSrc;
 
     recursive = true;
-
   };
 
   home.packages = with pkgs; [
-
     librime
 
     librime-lua
-
   ];
-
 }

@@ -1,32 +1,20 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
-  # 图层规则（注意键名加引号）
-  "layer-rules" = [
-    {
-      matches = [{namespace = "^awww-daemon$";}];
-      place-within-backdrop = true;
-    }
-    # 如果你需要其他图层规则，可以在这里添加
-  ];
-
+_: {
   # 窗口规则（注意键名加引号）
+  # app-id 用正则子串匹配即可（如 "libreoffice" 同时命中 writer/calc/impress）
   "window-rules" = [
-    # 1. 通用圆角设置（你原有的）
+    # 1. 通用圆角设置
     {
       matches = [{}];
       geometry-corner-radius = {
-        top-left = 20.0;
-        top-right = 20.0;
-        bottom-left = 20.0;
-        bottom-right = 20.0;
+        top-left = 10.0;
+        top-right = 10.0;
+        bottom-left = 5.0;
+        bottom-right = 5.0;
       };
       clip-to-geometry = true;
     }
 
-    # 2. 终端（Alacritty 和 Ghostty）固定宽度
+    # 2. 终端固定宽度
     {
       matches = [
         {app-id = "Alacritty";}
@@ -38,37 +26,48 @@
     # 3. 浏览器类（全屏启动）
     {
       matches = [
-        {app-id = "zen";}
-        {app-id = "firefox";}
-        {app-id = "chromium-browser";}
-        {app-id = "edge";}
         {app-id = "google-chrome";}
+        {app-id = "firefox";}
       ];
       open-maximized = true;
     }
 
-    # 4. 普通浏览器窗口（Zed、Chrome、VSCodium 等）占满列宽
+    # 4. 开发工具占满列宽
     {
       matches = [
         {app-id = "dev.zed.Zed";}
-        {app-id = "google-chrome";}
-        {app-id = "vscodium";}
-        {app-id = "Trae";}
         {app-id = "codium";}
-        {app-id = "daA";}
       ];
       default-column-width = {proportion = 1.0;};
     }
 
-    # 6. 浮动窗口类（Telegram、文件管理器等）
+    # 5. 办公 / 编辑器占满列宽
     {
       matches = [
-        {app-id = "org.telegram.desktop";}
+        {app-id = "libreoffice";}
+        {app-id = "zettlr";}
+        {app-id = "TradingView";}
+        {app-id = "org.gnome.TextEditor";}
+      ];
+      default-column-width = {proportion = 1.0;};
+    }
+
+    # 6. 浮动窗口类（工具 / 对话框型应用）
+    {
+      matches = [
         {app-id = "org.gnome.FileRoller";}
-        {app-id = "tauonmb";}
-        {app-id = "wechat";}
         {app-id = "QQ";}
-        {app-id = "thunar";} # 文件管理器也浮动
+        {app-id = "org.pulseaudio.pavucontrol";}
+        {app-id = "com.rafaelmardojai.Blanket";}
+        {app-id = "localsend_app";}
+        {app-id = "ca.desrt.dconf-editor";}
+        {app-id = "waypaper";}
+        {app-id = "nwg-look";}
+        {app-id = "qt6ct";}
+        {app-id = "org.gnome.Loupe";}
+        {app-id = "zathura";}
+        {app-id = "com.github.johnfactotum.Foliate";}
+        {app-id = "hermes";}
       ];
       open-floating = true;
     }
@@ -76,7 +75,6 @@
     # 7. 弹窗类窗口居中浮动
     {
       matches = [
-        {is-floating = true;}
         {title = "Open File";}
         {title = "Save File";}
         {app-id = "xdg-desktop-portal-gnome";}
@@ -86,15 +84,11 @@
       default-window-height = {fixed = 800;};
     }
 
-    # 8. 画中画窗口（Firefox、Zen）
+    # 8. 画中画窗口（Firefox）
     {
       matches = [
         {
           app-id = "firefox";
-          title = "Picture-in-Picture";
-        }
-        {
-          app-id = "zen";
           title = "Picture-in-Picture";
         }
         {title = "Picture in picture";}
@@ -111,49 +105,47 @@
 
     # 9. 特定应用分配到指定工作区
     {
-      matches = [{app-id = "code";}];
+      matches = [{app-id = "codium";}];
       open-on-workspace = "code";
-      default-column-width = {proportion = 0.75;};
     }
     {
-      matches = [{app-id = "com.mitchellh.ghostty";}];
-      open-on-workspace = "terminal";
-      default-column-width = {proportion = 0.5;};
+      matches = [{app-id = "dev.zed.Zed";}];
+      open-on-workspace = "code";
     }
-
     {
+      # 终端类：不分配工作区，保持浮动
+      matches = [
+        {app-id = "Alacritty";}
+        {app-id = "com.mitchellh.ghostty";}
+        {app-id = "htop";}
+      ];
+      open-floating = true;
+    }
+    {
+      # mpv 媒体播放器：无专用工作区，保持浮动（当前工作区）
       matches = [{app-id = "mpv";}];
-      open-on-workspace = "media";
-      open-floating = true;
-    }
-    {
-      matches = [{app-id = "org.telegram.desktop";}];
-      open-floating = true;
-    }
-    {
-      matches = [{app-id = "com.github.johnfactotum.Foliate";}];
-      open-floating = true;
-    }
-    {
-      matches = [{app-id = "htop";}];
-      open-on-workspace = "terminal";
       open-floating = true;
     }
 
-    # 10. 非活动窗口透明度（如果需要）
-    # {
-    #   matches = [{ is-active = false; }];
-    #   opacity = 0.9;
-    # }
-
-    # 11. 思源笔记独占一列
+    # 9.5 浏览器分配到 browser 工作区
     {
-      matches = [{app-id = "SiYuan";}];
+      matches = [
+        {app-id = "google-chrome";}
+        {app-id = "firefox";}
+      ];
+      open-on-workspace = "browser";
+    }
+
+    # 10. 思源笔记独占一列，分配到 note 工作区
+    {
+      matches = [{app-id = "org.b3log.siyuan";}];
+      open-on-workspace = "note";
       default-column-width = {proportion = 1.0;};
     }
 
+    # 11. Thunar 浮动 + 固定尺寸
     {
-      matches = [{app-id = "thunar";}];
+      matches = [{app-id = "Thunar";}];
 
       open-floating = true;
 

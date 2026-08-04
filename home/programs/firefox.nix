@@ -34,6 +34,9 @@
           # Needed for proper zoom and feature behavior — disables anti-fingerprinting zoom locking
           "privacy.resistFingerprinting" = false;
 
+          # 信任系统根证书（Vaultwarden 本地 CA）
+          "security.enterprise_roots.enabled" = true;
+
           # URL bar autocomplete behavior
           "browser.urlbar.autoFill" = true; # Autocomplete URLs as you type
           "browser.urlbar.dnsFirstForSingleWords" = true; # Resolve single words as domains if possible

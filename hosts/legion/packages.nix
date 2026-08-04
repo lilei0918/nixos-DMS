@@ -4,87 +4,75 @@ with pkgs; [
   # 🌐 浏览器
   # ─────────────────────────────
 
-  google-chrome
+  google-chrome # Google Chrome 浏览器（闭源，基于 Chromium）
 
   # ─────────────────────────────
   # 📄 办公 / 阅读
   # ─────────────────────────────
 
-  libreoffice
-
-  foliate
-
-  loupe
-
-  zathura
-
-  marktext
-
-  kdePackages.kate
+  libreoffice # LibreOffice 办公套件（文档、表格、演示）
+  foliate # Epub 电子书阅读器（简洁、支持多格式）
+  loupe # GNOME 图片查看器（简单、快速）
+  zathura # 轻量级 PDF/文档查看器（Vim 风格快捷键）
+  zettlr # 学术级 Markdown 编辑器
 
   # ─────────────────────────────
   # 💰 金融
   # ─────────────────────────────
 
-  tradingview
+  tradingview # TradingView 金融图表分析工具（桌面客户端）
 
   # ─────────────────────────────
   # 💬 通讯
   # ─────────────────────────────
 
-  qq
+  qq # 腾讯 QQ 客户端（Linux 版）
 
   # ─────────────────────────────
   # 🎨 桌面配置
   # ─────────────────────────────
 
-  nwg-look
-
-  apple-cursor
-
-  waypaper
-
-  dconf-editor
-
-  matugen
+  nwg-look # GTK 设置管理工具（主题、字体、图标）
+  apple-cursor # macOS 风格光标主题
+  waypaper # Wallpaper 管理工具（Wayland 下设置壁纸）
+  dconf-editor # Dconf 配置编辑器（GNOME 底层设置）
+  matugen # 动态主题生成器（根据壁纸生成配色方案）
 
   # Qt
 
-  qt6Packages.qt6ct
+  qt6Packages.qt6ct # Qt6 配置工具（主题、字体、界面设置）
 
   # ─────────────────────────────
   # 🗂️ 文件管理
   # ─────────────────────────────
 
-  file-roller
+  file-roller # 归档管理器（压缩/解压 GUI 前端）
+  localsend # 局域网文件传输工具（类似 AirDrop）
 
   # ─────────────────────────────
   # 🔊 音频 / 视频
   # ─────────────────────────────
 
-  pavucontrol
-
-  mpv
-
-  gpu-screen-recorder
-
-  blanket
+  pavucontrol # PulseAudio 音量控制（图形化混音器）
+  mpv # 媒体播放器（命令行 + 图形，支持所有常见格式）
+  gpu-screen-recorder # GPU 加速屏幕录制工具（支持 Wayland）
+  blanket # 白噪音 / 背景音播放器（专注辅助）
 
   # ─────────────────────────────
   # 🎵 音乐
   # ─────────────────────────────
 
-  spicetify-cli
+  #spicetify-cli # Spotify 客户端主题/插件命令行工具（需配合 Spotify）
 
   # ─────────────────────────────
   # 📝 笔记
   # ─────────────────────────────
 
-  siyuan
+  siyuan # 思源笔记（本地 Markdown 笔记，支持双向链接）
 
   # ─────────────────────────────
   # 🖼️ 图片
   # ─────────────────────────────
 
-  imagemagick
+  #imagemagick # 命令行图像处理工具（转换、编辑、生成）
 ]

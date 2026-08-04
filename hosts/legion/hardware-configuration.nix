@@ -1,9 +1,8 @@
 # ⚠️ 此文件由 ‘nixos-generate-config’ 生成，勿手动修改！
-# 修改请前往：/etc/nixos/configuration.nix
+# 修改请前往：https://github.com/lilei0918/nixos-DMS
 {
   config,
   lib,
-  pkgs,
   modulesPath,
   ...
 }: {

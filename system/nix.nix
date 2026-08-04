@@ -1,6 +1,6 @@
 {inputs, ...}: {
   nixpkgs.overlays = [
-    (final: prev: {
+    (_: prev: {
       nur = import inputs.nur {
         nurpkgs = prev;
         pkgs = prev;

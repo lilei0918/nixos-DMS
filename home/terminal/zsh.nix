@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{config, ...}: {
   programs.zsh = {
     enable = true;
 
@@ -61,21 +57,21 @@
     shellAliases = {
       # Nix
 
-      rebuild = "nh os switch .#legion";
+      rebuild = "nh os switch /home/lilei/nixos-DMS#legion";
 
-      test = "nh os test .#legion";
+      test = "nh os test /home/lilei/nixos-DMS#legion";
 
-      boot = "nh os boot .#legion";
+      boot = "nh os boot /home/lilei/nixos-DMS#legion";
 
       rollback = "sudo nixos-rebuild switch --rollback";
 
       cleanup = "sudo nix-collect-garbage --delete-older-than 14d";
 
-      check = "nix flake check";
+      check = "nix flake check /home/lilei/nixos-DMS";
 
-      update = "nix flake update";
+      update = "nix flake update /home/lilei/nixos-DMS";
 
-      fmt = "alejandra .";
+      fmt = "alejandra /home/lilei/nixos-DMS";
 
       # Git
 

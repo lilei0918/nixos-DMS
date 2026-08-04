@@ -69,9 +69,6 @@
     self,
     nixpkgs,
     home-manager,
-    nur,
-    dms,
-    niri,
     hermes-agent,
     sops-nix,
     ...

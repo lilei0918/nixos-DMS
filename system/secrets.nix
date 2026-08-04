@@ -7,7 +7,9 @@
     };
 
     secrets = {
-      deepseek_api_key = {}; # ← 添加这一行
+      deepseek_api_key = {};
+
+      vaultwarden_admin_token = {};
     };
   };
 }

@@ -1,9 +1,4 @@
-{
-  pkgs,
-  config,
-  lib,
-  ...
-}: let
+{pkgs, ...}: let
   gtkTheme = {
     name = "WhiteSur-Dark";
   };

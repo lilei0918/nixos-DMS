@@ -3,7 +3,6 @@
   pkgs,
   lib,
   inputs,
-  self,
   ...
 }: let
   allPackages = import ./packages.nix {
@@ -36,14 +35,15 @@ in {
     ../../home/programs/fastfetch.nix
     ../../home/programs/git.nix
     ../../home/programs/btop.nix
+    ../../home/programs/AI/zed.nix
+    ../../home/programs/AI/opencode.nix
+    ../../home/programs/AI/pi.nix
     ../../home/terminal/alacritty.nix
     ../../home/terminal/fish.nix
     ../../home/terminal/starship.nix
     ../../home/terminal/tmux.nix
     ../../home/terminal/ghostty.nix
     ../../home/terminal/zsh.nix
-
-    #../../home/programs/xfsettingsd.nix
   ];
 
   ############################################
@@ -103,15 +103,6 @@ in {
     [GroupOrder]
     0=Default
   '';
-
-  ############################################
-  # cliphist
-  ############################################
-
-  services.cliphist = {
-    enable = true;
-    allowImages = true;
-  };
 
   ############################################
   # environment

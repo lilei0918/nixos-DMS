@@ -1,9 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}: {
+_: {
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       gtk-theme = "WhiteSur-Dark";
