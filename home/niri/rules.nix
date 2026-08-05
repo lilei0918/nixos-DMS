@@ -77,7 +77,6 @@ _: {
       matches = [
         {title = "Open File";}
         {title = "Save File";}
-        {app-id = "xdg-desktop-portal-gnome";}
       ];
       open-floating = true;
       default-column-width = {fixed = 800;};

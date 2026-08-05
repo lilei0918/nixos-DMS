@@ -35,9 +35,10 @@
     "super+b".action = spawn google-chrome []; # 浏览器
 
     # 📸 截图（使用 grim + slurp）
-    "print".action = spawn "grim" ["-g" "$(slurp)" "-" "|" "wl-copy"];
-    "alt+print".action = spawn "grim" ["-g" "$(slurp -w)" "-" "|" "wl-copy"];
-    "ctrl+print".action = spawn "grim" ["-" "|" "wl-copy"];
-    "mod+p".action = spawn "grim" ["-g" "$(slurp)" "-" "|" "wl-copy"]; # 自定义截图
+    # 注意：niri 的 spawn 不经过 shell，管道/命令替换必须用 spawn-sh
+    "print".action = spawn-sh "grim -g \"$(slurp)\" - | wl-copy";
+    "alt+print".action = spawn-sh "grim -g \"$(slurp -w)\" - | wl-copy";
+    "ctrl+print".action = spawn-sh "grim - | wl-copy";
+    "mod+p".action = spawn-sh "grim -g \"$(slurp)\" - | wl-copy"; # 自定义截图
   };
 }

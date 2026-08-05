@@ -99,7 +99,9 @@ nixos-DMS/
 │   ├── input.nix            # 输入法（Fcitx5/Rime）
 │   ├── xdg.nix              # XDG 桌面门户（gtk 后端）
 │   ├── greetd.nix           # 登录管理器（greetd + tuigreet）
-│   ├── mihomo.nix           # 代理（mihomo，TUN 模式）
+│   ├── proxy/               # 代理（daed 主用，mihomo 备用）
+│   │   ├── daed.nix             # 【启用】daed（dae eBPF 透明代理 + Web 面板）
+│   │   └── mihomo.nix           # 【备用】mihomo（TUN 模式，切回方法见文件头注释）
 │   ├── packages.nix         # 系统级软件包列表
 │   ├── nvidia/              # NVIDIA 显卡模块
 │   │   ├── nvidia-block.nix     # 【启用】屏蔽 NVIDIA 独显（省电）
@@ -176,7 +178,7 @@ nixos-DMS/
   - 硬件：`./hardware-configuration.nix`
   - system 模块：`../../system/nix.nix`、`boot.nix`、`hardware.nix`、`network.nix`、`services.nix`
   - desktop：`fonts.nix`、`input.nix`、`xdg.nix`
-  - programs：`../../system/nvidia/nvidia-block.nix`（注意：启用的是 block 不是 nvidia）、`mihomo.nix`、`packages.nix`
+  - programs：`../../system/nvidia/nvidia-block.nix`（注意：启用的是 block 不是 nvidia）、`../../system/proxy/daed.nix`（主用）、`packages.nix`
   - vault：`../../system/vault/vault.nix`、`../../system/vault/vaultwarden.nix`、`../../system/vault/vaultwarden-backup.nix`
   - greeter：`greetd.nix`
   - secrets：`secrets.nix`
@@ -303,20 +305,43 @@ nixos-DMS/
 - `systemd.settings.Manager.DefaultTimeoutStopSec = "10s"`（防止关机卡住）
 - greetd serviceConfig：`Type = "idle"`、tty 相关设置
 
-### 14. `system/mihomo.nix`
+### 14. `system/proxy/daed.nix`（主用）
 
-**作用**：代理服务（mihomo，TUN 模式）。
+**作用**：daed = dae（eBPF 高性能透明代理）+ Web 管理面板。eBPF 内核态分流，直连/分流性能优于用户态代理。
+
+**关键内容**：
+- `imports = [ inputs.daeuniverse.nixosModules.daed ]`
+- `services.daed.enable = true`，面板监听 `127.0.0.1:2023`，tproxy 端口 12345
+- `assetsPaths` 使用 **Loyalsoldier 增强版规则库**（`v2ray-rules-dat`，含 `geosite:gfw` 等分类）；默认的 `v2ray-domain-list-community` 无 gfw 分类会报 `code gfw not found`
+- `nix.settings` 添加 **garnix 二进制缓存**（`cache.garnix.io`，dae/daed 预编译产物）
+
+**flake 注意**：`daeuniverse` input **不能** `inputs.nixpkgs.follows`。daed 包依赖较旧的 `fetchPnpmDeps(fetcherVersion=3)`，跟随最新 nixpkgs（pnpm 11+）会构建失败，故在 flake.nix 中把 daeuniverse 的 nixpkgs 固定到 `b12141ef`（pnpm 10.x，daeuniverse 自测版本）。
+
+**日常使用**：
+1. 访问 `http://127.0.0.1:2023` 打开面板（初始密码看 `systemctl status daed` 日志）
+2. 初始化配置：tproxy_port 填 **12345**（与 `openFirewall.port` 一致）
+3. 添加订阅 URL → 自动导入节点 → 配置 group / routing → 运行
+4. 面板可网页内更新订阅、切换节点，无需改 nix 配置
+5. 若报 `code xxx not found in geosite.dat`：确认 `/etc/daed/geosite.dat` 软链指向 `v2ray-rules-dat`（`ls -l /etc/daed/`），必要时 `systemctl restart daed`
+
+**切换回 mihomo**：见 `mihomo.nix` 顶部注释（注释 daed import、取消 mihomo import）。
+
+### 15. `system/proxy/mihomo.nix`（备用）
+
+**作用**：mihomo（Clash Meta，TUN 模式），原主用方案，现为备用。
+
 - `services.mihomo.enable = true`，`configFile = "/home/lilei/.config/mihomo/config.yaml"`（用户目录下，不在仓库内）
 - `tunMode = true`，`webui = pkgs.metacubexd`
-- `networking.firewall`：`trustedInterfaces = [ "mihomo" ]`，放行 TCP 9090/7890/7891
+- `networking.firewall`：`trustedInterfaces = [ "Meta" ]`，放行 TCP 9090/7890/7891
+- 已自包含防火墙规则，启用时需同步在 `network.nix` 移除 dae 相关设置（反之亦然）
 
-**订阅链接管理**：
+**订阅链接管理**（若启用）：
 - 订阅链接在 `~/.config/mihomo/config.yaml` 的 `proxy-providers.mysub.url`（含 token，属敏感信息，不进 git）
 - systemd 通过 `LoadCredential=config.yaml:/home/lilei/.config/mihomo/config.yaml` 注入沙箱，mihomo 读注入副本
 - **每月更换订阅**：编辑该文件 url → `systemctl restart mihomo` → `curl http://127.0.0.1:9090/providers/proxies` 验证
 - 只刷新订阅（不改配置）：`curl -X PUT "http://127.0.0.1:9090/providers/proxies/mysub"`（config.yaml 的 `secret: ""` 为空，API 无鉴权）
 
-### 15. `system/packages.nix`
+### 16. `system/packages.nix`
 
 **作用**：系统级软件包（所有用户可用）。
 
@@ -334,14 +359,14 @@ nixos-DMS/
 - **系统控制**：`playerctl`, `brightnessctl`, `libnotify`
 - **编辑器**：`vim`, `gnome-text-editor`
 
-### 16. `system/nvidia/nvidia-block.nix`（启用中）
+### 17. `system/nvidia/nvidia-block.nix`（启用中）
 
 **作用**：屏蔽 NVIDIA 独显以省电（仅用 AMD iGPU）。
 - `boot.extraModprobeConfig`：blacklist nouveau
 - `services.udev.extraRules`：移除 NVIDIA USB/音频/VGA 设备（power control）
 - `boot.blacklistedKernelModules = [ "nouveau" "nvidia" "nvidia_drm" "nvidia_modeset" ]`
 
-### 17. `system/nvidia/nvidia.nix`（未启用，保留备用）
+### 18. `system/nvidia/nvidia.nix`（未启用，保留备用）
 
 **作用**：完整 NVIDIA 独显配置（future use）。
 - `hardware.graphics.enable = true`
@@ -351,7 +376,7 @@ nixos-DMS/
 - `hardware.nvidia.prime`：`sync.enable = true`，`amdgpuBusId = "PCI:6:0:0"`，`nvidiaBusId = "PCI:1:0:0"`
 - ⚠️ **启用方法**：在 `configuration.nix` 的 imports 中把 `../../system/nvidia/nvidia-block.nix` 替换为 `../../system/nvidia/nvidia.nix`（二选一，不可同时启用）
 
-### 18. `hosts/legion/home.nix`
+### 19. `hosts/legion/home.nix`
 
 **作用**：Home Manager 入口文件。
 
@@ -394,7 +419,7 @@ nixos-DMS/
 - `programs.direnv`：启用，`nix-direnv.enable = true`
 - `programs.home-manager.enable = true`
 
-### 19. `hosts/legion/packages.nix`
+### 20. `hosts/legion/packages.nix`
 
 **作用**：用户级软件包列表（仅 lilei 可用）。
 
@@ -410,7 +435,7 @@ nixos-DMS/
 - **笔记**：`siyuan`
 - **图片**：`imagemagick`
 
-### 20. `home/programs/hermes.nix`
+### 21. `home/programs/hermes.nix`
 
 **作用**：安装 Hermes Desktop（CLI + GUI）。
 ```nix
@@ -420,7 +445,7 @@ nixos-DMS/
 ```
 - `desktop` 输出同时提供 CLI（hermes/hermes-agent/hermes-acp）和 .desktop 启动器，复用 `~/.hermes/` 状态
 
-### 21. `system/vault/vault.nix`（加密数据盘）
+### 22. `system/vault/vault.nix`（加密数据盘）
 
 **作用**：管理 20G LUKS 加密盘（`/dev/nvme1n1p3`，LUKS UUID `86c742fc-8de5-4c59-9a30-196484a35695`），作为密码库 + 个人敏感文件存储。**手动按需解锁**，开机不自动挂载。
 
@@ -438,7 +463,7 @@ nixos-DMS/
   - 开：`sudo nix-shell -p cryptsetup --run 'cryptsetup open UUID=86c742fc-8de5-4c59-9a30-196484a35695 vault && mount /dev/mapper/vault /mnt/vault'`
   - 关：`sudo nix-shell -p cryptsetup --run 'umount /mnt/vault && cryptsetup close vault'`
 
-### 22. `system/vault/vaultwarden.nix`
+### 23. `system/vault/vaultwarden.nix`
 
 **作用**：自托管密码管理器（Vaultwarden = Bitwarden 服务端），通过 Podman 容器 + Quadlet 管理，SQLite 存储。
 
@@ -459,7 +484,7 @@ nixos-DMS/
 - 证书由构建期生成，每次 rebuild 会重新生成（浏览器需信任新 CA，极端情况下需清浏览器证书缓存）
 - `security.enterprise_roots.enabled = true` 已加入 firefox.nix，让 Firefox 使用系统根证书
 
-### 23. `system/vault/vaultwarden-backup.nix`
+### 24. `system/vault/vaultwarden-backup.nix`
 
 **作用**：Vaultwarden 数据库每日在线备份（**三层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。
 
@@ -721,14 +746,20 @@ sops.templates."hermes-env" = {
 4. ~~加密盘与备份结合~~：`vaultwarden-backup.nix` 增加**加密盘按需同步**（备份脚本检测 vault 已解锁且挂载在 `/mnt/vault` → rsync 副本进 `/mnt/vault/vaultwarden/backups/`，**只增不删**；未解锁自动跳过）；盘内建 `passwords/`/`recovery/`/`crypto/`/`ssh/`/`documents/` 目录结构及 `README.md`
 5. ~~目录重构~~：`system/programs/` → `system/nvidia/`；vaultwarden 相关文件（vault.nix / vaultwarden.nix / vaultwarden-backup.nix）统一归入 `system/vault/`
 
+### ✅ 已修复（2026-08-05）
+1. ~~代理切换 daed~~：mihomo → daed（eBPF 透明代理），新增 flake input `daeuniverse`（nixpkgs 固定 `b12141ef` 避免 fetchPnpmDeps 断言失败）、garnix 缓存；`system/mihomo.nix` → `system/proxy/`（备用）；`network.nix` 移除 `Meta` 接口
+2. ~~gfw 分类缺失~~：`daed.nix` assetsPaths 改用 `v2ray-rules-dat`（Loyalsoldier 增强版，含 `geosite:gfw`），替换默认无 gfw 分类的 `v2ray-domain-list-community`
+3. ~~订阅链接失效~~：yfjc.xyz 服务商侧临时故障（TLS EOF），非配置问题；恢复后订阅正常拉取
+
 ### 未启用模块（保留但不导入）
 - `system/nvidia/nvidia.nix`：完整独显配置，启用时替换 `nvidia-block.nix`（二选一，不可同时启用）。启用后会自动开启 `services.xserver`。
+- `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 daed.nix 的 import（二选一，不可同时开启）。
 - `home/programs/xfsettingsd.nix`：XFCE 设置守护进程，home.nix 中已注释。
 
 ### 设计说明
 - 主机名 `nixos` ≠ flake 配置名 `legion`：所有 rebuild 命令用 `.#legion`；`hostname` 显示 `nixos` 属正常。
 - niri 工作区：`settings.nix` 预定义 `browser`/`note`/`code` 三个命名工作区（rules.nix 的 `open-on-workspace` 需要它们），其余工作区按需动态创建。
-- mihomo 配置文件 `/home/lilei/.config/mihomo/config.yaml` 在用户目录（非仓库内），需自行备份。
+- mihomo 配置文件 `/home/lilei/.config/mihomo/config.yaml` 在用户目录（非仓库内），需自行备份；daed 配置由面板管理（`/etc/daed/`），面板数据建议定期在面板内导出备份。
 
 ---
 
@@ -748,7 +779,7 @@ sops.templates."hermes-env" = {
 12. **Vaultwarden 仅本机**：服务只监听 `127.0.0.1:8080`，firewall 无需放行；访问必须用 **`https://localhost:8080`**（Bitwarden 客户端拒绝 http）。
 13. **注册后关闭注册**：首次注册完账号，把 `system/vault/vaultwarden.nix` 的 `SIGNUPS_ALLOWED` 改为 `false` 并重建/重启容器，防止他人注册。
 14. **Vaultwarden 数据备份**：SQLite 数据在 `/var/lib/vaultwarden/db.sqlite3`，含全部密码（加密存储），备份该文件即备份整个保险库。
-15. **Vaultwarden 证书**：构建期生成的自签证书每次 rebuild 会更换，浏览器信任由 `security.pki.certificateFiles` 声明式管理，无需手动导入。
+15. **Vaultwarden 证书**：构建期生成的自签证书存储在 `/nix/store` 中（`pkgs.runCommand` 派生），Nix 会缓存复用同一份证书，rebuild 不更换（只有 `nix store gc` 清理后重建才会生成新证书）。浏览器信任由 `security.pki.certificateFiles` 声明式管理，无需手动导入。
 16. **加密盘手动解锁**：LUKS 加密盘（`/dev/nvme1n1p3`，UUID `86c742fc-8de5-4c59-9a30-196484a35695`）开机**不自动挂载**，用 `sudo vault-open` / `sudo vault-close` 管理。**解锁密码 = 全部数据的钥匙**，丢失即永久丢失、无法找回，务必离线备份（纸质 / U 盘，参照 sops age key 的备份习惯）。
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
 18. **加密盘备份策略**：备份脚本第 3 层只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过；加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。

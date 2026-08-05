@@ -63,6 +63,19 @@
 
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # =============================
+    # Proxy: dae / daed
+    # =============================
+    # 注意：不用 inputs.nixpkgs.follows，且把 daeuniverse 自己的 nixpkgs 固定到它
+    # 验证过的 commit（b12141ef，pnpm 10.x）。跟随最新 nixpkgs（pnpm 11+）会导致
+    # daed 的 fetchPnpmDeps(fetcherVersion=3) 断言失败、无法构建。
+
+    daeuniverse = {
+      url = "github:daeuniverse/flake.nix";
+
+      inputs.nixpkgs.url = "github:NixOS/nixpkgs/b12141ef619e0a9c1c84dc8c684040326f27cdcc";
+    };
   };
 
   outputs = {

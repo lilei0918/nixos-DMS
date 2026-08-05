@@ -1,6 +1,8 @@
 _: {
   # Google Chrome Stable 启动参数
-  xdg.configFile."chromium-flags.conf".text = ''
+  # 注意：Google Chrome（品牌版）读取 ~/.config/chrome-flags.conf，
+  # chromium-flags.conf 只有开源 Chromium 读取（原名写错会导致 flag 全部不生效）
+  xdg.configFile."chrome-flags.conf".text = ''
     --ozone-platform=wayland
     --enable-features=UseOzonePlatform,WebUIDarkMode,DesktopPWAsNotificationIconAndTitle
     --enable-native-notifications

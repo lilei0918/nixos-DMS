@@ -40,6 +40,12 @@ in {
     defaultNetwork.settings.dns_enabled = false;
   };
 
+  # podman-auto-update timer（配合容器 AutoUpdate=registry）
+  # NixOS 24.11/25.05 的 virtualisation.podman 模块暂无 autoUpdate option，
+  # 但 podman 包自带 .service/.timer 单元（已通过 systemd.packages 加载），
+  # 只需用 wantedBy 启用 timer
+  systemd.timers.podman-auto-update.wantedBy = ["timers.target"];
+
   # 信任本地 CA（Chrome / Firefox 系统根）
   security.pki.certificateFiles = [
     "${vaultwardenTls}/ca.crt"
@@ -65,8 +71,8 @@ in {
     Environment=DOMAIN=https://localhost:8080
     Environment=ROCKET_PORT=80
     Environment=ROCKET_TLS={certs="/tls/server.crt",key="/tls/server.key"}
-    # 首次注册账号后改 false 并重启容器
-    Environment=SIGNUPS_ALLOWED=true
+    # 注册完成后已关闭（需注册时改回 true 并重建）
+    Environment=SIGNUPS_ALLOWED=false
     Environment=WEBSOCKET_ENABLED=true
 
     # 注：Vaultwarden 新版已移除内置备份（BACKUP_* 变量无效，会被忽略），
@@ -78,6 +84,9 @@ in {
     [Service]
     Restart=on-failure
     RestartSec=5
+    # 给容器足够时间优雅关闭（SQLite WAL checkpoint）
+    # 全局 DefaultTimeoutStopSec=10s 可能不够
+    TimeoutStopSec=60
 
     [Install]
     WantedBy=default.target
@@ -101,7 +110,7 @@ in {
     '';
   };
 
-  sops.secrets.vaultwarden_admin_token = {};
+  # vaultwarden_admin_token 已在 system/secrets.nix 中统一定义
 
   ############################################
   # 额外工具

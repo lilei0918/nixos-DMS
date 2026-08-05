@@ -110,12 +110,9 @@ in {
 
   home.sessionVariables = {
     EDITOR = "vim";
-
-    # Wayland 下 fcitx5 环境
-    GTK_IM_MODULE = "fcitx";
-    QT_IM_MODULE = "fcitx";
-    XMODIFIERS = "@im=fcitx";
   };
+
+  # fcitx5 环境变量统一在 home/programs/rime.nix 中管理
 
   programs.direnv = {
     enable = true;

@@ -36,7 +36,14 @@
 
     ../../system/nvidia/nvidia-block.nix
 
-    ../../system/mihomo.nix
+    ################################
+    # proxy (daed 主用，mihomo 备用)
+    ################################
+
+    ../../system/proxy/daed.nix
+
+    # 备用：切回 mihomo 时注释上面这行，取消下面这行注释
+    # ../../system/proxy/mihomo.nix
 
     ../../system/packages.nix
 

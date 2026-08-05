@@ -10,13 +10,6 @@
       wifi.powersave = false;
     };
 
-    firewall = {
-      trustedInterfaces = [
-        "Meta"
-      ];
-
-      checkReversePath = "loose";
-    };
   };
 
   services.timesyncd.enable = true;
