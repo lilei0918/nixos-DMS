@@ -26,7 +26,6 @@ in {
     ../../home/programs/vscode/vscode.nix
     ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
-    ../../home/programs/cliphist.nix
     ../../home/programs/hermes.nix
     ../../home/programs/walker.nix
     ../../home/programs/thunar.nix

@@ -128,7 +128,6 @@ nixos-DMS/
 │       ├── AI/              # AI 工具（zed.nix / opencode.nix / pi.nix）
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
-│       ├── cliphist.nix     # 剪贴板历史
 │       ├── dconf.nix        # GNOME dconf 主题设置
 │       ├── fastfetch.nix    # 系统信息（logo 指向 ~/nixos-DMS/assets/）
 │       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置）
@@ -390,7 +389,6 @@ nixos-DMS/
   - `../../home/programs/vscode/vscode.nix`
   - `../../home/programs/firefox.nix`
   - `../../home/programs/chrome.nix`
-  - `../../home/programs/cliphist.nix`
   - `../../home/programs/hermes.nix`
   - `../../home/programs/walker.nix`
   - `../../home/programs/thunar.nix`
@@ -414,7 +412,6 @@ nixos-DMS/
 - Fcitx5/Rime 用户配置：
   - `home.file."~/.local/share/fcitx5/rime/default.custom.yaml"`：schema `rime_ice`，`page_size: 9`
   - `xdg.configFile."fcitx5/profile"`：默认输入法 `rime`
-- `services.cliphist`：启用，`allowImages = true`
 - `home.sessionVariables`：`EDITOR=vim`、fcitx 三件套（GTK_IM_MODULE/QT_IM_MODULE/XMODIFIERS）
 - `programs.direnv`：启用，`nix-direnv.enable = true`
 - `programs.home-manager.enable = true`
@@ -589,7 +586,6 @@ sops.templates."hermes-env" = {
 - `xwayland-satellite`（XWayland 卫星服务）
 - `polkit-gnome-authentication-agent-1`（权限代理）
 - `fcitx5 -d`（输入法）
-- `wl-paste --watch cliphist store`（剪贴板监听）
 - `blueman-applet`（蓝牙托盘）
 - `wl-clip-persist --clipboard regular`（剪贴板持久化，延迟 2s）
 - `sleep 10 && exec qq`（延迟启动 QQ）
@@ -620,7 +616,6 @@ sops.templates."hermes-env" = {
 | `btop.nix` | presets、TTY 配色、desktop entry（ghostty -e btop） |
 | `fastfetch.nix` | 自定义 logo 与模块布局（logo 指向 ~/nixos-DMS/assets/） |
 | `rime.nix` | rime-ice（锁定 commit `8a3d9470`，声明式 home.file 管理）、librime + librime-lua。⚠️ **rebuild/重启后若雾凇未出现，手动运行 `fcitx5-remote -r` 触发部署**（详见文件头注释） |
-| `cliphist.nix` | 剪贴板历史（允许图片） |
 | `xfsettingsd.nix` | 【未启用】XFCE 设置守护进程 user service |
 
 ---

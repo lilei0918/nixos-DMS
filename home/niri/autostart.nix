@@ -17,33 +17,9 @@
       ];
     }
 
-    # 📋 剪贴板监听器
-    {
-      command = [
-        "wl-paste"
-        "--type"
-        "text"
-        "--watch"
-        "cliphist"
-        "store"
-      ];
-    }
-
     # 🔵 蓝牙托盘程序
     {
       command = ["blueman-applet"];
-    }
-
-    # 📌 新增：剪贴板持久化（解决关闭源程序后无法粘贴的问题）
-    {
-      command = [
-        "sh"
-        "-c"
-        ''
-          sleep 2
-          wl-clip-persist --clipboard regular
-        ''
-      ];
     }
 
     # 📌 新增：延迟启动的应用（如果你需要）

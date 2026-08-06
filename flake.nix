@@ -72,7 +72,7 @@
     # daed 的 fetchPnpmDeps(fetcherVersion=3) 断言失败、无法构建。
 
     daeuniverse = {
-      url = "github:daeuniverse/flake.nix";
+      url = "github:daeuniverse/flake.nix/42ece300b6360bab592f13c64ce1987df20475d5";
 
       inputs.nixpkgs.url = "github:NixOS/nixpkgs/b12141ef619e0a9c1c84dc8c684040326f27cdcc";
     };

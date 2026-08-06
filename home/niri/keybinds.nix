@@ -34,11 +34,13 @@
     "super+e".action = spawn thunar []; # 文件管理器
     "super+b".action = spawn google-chrome []; # 浏览器
 
-    # 📸 截图（使用 grim + slurp）
-    # 注意：niri 的 spawn 不经过 shell，管道/命令替换必须用 spawn-sh
-    "print".action = spawn-sh "grim -g \"$(slurp)\" - | wl-copy";
-    "alt+print".action = spawn-sh "grim -g \"$(slurp -w)\" - | wl-copy";
-    "ctrl+print".action = spawn-sh "grim - | wl-copy";
-    "mod+p".action = spawn-sh "grim -g \"$(slurp)\" - | wl-copy"; # 自定义截图
+    # 📸 截图（使用 niri 内置截图，保存到 ~/Pictures/Screenshots/）
+    # niri 内置截图 UI：Enter/Space 保存到 screenshot-path，Ctrl+Enter 复制到剪贴板
+    # 注意：config.lib.niri.actions 是 niri-flake 缓存的旧清单，不含 screenshot*，
+    # 必须用 action.<动作名> 直接写 KDL 动作名（niri v25.08 支持）
+    "Print".action.screenshot = {};
+    "Alt+Print".action.screenshot-window = {};
+    "Ctrl+Print".action.screenshot-screen = {};
+    "Mod+P".action.screenshot = {};
   };
 }

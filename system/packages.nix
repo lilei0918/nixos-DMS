@@ -87,13 +87,7 @@
 
     xwayland-satellite
 
-    grim
-
-    slurp
-
     wl-clipboard
-
-    wl-clip-persist
 
     # ─────────────────────────────
     # 🔍 硬件检测
