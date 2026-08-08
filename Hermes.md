@@ -81,7 +81,7 @@ nixos-DMS/
 ├── .sops.yaml               # sops 加密规则（age key）
 ├── .nixcfg-ignore           # nh 工具的忽略规则
 ├── secrets/
-│   └── secrets.yaml         # 加密的机密文件（sops，含 deepseek_api_key / vaultwarden_admin_token）
+│   └── secrets.yaml         # 加密的机密文件（sops：deepseek_api_key / vaultwarden_admin_token / password_hash / vaultwarden_tls_*）
 ├── hosts/
 │   └── legion/              # 主机专属配置（flake 配置名 legion）
 │       ├── configuration.nix   # NixOS 系统配置（导入所有模块）
@@ -108,8 +108,9 @@ nixos-DMS/
 │   │   └── nvidia.nix           # 【未启用】完整 NVIDIA 独显配置（prime sync，供日后启用）
 │   └── vault/               # 加密数据盘 + Vaultwarden 密码管理器
 │       ├── vault.nix            # LUKS 加密盘（vault-open / vault-close，手动解锁）
-│       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite）
-│       └── vaultwarden-backup.nix  # 每日在线备份（本地 + Arch 盘 + 加密盘按需）
+│       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
+│       ├── vaultwarden-backup.nix  # 每日在线备份（本地 + Arch 盘 + 加密盘按需）
+│       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置
 │   │   ├── default.nix      # 入口（合并 settings/keybinds/rules/autostart）
@@ -181,7 +182,7 @@ nixos-DMS/
   - vault：`../../system/vault/vault.nix`、`../../system/vault/vaultwarden.nix`、`../../system/vault/vaultwarden-backup.nix`
   - greeter：`greetd.nix`
   - secrets：`secrets.nix`
-- 用户 `lilei`：`isNormalUser = true`，`shell = pkgs.zsh`，`extraGroups = [ "wheel" "networkmanager" "video" "input" "hermes" ]`，密码哈希固定。
+- 用户 `lilei`：`isNormalUser = true`，`shell = pkgs.zsh`，`extraGroups = [ "wheel" "networkmanager" "video" "input" "hermes" ]`。密码 hash 不落仓库：`hashedPasswordFile = config.sops.secrets.password_hash.path`（sops 解密提供，修改见「添加新机密」）。
 - Home Manager 配置：`useGlobalPkgs = true`，`useUserPackages = true`，`extraSpecialArgs = { inherit inputs; }`（供 home.nix 等使用 flake inputs），`users.lilei = import ./home.nix`，备份扩展名 `backup`。
 - `programs.dconf.enable = true`
 - `time.timeZone = "Asia/Shanghai"`，`console.keyMap = "us"`
@@ -272,7 +273,10 @@ nixos-DMS/
 **内容**：
 - `sops.defaultSopsFile = ../secrets/secrets.yaml`
 - `sops.age.keyFile = "/etc/sops/age/keys.txt"`
-- `sops.secrets.deepseek_api_key = {}`
+- `sops.secrets`：
+  - `deepseek_api_key = {}`、`vaultwarden_admin_token = {}`
+  - `password_hash`：`neededForUsers = true`（activation 阶段先于用户创建解密，供 `hashedPasswordFile` 使用）
+  - `vaultwarden_tls_ca_key` / `vaultwarden_tls_ca_crt` / `vaultwarden_tls_server_key` / `vaultwarden_tls_server_crt`：`path` 指向 `/var/lib/vaultwarden/tls/*`（boot 时 sops-nix 解密写入）
 
 ### 10. `system/fonts.nix`
 
@@ -469,7 +473,7 @@ nixos-DMS/
 - 容器 `docker.io/vaultwarden/server:latest`，`AutoUpdate=registry`
 - **数据持久化**：`/var/lib/vaultwarden`（宿主机）↔ `/data`（容器），SQLite 数据库即 `db.sqlite3`
 - **仅本机访问**：`PublishPort=127.0.0.1:8080:80`
-- **强制 HTTPS**：⚠️ Bitwarden 新版 web vault 拒绝所有 `http://` 请求（含 localhost），故构建期用 openssl 生成本地 CA + localhost 证书（SAN 含 `DNS:localhost,IP:127.0.0.1`），CA 经 `security.pki.certificateFiles` 写入系统信任，容器内 `ROCKET_TLS` 加载证书
+- **强制 HTTPS**：⚠️ Bitwarden 新版 web vault 拒绝所有 `http://` 请求（含 localhost）。本地 CA + localhost 证书（SAN 含 `DNS:localhost,IP:127.0.0.1`）由 sops 加密存储（`secrets.yaml` 的 `vaultwarden_tls_*`），boot 时 sops-nix 解密写入 `/var/lib/vaultwarden/tls`（0700 root，私钥 0400）；CA 公钥提交在仓库 `system/vault/certs/vaultwarden-ca.crt`，经 `security.pki.certificateFiles` 写入系统信任；容器在 `sops-nix.service` 之后启动，`ROCKET_TLS` 加载证书。证书稳定，rebuild 不轮换
 - **访问地址**：`https://localhost:8080`（不是 http）
 - 管理后台：`https://localhost:8080/admin`，密码为 sops 加密的 `vaultwarden_admin_token`（`secrets/secrets.yaml`）
 - `SIGNUPS_ALLOWED=true`：首次注册账号后**必须改为 false** 并重启容器
@@ -478,7 +482,7 @@ nixos-DMS/
 **使用注意事项**：
 - 首次访问注册账号 → 修改 `SIGNUPS_ALLOWED=false` → 重启容器
 - 浏览器端：Firefox 已装 bitwarden 扩展；Chrome 用扩展或直接访问 web 界面
-- 证书由构建期生成，每次 rebuild 会重新生成（浏览器需信任新 CA，极端情况下需清浏览器证书缓存）
+- 证书由 sops 管理，rebuild 不更换；**要换证书**：更新 `secrets.yaml` 的 `vaultwarden_tls_*`（并同步仓库 `certs/vaultwarden-ca.crt` 的公钥）→ rebuild → 重启容器
 - `security.enterprise_roots.enabled = true` 已加入 firefox.nix，让 Firefox 使用系统根证书
 
 ### 24. `system/vault/vaultwarden-backup.nix`
@@ -534,7 +538,7 @@ sops.templates."hermes-env" = {
 ### 密钥管理
 - 编辑机密：`sops secrets/secrets.yaml`，添加 `deepseek_api_key: sk-你的真实密钥`（明文，保存后自动加密）
 - 解密后的环境变量文件路径：`sudo cat $(readlink -f /run/secrets/hermes-env)`
-- ⚠️ age 私钥 `/etc/sops/age/keys.txt` 已备份到 Win11 数据盘和 QQ 邮箱，**绝不可提交到 git**
+- ⚠️ age 私钥 `/etc/sops/age/keys.txt`（信任根）已备份到 Win11 数据盘和 QQ 邮箱，**绝不可提交到 git**；备份/重装恢复步骤见「十二、关键注意事项」第 6 条
 
 ---
 
@@ -698,53 +702,13 @@ sops.templates."hermes-env" = {
 
 ---
 
-## 十一、已知问题与待办（⚠️ 重要）
+## 十一、备忘
 
-### ✅ 已修复（2026-08-01）
-1. ~~fastfetch logo 路径错误~~：已改为 `~/nixos-DMS/assets/icons/nix-lavender.png`
-2. ~~`super+v` 快捷键失效~~：已删除该绑定（用户不需要此快捷键）
-3. ~~home.nix 重复导入~~：`fastfetch.nix` 和 `vscode/vscode.nix` 各保留一次导入
-4. ~~spicetify.nix / zen.nix~~：已删除（引用了不存在的 flake input，用户不使用）
-5. ~~polkitgnome.nix~~：已删除（与 autostart.nix 的 polkit spawn 重复）
-6. ~~批量清理~~：niri-colors.generated.kdl 移出 git 跟踪、vesktop 死规则删除、工作区完全动态、mihomo 无效接口清理、dconf 字体名修正、rime-ice 锁定 commit、home.stateVersion 24.11→25.05、README.md 新建
-7. ~~hermes-desktop 无启动器~~：`home/programs/hermes.nix` 增加 `xdg.desktopEntries`（walker/应用菜单可见）
-8. ~~auth.json 权限错误~~：`system/services.nix` 增加 tmpfiles 规则（`f .../auth.json 0600 hermes hermes`），修复 lilei 属主 600 文件导致 hermes 服务无法读取的问题
-9. ~~TimeoutStopSec 默认 10s~~：`system/services.nix` 设置 `systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30`，避免网关排空时被 SIGKILL
-
-### ✅ 已修复（2026-08-02）1. ~~mihomo 端口暴露 / 规则重复~~：控制面板与代理端口放行收紧、`rules.nix` 笔误（`daA`）与重复规则清理、cliphist 重复启用移除
-2. ~~格式与 lint~~：全仓 alejandra 格式化；deadnix 清理（`nix.nix` overlay 用 `_`、`flake.nix` 解构）；statix 空模式 `{...}`→`_`；`network.nix` 合并重复 networkmanager 并删除默认无线配置；`tmux.nix` 去重；`secrets.nix` 删除遗留注释
-3. ~~X11 依赖~~：纯 Wayland 下移除 `services.xserver`（`nvidia.nix` 备用启用时会自动开启）
-4. ~~LSP 统一~~：VSCodium 与 Zed 统一使用 `nixd`（`vscode.nix` serverPath 与 home.packages）
-5. ~~文档同步~~：`home.stateVersion` 24.11→25.05、包列表（`zettlr`/`localsend`/`gnome-text-editor`）、目录树（删除 `obs.nix`、`vscode/` 去重）、`vscode.nix` 不再复制 vscode-settings.json
-6. ~~Thunar 浮动/独列规则失效~~：app-id 大小写错误导致规则从未命中（`thunar`→`Thunar`、`SiYuan`→`org.b3log.siyuan`），按 `niri msg windows` 实际 App ID 修正（`rules.nix`）
-7. ~~Thunar 文件夹在前不生效~~：Thunar 4.20 属性名由 `misc-sort-folders-first` 改为 `misc-folders-first`，并补充 `last-sort-column=THUNAR_COLUMN_NAME`、`last-sort-order=GTK_SORT_ASCENDING`（`thunar.nix`）
-8. ~~VSCodium Nix 格式化报错（formatting nixfmt command exited with 65280）~~：`nix.formatterPath` 在启用 LSP 时无效，格式化实际由 nixd 执行（默认命令 `nixfmt` 未安装→子进程退出 255）。改为 `nix.serverSettings.nixd.formatting.command = ["alejandra"]`（`vscode.nix`）
-9. ~~VSCodium 主题更换为 macOS Classic Dark v2~~：新增 huacnlee.theme-macos-classic 1.7.2（nixpkgs 无此扩展，用 `vscode-utils.extensionFromVscodeMarketplace` 从 Marketplace 构建）。**后续改用 Catppuccin Mocha 后已删除**（见第 10 条）
-10. VSCodium 主题改为 **Catppuccin Mocha**：新增 `catppuccin.catppuccin-vsc` 3.19.0（nixpkgs 自带），并**删除未启用的主题扩展**（macOS Classic、material-theme/One Dark Pro）
-11. ~~Thunar 隐藏文件默认不显示~~：`xfconfd` 未安装，Thunar 经 D-Bus 无法拉起 daemon，libxfconf 直接返回默认值（`last-show-hidden` 等 XML 配置从未生效）。`thunar.nix` 增加 `xfconf` 包；**生效需 `nh os switch` 后 `killall Thunar` 重启 daemon**
-12. ~~rules.nix 失效/缺失规则~~：清理未安装程序的 app-id（zen/chromium/edge/Trae/telegram/tauonmb/wechat/`code`；`vscodium`→`codium`），新增已安装程序规则（浮动：pavucontrol/Blanket/LocalSend/dconf-editor/waypaper/nwg-look/qt6ct/Loupe/zathura/Hermes；占满列宽：libreoffice/zettlr/TradingView/TextEditor），工作区分派补 alacritty→terminal
-13. ~~open-on-workspace 不生效~~：niri 不会自动创建命名工作区，`settings.nix` 预定义 `code`/`terminal`/`media`（并修正 Hermes app-id `hermes`）
-
-### ✅ 已修复（2026-08-03）
-1. ~~Vaultwarden 部署~~：新增 `system/vaultwarden.nix`（Podman + Quadlet + SQLite），访问地址 `https://localhost:8080`，admin token 走 sops
-2. ~~Bitwarden "Insecure URL not allowed"~~：Bitwarden 新版 web vault 强制 HTTPS（含 localhost 也拒绝 http），改 `DOMAIN` 无效；改为构建期生成自签 CA + 证书、系统信任、容器 `ROCKET_TLS` 加载
-3. ~~home-manager 激活失败（thunar.xml.backup 冲突）~~：`thunar.nix` 的 configFile 加 `force = true`，删除残留 backup 文件后激活成功
-4. ~~工作区顺序/命名~~：`settings.nix` 工作区改为 `browser`/`note`/`terminal`/`code`/`media`，`rules.nix` 新增 chrome/firefox→browser、SiYuan→note
-5. ~~Red Hat 扩展遥测~~：`vscode.nix` 增加 `redhat.telemetry.enabled = false`（原提示在 settings.json 被 sops/home-manager 只读拒绝写入）
-6. ~~工作区精简为三个~~：`settings.nix` 工作区改为 `browser`/`note`/`code`（移除 `terminal`/`media`），`rules.nix` 相应调整：Alacritty/Ghostty/htop→code、Zed→code、mpv→浮动（无专用工作区）
-7. ~~终端不再分配工作区~~：Alacritty/Ghostty/htop 改为不分配工作区、保持浮动（仅限 code 中的 codium/Zed）
-
-### ✅ 已修复（2026-08-04）
-1. ~~Vaultwarden 每日备份到 Arch 盘~~：新增 `system/vault/vaultwarden-backup.nix`。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故由 systemd 服务用 `sqlite3 .backup` 在线备份（WAL 安全）→ `/var/lib/vaultwarden/backups/`（保留 7 天）；systemd timer `vaultwarden-sync.timer`（`OnCalendar=daily` + `Persistent=true`，开关机时间不固定也能开机补跑）→ 挂载 Arch btrfs 盘（`nvme0n1p7`，UUID `9dccd22a-c64e-494b-ab1a-e226b843516e`，`subvol=/` 顶层）rsync 同步到 `@home/anan/Documents/vaultwarden-backup`（Arch 侧显示 `/home/anan/Documents/vaultwarden-backup`）后卸载
-2. ~~niri 工作区精简为三~~：`settings.nix` 工作区改为 `browser`/`note`/`code`；终端（Alacritty/Ghostty/htop）与 mpv 均浮动、不分配工作区，codium/Zed→code、chrome/firefox→browser、SiYuan→note
-3. ~~加密数据盘部署~~：Windows 11 磁盘管理压缩 `nvme1n1p1`（1TB 盘）分出 20G 空闲 → `fdisk` 新建 `/dev/nvme1n1p3` → `cryptsetup luksFormat`（LUKS UUID `86c742fc-8de5-4c59-9a30-196484a35695`）→ `mkfs.ext4` → 挂载 `/mnt/vault`；新增 `system/vault/vault.nix`（`vault-open`/`vault-close` 脚本，**手动按需解锁**，开机不自动挂载）
-4. ~~加密盘与备份结合~~：`vaultwarden-backup.nix` 增加**加密盘按需同步**（备份脚本检测 vault 已解锁且挂载在 `/mnt/vault` → rsync 副本进 `/mnt/vault/vaultwarden/backups/`，**只增不删**；未解锁自动跳过）；盘内建 `passwords/`/`recovery/`/`crypto/`/`ssh/`/`documents/` 目录结构及 `README.md`
-5. ~~目录重构~~：`system/programs/` → `system/nvidia/`；vaultwarden 相关文件（vault.nix / vaultwarden.nix / vaultwarden-backup.nix）统一归入 `system/vault/`
-
-### ✅ 已修复（2026-08-05）
-1. ~~代理切换 daed~~：mihomo → daed（eBPF 透明代理），新增 flake input `daeuniverse`（nixpkgs 固定 `b12141ef` 避免 fetchPnpmDeps 断言失败）、garnix 缓存；`system/mihomo.nix` → `system/proxy/`（备用）；`network.nix` 移除 `Meta` 接口
-2. ~~gfw 分类缺失~~：`daed.nix` assetsPaths 改用 `v2ray-rules-dat`（Loyalsoldier 增强版，含 `geosite:gfw`），替换默认无 gfw 分类的 `v2ray-domain-list-community`
-3. ~~订阅链接失效~~：yfjc.xyz 服务商侧临时故障（TLS EOF），非配置问题；恢复后订阅正常拉取
+### 重装流程（恢复新机器）
+1. 装好 NixOS，clone 仓库
+2. 放置 age 私钥到 `/etc/sops/age/keys.txt`（root:root 600），命令见「十二、关键注意事项」第 6 条
+3. `sudo nixos-rebuild switch --flake .#legion`（或 `rebuild`）
+4. 密码、Vaultwarden TLS 证书等全部由 sops 自动解密生成，无需手动配置
 
 ### 未启用模块（保留但不导入）
 - `system/nvidia/nvidia.nix`：完整独显配置，启用时替换 `nvidia-block.nix`（二选一，不可同时启用）。启用后会自动开启 `services.xserver`。
@@ -764,8 +728,19 @@ sops.templates."hermes-env" = {
 2. **Btrfs 子卷**：系统使用 Btrfs 子卷布局（`@`, `@home`, `@nix`, `@log`），快照和回滚可基于此进行（当前未配置自动快照，但有 btrfs autoScrub）。
 3. **无交换分区**：内存充足（32GB），因此未配置 swap。
 4. **显卡驱动**：GPU 实际使用 AMD 核显（amdgpu），NVIDIA 独显被屏蔽（`nvidia-block.nix`）；`nvidia.nix` 保留完整独显配置，启用时二选一。系统为纯 Wayland，未启用 `services.xserver`（X 应用走 `xwayland-satellite`），`nvidia.nix` 启用时会自动开启。
-5. **密码哈希**：用户密码固定，如要更改请重新生成哈希并替换。
-6. **sops 私钥**：`/etc/sops/age/keys.txt` 必须备份，否则无法解密 `secrets.yaml`（已备份到 win11 的数据盘和 qqmail）。
+5. **密码哈希**：存于 `secrets/secrets.yaml` 的 `password_hash`（sops 加密，不落仓库明文）。修改：用 `openssl passwd -6`（或 `mkpasswd -m sha-512`）生成新 hash → `sops secrets/secrets.yaml` 更新该值 → rebuild。
+6. **sops 私钥（信任根）**：`/etc/sops/age/keys.txt`（对应公钥 `age14hwqm9aumaek4k6gn2zn8269ztzemgyvt8kqu4aq4lpxqtpl8uys5q42qn`）必须备份，丢了它 `secrets/secrets.yaml` 永远解不开。已备份到 win11 数据盘和 qqmail。**备份命令**（现在执行）：
+   ```bash
+   sudo cp /etc/sops/age/keys.txt /mnt/vault/sops-age-keys.txt   # 或 U 盘等离线介质
+   ```
+   **重装恢复命令**（重装 NixOS 后、rebuild 前）：
+   ```bash
+   sudo mkdir -p /etc/sops/age
+   sudo cp /path/to/sops-age-keys.txt /etc/sops/age/keys.txt
+   sudo chown root:root /etc/sops/age/keys.txt
+   sudo chmod 600 /etc/sops/age/keys.txt
+   ```
+   恢复后路径必须是 `/etc/sops/age/keys.txt`（`sops.age.keyFile` 指向它），之后 rebuild 即全自动：密码 hash、Vaultwarden TLS 证书全部由 sops 解密生成，无需其它手动步骤。
 7. **镜像源**：已配置 Tuna/USTC 镜像，更新速度较快。
 8. **NixOS 版本**：实际使用 unstable（当前 26.11），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
 9. **用户组**：`lilei` 已加入 `hermes` 组，这是使用 Hermes 服务的前提。
@@ -774,7 +749,7 @@ sops.templates."hermes-env" = {
 12. **Vaultwarden 仅本机**：服务只监听 `127.0.0.1:8080`，firewall 无需放行；访问必须用 **`https://localhost:8080`**（Bitwarden 客户端拒绝 http）。
 13. **注册后关闭注册**：首次注册完账号，把 `system/vault/vaultwarden.nix` 的 `SIGNUPS_ALLOWED` 改为 `false` 并重建/重启容器，防止他人注册。
 14. **Vaultwarden 数据备份**：SQLite 数据在 `/var/lib/vaultwarden/db.sqlite3`，含全部密码（加密存储），备份该文件即备份整个保险库。
-15. **Vaultwarden 证书**：构建期生成的自签证书存储在 `/nix/store` 中（`pkgs.runCommand` 派生），Nix 会缓存复用同一份证书，rebuild 不更换（只有 `nix store gc` 清理后重建才会生成新证书）。浏览器信任由 `security.pki.certificateFiles` 声明式管理，无需手动导入。
+15. **Vaultwarden 证书**：本地 CA + 证书位于 `/var/lib/vaultwarden/tls/`（0700 root），由 sops 解密生成（`secrets.yaml` 的 `vaultwarden_tls_*`），rebuild 不轮换；CA 公钥 `system/vault/certs/vaultwarden-ca.crt` 经 `security.pki.certificateFiles` 写入系统信任，浏览器零警告无需手动导入。换证书流程见「vaultwarden.nix」一节。
 16. **加密盘手动解锁**：LUKS 加密盘（`/dev/nvme1n1p3`，UUID `86c742fc-8de5-4c59-9a30-196484a35695`）开机**不自动挂载**，用 `sudo vault-open` / `sudo vault-close` 管理。**解锁密码 = 全部数据的钥匙**，丢失即永久丢失、无法找回，务必离线备份（纸质 / U 盘，参照 sops age key 的备份习惯）。
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
 18. **加密盘备份策略**：备份脚本第 3 层只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过；加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。
@@ -812,6 +787,6 @@ sops.templates."hermes-env" = {
 
 ---
 
-**文档版本**：4.1
-**最后更新**：2026-08-04
+**文档版本**：4.2
+**最后更新**：2026-08-08
 **维护者**：lilei（Hermes 协助整理，基于仓库实际文件通读核实）

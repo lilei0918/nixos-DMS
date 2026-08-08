@@ -47,15 +47,17 @@
 
   ############################################
   # garnix 二进制缓存（daeuniverse/flake.nix 的构建产物）
+  # 注意：garnix 时常 503 挂掉，每次 rebuild 会重试 5 次拖慢构建，已禁用。
+  # 需要更新 daed/dae 时再临时启用，或本地编译。
   ############################################
-  nix.settings = {
-    substituters = [
-      "https://cache.garnix.io"
-    ];
-    trusted-public-keys = [
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
-  };
+  # nix.settings = {
+  #   substituters = [
+  #     "https://cache.garnix.io"
+  #   ];
+  #   trusted-public-keys = [
+  #     "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+  #   ];
+  # };
 
   ############################################
   # 防火墙

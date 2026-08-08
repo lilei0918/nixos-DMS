@@ -56,7 +56,6 @@ _: {
     {
       matches = [
         {app-id = "org.gnome.FileRoller";}
-        {app-id = "QQ";}
         {app-id = "org.pulseaudio.pavucontrol";}
         {app-id = "com.rafaelmardojai.Blanket";}
         {app-id = "localsend_app";}
@@ -70,6 +69,13 @@ _: {
         {app-id = "hermes";}
       ];
       open-floating = true;
+    }
+
+    # 6.1 QQ 浮动 + 固定宽度（1600 的 2 倍）
+    {
+      matches = [{app-id = "QQ";}];
+      open-floating = true;
+      default-column-width = {fixed = 1600;};
     }
 
     # 7. 弹窗类窗口居中浮动

@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   inputs,
   ...
@@ -89,7 +90,9 @@
       "hermes"
     ];
 
-    hashedPassword = "***REMOVED***";
+    # 密码 hash 不提交明文仓库：sops 加密存在 secrets/secrets.yaml
+    # 修改：sops secrets/secrets.yaml 更新 password_hash 值，再 nixos-rebuild switch
+    hashedPasswordFile = config.sops.secrets.password_hash.path;
   };
 
   ################################

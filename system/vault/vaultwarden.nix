@@ -2,31 +2,13 @@
   config,
   pkgs,
   ...
-}: let
+}: {
   # 本地 TLS 证书（Vaultwarden 强制 HTTPS）
-  # Bitwarden 新版 web vault 拒绝所有 http:// 请求（含 localhost），
-  # 因此构建期生成自签证书，并加入系统信任，浏览器零警告访问 https://localhost:8080
-  vaultwardenTls = pkgs.runCommand "vaultwarden-tls" {} ''
-    mkdir -p $out
-    cd $out
-
-    # 本地 CA
-    ${pkgs.openssl}/bin/openssl req -x509 -newkey rsa:4096 -nodes \
-      -keyout ca.key -out ca.crt -days 3650 \
-      -subj "/CN=Vaultwarden Local CA"
-
-    # 服务器证书（含 localhost SAN）
-    ${pkgs.openssl}/bin/openssl req -newkey rsa:2048 -nodes \
-      -keyout server.key -out server.csr -subj "/CN=localhost"
-
-    ${pkgs.openssl}/bin/openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key \
-      -CAcreateserial -out server.crt -days 3650 \
-      -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1")
-
-    chmod 644 ca.crt server.crt
-    chmod 600 server.key
-  '';
-in {
+  # Bitwarden 新版 web vault 拒绝所有 http:// 请求（含 localhost）。
+  # 私钥/证书用 sops 加密存于 secrets/secrets.yaml，boot 时 sops-nix 解密写入
+  # /var/lib/vaultwarden/tls（容器在 sops-nix.service 之后启动）。
+  # CA 公钥提交在仓库 certs/vaultwarden-ca.crt，构建期进入系统信任，浏览器零警告。
+  # 重装机器：放置 age key → rebuild 即可，无需手动生成/复制证书。
   ############################################
   # Podman
   ############################################
@@ -46,9 +28,9 @@ in {
   # 只需用 wantedBy 启用 timer
   systemd.timers.podman-auto-update.wantedBy = ["timers.target"];
 
-  # 信任本地 CA（Chrome / Firefox 系统根）
+  # 信任本地 CA（Chrome / Firefox 系统根），CA 公钥提交在仓库，构建期确定
   security.pki.certificateFiles = [
-    "${vaultwardenTls}/ca.crt"
+    ./certs/vaultwarden-ca.crt
   ];
 
   ############################################
@@ -60,12 +42,14 @@ in {
     Description=Vaultwarden password manager
     After=network-online.target
     Wants=network-online.target
+    After=sops-nix.service
+    Wants=sops-nix.service
 
     [Container]
     # SQLite 数据库持久化到宿主机
     Volume=/var/lib/vaultwarden:/data
-    # TLS 证书（只读挂载）
-    Volume=${vaultwardenTls}:/tls:ro
+    # TLS 证书（只读挂载，一次性生成于 /var/lib/vaultwarden/tls）
+    Volume=/var/lib/vaultwarden/tls:/tls:ro
     # 仅本机访问（容器内 TLS 监听 80，宿主 8080 转发）
     PublishPort=127.0.0.1:8080:80
     Environment=DOMAIN=https://localhost:8080
@@ -93,11 +77,13 @@ in {
   '';
 
   ############################################
-  # Vaultwarden 数据目录（SQLite）
+  # Vaultwarden 数据目录（SQLite + TLS）
+  # 敏感数据（db.sqlite3、TLS 私钥），权限收紧为 0700 root
   ############################################
 
   systemd.tmpfiles.rules = [
-    "d /var/lib/vaultwarden 0755 root root - -"
+    "d /var/lib/vaultwarden 0700 root root - -"
+    "d /var/lib/vaultwarden/tls 0700 root root - -"
   ];
 
   ############################################
