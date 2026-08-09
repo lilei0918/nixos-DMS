@@ -122,6 +122,23 @@
   programs.dconf.enable = true;
 
   ################################
+  # DATATB 数据盘自动挂载 (NTFS, ntfs3)
+  # 挂载点与 udisks2 自动挂载路径保持一致，daA 的 TDX_DATA_DIR 无需改动
+  ################################
+
+  fileSystems."/run/media/lilei/DATATB" = {
+    device = "/dev/disk/by-label/DATATB";
+    fsType = "ntfs3";
+    options = [
+      "uid=1000"
+      "gid=100"
+      "umask=022"
+      "nofail"
+      "x-systemd.automount"
+    ];
+  };
+
+  ################################
   # Locale
   ################################
 
