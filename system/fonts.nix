@@ -112,13 +112,17 @@
 
       # 参照 ryan4yin 的 web-ui-fonts.conf + source-han-for-noto-cjk.conf
       # （映射目标改为实际安装的分地区子家族名）
+      # ⚠️ localConf 是原样写入 /etc/fonts/local.conf，必须是完整的
+      # fontconfig 文档：外层要有 <fontconfig> 根元素
       localConf = ''
+        <fontconfig>
         <!-- 渲染：关 autohint、禁 embeddedbitmap（Twemoji 除外） -->
         <match target="font">
           <edit mode="assign" name="autohint"><bool>false</bool></edit>
         </match>
         <match target="font">
           <test name="family" compare="not_eq"><string>Twemoji</string></test>
+          <test name="family" compare="not_eq"><string>Noto Color Emoji</string></test>
           <edit name="embeddedbitmap" mode="assign"><bool>false</bool></edit>
         </match>
 
@@ -181,6 +185,7 @@
           <test qual="any" name="family"><string>Noto Serif CJK KR</string></test>
           <edit name="family" mode="assign" binding="same"><string>Source Han Serif K</string></edit>
         </match>
+        </fontconfig>
       '';
     };
   };
