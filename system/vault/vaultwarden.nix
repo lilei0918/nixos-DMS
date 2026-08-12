@@ -48,8 +48,13 @@
     [Container]
     # SQLite 数据库持久化到宿主机
     Volume=/var/lib/vaultwarden:/data
-    # TLS 证书（只读挂载，一次性生成于 /var/lib/vaultwarden/tls）
-    Volume=/var/lib/vaultwarden/tls:/tls:ro
+    # TLS 证书：sops 的 path 会把文件做成指向 /run/secrets 的符号链接，
+    # 容器命名空间里没有 /run/secrets，故改为逐个挂载 sops 解密出的真实文件
+    # （bind mount 会跟随符号链接解析到 /run/secrets.d 下的真实文件）。
+    Volume=${config.sops.secrets.vaultwarden_tls_ca_crt.path}:/tls/ca.crt:ro
+    Volume=${config.sops.secrets.vaultwarden_tls_ca_key.path}:/tls/ca.key:ro
+    Volume=${config.sops.secrets.vaultwarden_tls_server_crt.path}:/tls/server.crt:ro
+    Volume=${config.sops.secrets.vaultwarden_tls_server_key.path}:/tls/server.key:ro
     # 仅本机访问（容器内 TLS 监听 80，宿主 8080 转发）
     PublishPort=127.0.0.1:8080:80
     Environment=DOMAIN=https://localhost:8080

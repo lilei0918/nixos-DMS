@@ -130,7 +130,7 @@ nixos-DMS/
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
-│       ├── fastfetch.nix    # 系统信息（logo 指向 ~/nixos-DMS/assets/）
+│       ├── fastfetch.nix    # 系统信息（logo 用 assets/icons/logo.png，自适应终端宽度）
 │       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置）
 │       ├── git.nix          # git + delta
 │       ├── hermes.nix       # Hermes Desktop
@@ -141,8 +141,7 @@ nixos-DMS/
 │       ├── walker.nix       # 应用启动器（+ elephant 剪贴板依赖）
 │       └── xfsettingsd.nix  # 【未启用】XFCE 设置守护进程（home.nix 中已注释）
 └── assets/                  # 静态资源
-    ├── icons/               # 图标（nix-lavender.png 等）
-    └── themes/base-16/      # base16 主题（gruvbox、noktis、oxocarbon 等）
+    └── icons/               # 图标（仅 logo.png，fastfetch 使用）
 ```
 
 ---
@@ -618,7 +617,7 @@ sops.templates."hermes-env" = {
 | `walker.nix` | walker + elephant（剪贴板依赖，systemd user service） |
 | `vscode/vscode.nix` | **VSCodium**（不是 VSCode）：nix-ide、gitlens、material-icon、markdown-all-in-one、yaml、code-spell-checker（Nix LSP 统一用 nixd）。主题 **Catppuccin Mocha**（扩展 `catppuccin.catppuccin-vsc` 3.19.0，nixpkgs 自带）。⚙️ Nix 格式化走 nixd：`nix.serverSettings.nixd.formatting.command = ["alejandra"]`（`nix.formatterPath` 在 LSP 开启时无效）。`redhat.telemetry.enabled=false`（退出 Red Hat 扩展遥测） |
 | `btop.nix` | presets、TTY 配色、desktop entry（ghostty -e btop） |
-| `fastfetch.nix` | 自定义 logo 与模块布局（logo 指向 ~/nixos-DMS/assets/） |
+| `fastfetch.nix` | 自定义 logo（`assets/icons/logo.png`，auto 适配终端）与模块布局 |
 | `rime.nix` | rime-ice（锁定 commit `8a3d9470`，声明式 home.file 管理）、librime + librime-lua。⚠️ **rebuild/重启后若雾凇未出现，手动运行 `fcitx5-remote -r` 触发部署**（详见文件头注释） |
 | `xfsettingsd.nix` | 【未启用】XFCE 设置守护进程 user service |
 

@@ -1,0 +1,2 @@
+{myvars, ...}:
+myvars.homeDirectory

@@ -1,106 +1,188 @@
 _: {
   programs.fastfetch = {
     enable = true;
+
     settings = {
       logo = {
-        source = "~/nixos-DMS/assets/icons/nix-lavender.png";
+        # alacritty 不支持 kitty 图形协议（kitty-direct 会静默不显示），
+        # 用 auto 让 fastfetch 自动选择终端支持的渲染方式（ghostty 下仍会用 kitty）。
+        # 若 auto 在 alacritty 下仍无 logo，可改 "chafa"（块字符渲染，任何终端可用）。
+        type = "auto";
+        source = ../../assets/icons/logo.png;
+        # 不设 width —— 让 fastfetch 按终端宽度自动缩放；
+        # height 限制最大行数，宽高比自动保持
+        height = 20;
         padding = {
-          top = 2;
-          left = 3;
+          top = 8;
+          bottom = 8;
+          right = 5;
+          left = 5;
         };
-        width = 40;
       };
+
+      display = {
+        separator = " -> ";
+      };
+
       modules = [
         "break"
+
         {
           type = "custom";
-          format = "──────────────────────Hardware──────────────────────";
+          format = "╭────────────────────── Hardware ──────────────────────╮";
+          outputColor = "red";
+        }
+
+        {
+          type = "title";
+          key = " PC";
+          keyColor = "green";
+          format = "{user-name-colored} on {host-name-colored}";
         }
 
         {
           type = "cpu";
-          key = " ";
+          key = "│ ├ CPU";
           showPeCoreCount = true;
-          keyColor = "33";
+          format = "{name} {freq-max}";
+          keyColor = "green";
         }
+
         {
           type = "gpu";
-          key = " 󰍛";
-          keyColor = "33";
+          key = "│ ├ GPU";
+          keyColor = "green";
+          format = "{vendor} {name}";
         }
+
+        {
+          type = "disk";
+          key = "│ ├ Disk";
+          keyColor = "green";
+        }
+
         {
           type = "memory";
-          key = " ";
-          keyColor = "33";
+          key = "└ └ Memory";
+          keyColor = "green";
         }
+
         {
           type = "custom";
-          format = "────────────────────────────────────────────────────";
+          format = "╰──────────────────────────────────────────────────────╯";
+          outputColor = "red";
         }
+
         "break"
+
         {
           type = "custom";
-          format = "──────────────────────Software──────────────────────";
+          format = "╭────────────────────── Software ──────────────────────╮";
+          outputColor = "red";
         }
+
         {
           type = "os";
-          key = " 󱄅";
+          key = " OS";
           keyColor = "yellow";
+          # TODO: use the pretty name
+          # format = "{pretty-name} {version-id} {codename}";
+          format = "NixOS {version-id} {codename}";
         }
+
         {
           type = "kernel";
-          key = " ";
+          key = "│ ├ Kernel";
           keyColor = "yellow";
         }
-        {
-          type = "packages";
-          key = " ";
-          keyColor = "yellow";
-        }
-        {
-          type = "wm";
-          key = " 󰇄";
-          keyColor = "33";
-        }
-        {
-          type = "lm";
-          key = " 󰍂";
-          keyColor = "33";
-        }
-        {
-          type = "terminal";
-          key = " ";
-          keyColor = "33";
-        }
+
         {
           type = "shell";
-          key = " ";
-          keyColor = "33";
+          key = "│ ├ Shell";
+          keyColor = "yellow";
+          format = "{1}";
         }
+
         {
-          type = "custom";
-          format = "────────────────────────────────────────────────────";
+          type = "packages";
+          key = "│ ├ Packages";
+          keyColor = "yellow";
         }
-        "break"
-        {
-          type = "custom";
-          format = "────────────────────Uptime / Age────────────────────";
-        }
+
         {
           type = "command";
-          key = "  OS Age ";
-          keyColor = "33";
-          text = "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days";
+          key = "│ ├ OS Age";
+          keyColor = "yellow";
+          text = ''
+            birth_install=$(stat -c %W /); \
+            current=$(date +%s); \
+            time_progression=$((current - birth_install)); \
+            days_difference=$((time_progression / 86400)); \
+            echo $days_difference days
+          '';
         }
+
         {
           type = "uptime";
-          key = "  Uptime ";
-          keyColor = "33";
+          key = "└ └ Uptime";
+          keyColor = "yellow";
         }
+
+        "break"
+
+        {
+          type = "wm";
+          key = " Compositor";
+          keyColor = "blue";
+          format = "{1}";
+        }
+
+        {
+          type = "lm";
+          key = "│ ├ Login";
+          keyColor = "blue";
+          format = "{1}";
+        }
+
+        {
+          type = "terminal";
+          key = "│ ├ Terminal";
+          keyColor = "blue";
+          format = "{1}";
+        }
+
+        {
+          type = "terminalfont";
+          key = "│ ├ Font";
+          keyColor = "blue";
+          format = "{name}";
+        }
+
+        {
+          type = "icons";
+          key = "│ ├ Icons";
+          keyColor = "blue";
+        }
+
         {
           type = "custom";
-          format = "────────────────────────────────────────────────────";
+          key = "└ └ Theme";
+          keyColor = "blue";
+          format = "Stylix";
         }
+
+        {
+          type = "custom";
+          format = "╰──────────────────────────────────────────────────────╯";
+          outputColor = "red";
+        }
+
+        {
+          type = "colors";
+          paddingLeft = 20;
+          symbol = "circle";
+        }
+
         "break"
       ];
     };

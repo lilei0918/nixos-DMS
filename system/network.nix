@@ -9,7 +9,6 @@
 
       wifi.powersave = false;
     };
-
   };
 
   services.timesyncd.enable = true;

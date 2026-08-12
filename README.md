@@ -1,3 +1,10 @@
+改动配置的流程不变：
+cd nixos-DMS
+alejandra .
+nix flake check 
+git add -A && git commit -m "before switch"
+nh os switch .#legion。
+
 # nixos-DMS
 
 Lei 的 NixOS 配置仓库（flake 化），目标主机：Lenovo Legion R7000P 2021。

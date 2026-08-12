@@ -56,7 +56,10 @@
     hermes-agent = {
       url = "github:NousResearch/hermes-agent/1cdb8ce361e91c79cfbd6bee550ee6c09d290261";
 
-      inputs.nixpkgs.follows = "nixpkgs";
+      # 与 niri/daeuniverse 同理：hermes 源码固定 commit，其 npm 依赖从 registry.npmjs.org
+      # 抓取（本机直连该源仅 ~25-200KB/s），pin 到旧 nixpkgs（624af66）可使 hermes
+      # 构建完全命中旧缓存，避免每次 nixpkgs 升级都重新下载全部 npm 依赖。
+      inputs.nixpkgs.url = "github:NixOS/nixpkgs/624af665418d3c65d544145b4d34ad696439570e";
     };
 
     # =============================
@@ -65,6 +68,16 @@
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
+
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # =============================
+    # Pre-commit Hooks（提交前自动格式化/检查）
+    # =============================
+
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
 
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -89,8 +102,52 @@
     home-manager,
     hermes-agent,
     sops-nix,
+    pre-commit-hooks,
     ...
-  } @ inputs: {
+  } @ inputs: let
+    lib = nixpkgs.lib;
+    myvars = import ./vars {
+      inherit lib;
+    };
+
+    # Eval 测试：nix eval .#evalTests
+    evalTests = let
+      tests = import ./tests {
+        inherit lib myvars;
+        outputs = self;
+      };
+    in
+      lib.all (v: v) (lib.attrValues tests);
+
+    # 把 eval 测试包装成 derivation，供 `nix flake check` 使用
+    # 注意：tests/default.nix 内部用 assertMsg，测试失败会直接抛错，
+    # 因此这里只需强制求值 evalTests，求值成功即代表全部通过。
+    evalTestsCheck = nixpkgs.legacyPackages.x86_64-linux.runCommand "eval-tests" {} ''
+      echo "all eval tests passed" > $out
+      ${lib.optionalString evalTests ""}
+    '';
+
+    # pre-commit 检查（nix 格式化 + 拼写检查）
+    preCommitCheck = pre-commit-hooks.lib.x86_64-linux.run {
+      src = self;
+
+      hooks = {
+        alejandra = {
+          enable = true;
+          settings.check = true;
+        };
+        typos = {
+          enable = true;
+          settings = {
+            write = true;
+            configPath = ".typos.toml";
+          };
+        };
+        # deadnix.enable = true; # 检测 *.nix 中的未使用变量
+        # statix.enable = true; # nix 代码 lint
+      };
+    };
+  in {
     # =============================
     # NixOS Host
     # =============================
@@ -99,7 +156,7 @@
       system = "x86_64-linux";
 
       specialArgs = {
-        inherit self inputs;
+        inherit self inputs myvars;
       };
 
       modules = [
@@ -118,6 +175,25 @@
         # Secrets
 
         sops-nix.nixosModules.sops
+      ];
+    };
+
+    # Eval 测试
+    inherit evalTests;
+
+    # Checks（供 nix flake check 使用）
+    checks.x86_64-linux = {
+      inherit evalTestsCheck preCommitCheck;
+    };
+
+    # Dev Shells（nix develop 进入开发环境）
+    devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
+      # 进入 nix develop 时自动安装 git pre-commit 钩子
+      inherit (self.checks.x86_64-linux.preCommitCheck) shellHook;
+
+      packages = [
+        nixpkgs.legacyPackages.x86_64-linux.alejandra
+        nixpkgs.legacyPackages.x86_64-linux.typos
       ];
     };
 

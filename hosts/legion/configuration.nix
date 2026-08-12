@@ -2,6 +2,7 @@
   config,
   pkgs,
   inputs,
+  myvars,
   ...
 }: {
   imports = [
@@ -12,6 +13,8 @@
     ################################
 
     ../../system/nix.nix
+
+    ../../system/cleanup.nix
 
     ../../system/boot.nix
 
@@ -71,10 +74,10 @@
   # User
   ################################
 
-  users.users.lilei = {
+  users.users.${myvars.username} = {
     isNormalUser = true;
 
-    description = "lilei";
+    description = myvars.userfullname;
 
     shell = pkgs.zsh;
 
@@ -107,10 +110,10 @@
     # 给 home.nix / hermes.nix 使用 flake inputs
 
     extraSpecialArgs = {
-      inherit inputs;
+      inherit inputs myvars;
     };
 
-    users.lilei = import ./home.nix;
+    users.${myvars.username} = import ./home.nix;
 
     backupFileExtension = "backup";
   };
@@ -126,7 +129,7 @@
   # 挂载点与 udisks2 自动挂载路径保持一致，daA 的 TDX_DATA_DIR 无需改动
   ################################
 
-  fileSystems."/run/media/lilei/DATATB" = {
+  fileSystems."/run/media/${myvars.username}/DATATB" = {
     device = "/dev/disk/by-label/DATATB";
     fsType = "ntfs3";
     options = [

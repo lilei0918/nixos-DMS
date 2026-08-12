@@ -9,11 +9,16 @@
 #
 # daed 与 mihomo 不能同时开启（都会抢 TUN/TPROXY 和防火墙规则）。
 # =============================================================================
-{pkgs, lib, ...}: {
+{
+  pkgs,
+  lib,
+  myvars,
+  ...
+}: {
   services.mihomo = {
     enable = true;
     # 保持读取你的配置文件
-    configFile = "/home/lilei/.config/mihomo/config.yaml";
+    configFile = "${myvars.homeDirectory}/.config/mihomo/config.yaml";
     tunMode = true;
     webui = pkgs.metacubexd;
   };

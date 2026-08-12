@@ -1,64 +1,49 @@
-{
-  lib,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   fonts = {
+    # 关闭默认字体包（由下面 packages 完全接管）
+    enableDefaultPackages = false;
+
     # 开启 fontconfig
     fontDir.enable = true;
 
-    packages = with pkgs;
-      [
-        # =========================
-        # 中文字体
-        # =========================
+    packages = with pkgs; [
+      # =========================
+      # 西文（Source 系列）
+      # =========================
 
-        # 中文 UI / 网页
-        noto-fonts-cjk-sans
+      source-serif # Source Serif 4（衬线）
 
-        # 中文阅读 / PDF
-        noto-fonts-cjk-serif
+      source-sans # Source Sans 3（无衬线）
 
-        # =========================
-        # Emoji
-        # =========================
+      # =========================
+      # 中文（思源黑体/宋体 + 霞鹜文楷）
+      # =========================
 
-        noto-fonts-color-emoji
+      source-han-serif # 思源宋体（SC/TC）
 
-        # =========================
-        # 英文 UI
-        # =========================
+      source-han-sans # 思源黑体（SC/TC）
 
-        inter
+      source-han-mono # 思源等宽（SC/TC）
 
-        # =========================
-        # 编程字体
-        # =========================
+      lxgw-wenkai # 霞鹜文楷（含 Screen 屏幕版）
 
-        fira-code
+      # =========================
+      # 等宽 / Nerd Font
+      # =========================
+      # Maple Mono NF CN 在 nixpkgs(f13ff45) 不可用，
+      # 等宽主字体用 JetBrainsMono Nerd Font
 
-        # =========================
-        # Nerd Font
-        # =========================
+      nerd-fonts.jetbrains-mono
 
-        # 终端 / Starship / VSCodium
-        nerd-fonts.jetbrains-mono
+      # =========================
+      # Emoji
+      # =========================
 
-        # =========================
-        # 通用字体
-        # =========================
+      noto-fonts-color-emoji
 
-        noto-fonts
-      ]
-      # Material Symbols
-      ++ lib.optionals (pkgs ? material-symbols) [
-        pkgs.material-symbols
-      ]
-      ++ lib.optionals
-      (!(pkgs ? material-symbols) && (pkgs ? material-design-icons))
-      [
-        pkgs.material-design-icons
-      ];
+      # 通用兜底
+      noto-fonts
+    ];
 
     fontconfig = {
       enable = true;
@@ -68,59 +53,48 @@
       # =========================
 
       defaultFonts = {
-        # GTK / 浏览器 / UI
-
-        sansSerif = [
-          "Noto Sans CJK SC"
-
-          "Inter"
-
-          "Noto Sans"
-        ];
-
-        # 阅读 / PDF
-
+        # 衬线（阅读 / 印刷）
         serif = [
-          "Noto Serif CJK SC"
+          "Source Serif 4"
 
-          "Noto Serif"
+          "Source Han Serif SC"
+
+          "Source Han Serif TC"
         ];
 
-        # Terminal / Coding
+        # 无衬线（UI / 屏幕显示）
+        sansSerif = [
+          "Source Sans 3"
 
+          "LXGW WenKai Screen"
+
+          "Source Han Sans SC"
+
+          "Source Han Sans TC"
+        ];
+
+        # 等宽（终端 / 代码）
         monospace = [
           "JetBrainsMono Nerd Font"
 
-          "Noto Sans Mono CJK SC"
+          "Source Han Mono SC"
+
+          "Source Han Mono TC"
         ];
 
         # Emoji
-
-        emoji = [
-          "Noto Color Emoji"
-        ];
+        emoji = ["Noto Color Emoji"];
       };
 
-      # =========================
-      # 字体渲染
-      # =========================
-
+      # 抗锯齿
       antialias = true;
 
-      hinting = {
-        enable = true;
+      # 高分屏无需字体微调
+      hinting.enable = false;
 
-        style = "slight";
-      };
-
-      # Wayland 推荐
-      # 避免外接屏幕颜色边缘
-
-      subpixel = {
-        rgba = "none";
-
-        lcdfilter = "default";
-      };
+      # IPS 屏 rgb 子像素排列（参照 ryan4yin 配置；
+      # 若外接屏出现彩色描边，改回 rgba = "none"）
+      subpixel.rgba = "rgb";
     };
   };
 }

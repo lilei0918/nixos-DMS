@@ -3,14 +3,15 @@
   pkgs,
   lib,
   inputs,
+  myvars,
   ...
 }: let
   allPackages = import ./packages.nix {
     inherit pkgs;
   };
 in {
-  home.username = "lilei";
-  home.homeDirectory = "/home/lilei";
+  home.username = myvars.username;
+  home.homeDirectory = myvars.homeDirectory;
   home.stateVersion = "25.05";
 
   imports = [
@@ -55,7 +56,7 @@ in {
     # 系统 nixpkgs（f13ff45 起）的 pkgs.niri 引用了被删除的 libdisplay-info_0_2，
     # 故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix 固定到 624af66）。
     # 上游修复后（niri-flake 改用 libdisplay-info 0.3）可移除本行。
-    package = inputs.niri.packages.${pkgs.system}.niri-stable;
+    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-stable;
 
     settings = import ../../home/niri/default.nix {
       inherit

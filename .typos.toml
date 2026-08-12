@@ -1,0 +1,33 @@
+[files]
+# 尊重 .ignore / .gitignore
+ignore-dot = true
+ignore-files = true
+# 跳过无需检查的目录
+extend-exclude = [
+  "secrets/",
+  "assets/",
+  "Hermes.md",
+]
+
+[default]
+# 二进制文件不按文本检查
+binary = false
+# 检查文件名拼写
+check-filename = true
+# 忽略这些特殊标识符/项目专有名词
+extend-ignore-re = [
+  "DankMaterialShell",
+  "AvengeMedia",
+  "daeuniverse",
+  "daed",
+  "legion",
+  "R7000P",
+  "DATATB",
+  "rime",
+  "niri",
+  "sops",
+  "agenix",
+  "typos",
+  "lilei",
+  "WhiteSur",
+]

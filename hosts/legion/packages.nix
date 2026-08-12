@@ -15,6 +15,8 @@ with pkgs; [
   loupe # GNOME 图片查看器（简单、快速）
   zathura # 轻量级 PDF/文档查看器（Vim 风格快捷键）
   zettlr # 学术级 Markdown 编辑器
+  thunderbird
+  papers
 
   # ─────────────────────────────
   # 💰 金融
@@ -27,6 +29,7 @@ with pkgs; [
   # ─────────────────────────────
 
   qq # 腾讯 QQ 客户端（Linux 版）
+  telegram-desktop
 
   # ─────────────────────────────
   # 🎨 桌面配置

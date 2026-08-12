@@ -1,4 +1,4 @@
-{
+{myvars, ...}: {
   programs.git = {
     enable = true;
 
@@ -6,8 +6,8 @@
 
     settings = {
       user = {
-        name = "lilei";
-        email = "lilei0918@gmail.com";
+        name = myvars.username;
+        email = myvars.useremail;
       };
 
       init.defaultBranch = "main";

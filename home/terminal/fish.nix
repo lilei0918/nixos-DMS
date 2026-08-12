@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  myvars,
+  ...
+}: {
   programs.fish = {
     enable = true;
 
@@ -27,21 +31,21 @@
       # Nix
       # =====================
 
-      rebuild = "nh os switch /home/lilei/nixos-DMS#legion";
+      rebuild = "nh os switch ${myvars.repoDir}#${myvars.flakeName}";
 
-      nix-test = "nh os test /home/lilei/nixos-DMS#legion";
+      nix-test = "nh os test ${myvars.repoDir}#${myvars.flakeName}";
 
-      boot = "nh os boot /home/lilei/nixos-DMS#legion";
+      boot = "nh os boot ${myvars.repoDir}#${myvars.flakeName}";
 
       rollback = "sudo nixos-rebuild switch --rollback";
 
       cleanup = "sudo nix-collect-garbage --delete-older-than 14d";
 
-      check = "nix flake check /home/lilei/nixos-DMS";
+      check = "nix flake check ${myvars.repoDir}";
 
-      update = "nix flake update /home/lilei/nixos-DMS";
+      update = "nix flake update ${myvars.repoDir}";
 
-      fmt = "alejandra /home/lilei/nixos-DMS";
+      fmt = "alejandra ${myvars.repoDir}";
 
       # =====================
       # Git

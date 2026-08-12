@@ -67,6 +67,7 @@ _: {
         {app-id = "zathura";}
         {app-id = "com.github.johnfactotum.Foliate";}
         {app-id = "hermes";}
+        {app-id = "org.telegram.desktop";}
       ];
       open-floating = true;
     }
@@ -75,7 +76,7 @@ _: {
     {
       matches = [{app-id = "QQ";}];
       open-floating = true;
-      default-column-width = {fixed = 1600;};
+      default-column-width = {fixed = 800;};
     }
 
     # 7. 弹窗类窗口居中浮动
