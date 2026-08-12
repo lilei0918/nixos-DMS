@@ -1,5 +1,13 @@
 # NixOS Flake 配置说明（Hermes 参考手册 v3.0）
 
+改动配置的流程不变：
+cd nixos-DMS
+alejandra .
+nix flake check 
+git add -A && git commit -m "before switch"
+nh os switch .#legion
+
+
 > **目标**：让 Hermes（AI 助手）理解这套 NixOS 配置的完整结构、硬件背景和日常维护流程，以便提供精准的操作建议。
 > **本文档基于仓库实际文件内容整理（2026-08-01 通读核实），与配置仓库同步维护。**
 

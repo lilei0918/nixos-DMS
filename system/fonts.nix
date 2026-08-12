@@ -25,19 +25,20 @@
 
       source-han-mono # 思源等宽（SC/TC）
 
-      lxgw-wenkai # 霞鹜文楷（含 Screen 屏幕版）
+      lxgw-wenkai # 霞鹜文楷（备选）
 
       # =========================
       # 等宽 / Nerd Font
       # =========================
-      # Maple Mono NF CN 在 nixpkgs(f13ff45) 不可用，
-      # 等宽主字体用 JetBrainsMono Nerd Font
+      # Maple Mono NF CN 在 nixpkgs(f13ff45) 不可用，用 JetBrainsMono Nerd Font
 
       nerd-fonts.jetbrains-mono
 
       # =========================
-      # Emoji
+      # Emoji（Twemoji 主用，Noto 兜底）
       # =========================
+
+      twemoji-color-font
 
       noto-fonts-color-emoji
 
@@ -49,28 +50,29 @@
       enable = true;
 
       # =========================
-      # 默认字体 fallback
+      # 默认字体（参照 ryan4yin：中文优先思源黑体/宋体）
+      # fontconfig 按列表顺序、逐字符取第一个含字形的字体
       # =========================
 
       defaultFonts = {
-        # 衬线（阅读 / 印刷）
+        # 衬线（阅读 / 文档）：中文宋体优先
         serif = [
-          "Source Serif 4"
-
           "Source Han Serif SC"
 
           "Source Han Serif TC"
+
+          "Source Serif 4"
         ];
 
-        # 无衬线（UI / 屏幕显示）
+        # 无衬线（UI / 网页）：中文黑体优先（≈ Noto Sans CJK 观感）
         sansSerif = [
-          "Source Sans 3"
-
-          "LXGW WenKai Screen"
-
           "Source Han Sans SC"
 
           "Source Han Sans TC"
+
+          "Source Sans 3"
+
+          "LXGW WenKai Screen" # 楷体兜底，正常不会命中
         ];
 
         # 等宽（终端 / 代码）
@@ -82,19 +84,104 @@
           "Source Han Mono TC"
         ];
 
-        # Emoji
-        emoji = ["Noto Color Emoji"];
+        # Emoji：Twemoji 优先
+        emoji = [
+          "Twemoji"
+
+          "Noto Color Emoji"
+        ];
       };
 
-      # 抗锯齿
-      antialias = true;
+      # =========================
+      # 渲染参数（参照 ryan4yin）
+      # =========================
 
-      # 高分屏无需字体微调
-      hinting.enable = false;
+      antialias = true; # 抗锯齿
 
-      # IPS 屏 rgb 子像素排列（参照 ryan4yin 配置；
-      # 若外接屏出现彩色描边，改回 rgba = "none"）
-      subpixel.rgba = "rgb";
+      hinting = {
+        enable = true;
+
+        style = "slight"; # hintslight
+      };
+
+      subpixel = {
+        rgba = "rgb"; # IPS 屏 rgb 子像素排列
+
+        lcdfilter = "default"; # lcddefault
+      };
+
+      # 参照 ryan4yin 的 web-ui-fonts.conf + source-han-for-noto-cjk.conf
+      # （映射目标改为实际安装的分地区子家族名）
+      localConf = ''
+        <!-- 渲染：关 autohint、禁 embeddedbitmap（Twemoji 除外） -->
+        <match target="font">
+          <edit mode="assign" name="autohint"><bool>false</bool></edit>
+        </match>
+        <match target="font">
+          <test name="family" compare="not_eq"><string>Twemoji</string></test>
+          <edit name="embeddedbitmap" mode="assign"><bool>false</bool></edit>
+        </match>
+
+        <!-- CSS ui-* / 系统字体名 → 标准泛型（GitHub 代码块等用 ui-monospace） -->
+        <match target="pattern">
+          <test qual="any" name="family"><string>ui-monospace</string></test>
+          <edit name="family" mode="assign" binding="same"><string>monospace</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>ui-sans-serif</string></test>
+          <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>ui-serif</string></test>
+          <edit name="family" mode="assign" binding="same"><string>serif</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>-apple-system</string></test>
+          <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
+        </match>
+
+        <!-- Noto CJK 名 → 思源（装的是分地区子家族；无 JP，JP 落到 SC） -->
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Sans CJK SC</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Sans SC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Sans CJK TC</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Sans TC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Sans CJK HK</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Sans HC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Sans CJK JP</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Sans SC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Sans CJK KR</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Sans K</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Serif CJK SC</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Serif SC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Serif CJK TC</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Serif TC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Serif CJK HK</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Serif HC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Serif CJK JP</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Serif SC</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Noto Serif CJK KR</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Source Han Serif K</string></edit>
+        </match>
+      '';
     };
   };
 }

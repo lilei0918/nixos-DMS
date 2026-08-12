@@ -3,7 +3,7 @@ cd nixos-DMS
 alejandra .
 nix flake check 
 git add -A && git commit -m "before switch"
-nh os switch .#legion。
+nh os switch .#legion
 
 # nixos-DMS
 
