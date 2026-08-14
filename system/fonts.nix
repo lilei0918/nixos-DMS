@@ -8,15 +8,15 @@
 
     packages = with pkgs; [
       # =========================
-      # 西文（Source 系列）
+      # 西文（Inter 主打 UI，Source Serif 阅读）
       # =========================
 
-      source-serif # Source Serif 4（衬线）
+      inter # Inter（无衬线 UI，风格接近 SF Pro）
 
-      source-sans # Source Sans 3（无衬线）
+      source-serif # Source Serif 4（衬线阅读）
 
       # =========================
-      # 中文（思源黑体/宋体 + 霞鹜文楷）
+      # 中文（思源黑体/宋体）
       # =========================
 
       source-han-serif # 思源宋体（SC/TC）
@@ -24,8 +24,6 @@
       source-han-sans # 思源黑体（SC/TC）
 
       source-han-mono # 思源等宽（SC/TC）
-
-      lxgw-wenkai # 霞鹜文楷（备选）
 
       # =========================
       # 等宽 / Nerd Font
@@ -35,10 +33,8 @@
       nerd-fonts.jetbrains-mono
 
       # =========================
-      # Emoji（Twemoji 主用，Noto 兜底）
+      # Emoji（Noto Color Emoji 主用）
       # =========================
-
-      twemoji-color-font
 
       noto-fonts-color-emoji
 
@@ -64,15 +60,15 @@
           "Source Serif 4"
         ];
 
-        # 无衬线（UI / 网页）：中文黑体优先（≈ Noto Sans CJK 观感）
+        # 无衬线（UI / 网页）：Inter + 思源黑体
         sansSerif = [
+          "Inter"
+
           "Source Han Sans SC"
 
           "Source Han Sans TC"
 
-          "Source Sans 3"
-
-          "LXGW WenKai Screen" # 楷体兜底，正常不会命中
+          "Noto Sans"
         ];
 
         # 等宽（终端 / 代码）
@@ -84,24 +80,20 @@
           "Source Han Mono TC"
         ];
 
-        # Emoji：Twemoji 优先
+        # Emoji：Noto Color Emoji 优先
         emoji = [
-          "Twemoji"
-
           "Noto Color Emoji"
         ];
       };
 
       # =========================
-      # 渲染参数（参照 ryan4yin）
+      # 渲染参数（macOS 风格：关闭 hinting，靠字形 + 抗锯齿）
       # =========================
 
       antialias = true; # 抗锯齿
 
       hinting = {
-        enable = true;
-
-        style = "slight"; # hintslight
+        enable = false; # macOS 在高 DPI 上不依赖 hinting，关掉更细腻
       };
 
       subpixel = {
@@ -116,12 +108,11 @@
       # fontconfig 文档：外层要有 <fontconfig> 根元素
       localConf = ''
         <fontconfig>
-        <!-- 渲染：关 autohint、禁 embeddedbitmap（Twemoji 除外） -->
+        <!-- 渲染：关 autohint、禁 embeddedbitmap（Noto Color Emoji 除外） -->
         <match target="font">
           <edit mode="assign" name="autohint"><bool>false</bool></edit>
         </match>
         <match target="font">
-          <test name="family" compare="not_eq"><string>Twemoji</string></test>
           <test name="family" compare="not_eq"><string>Noto Color Emoji</string></test>
           <edit name="embeddedbitmap" mode="assign"><bool>false</bool></edit>
         </match>
@@ -142,6 +133,20 @@
         <match target="pattern">
           <test qual="any" name="family"><string>-apple-system</string></test>
           <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
+        </match>
+
+        <!-- Apple 系统字体名 → Inter -->
+        <match target="pattern">
+          <test qual="any" name="family"><string>SF Pro</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Inter</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>SF Pro Display</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Inter</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>SF Pro Text</string></test>
+          <edit name="family" mode="assign" binding="same"><string>Inter</string></edit>
         </match>
 
         <!-- Noto CJK 名 → 思源（装的是分地区子家族；无 JP，JP 落到 SC） -->

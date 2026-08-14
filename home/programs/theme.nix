@@ -50,7 +50,7 @@ in {
     # 删除
 
     font = {
-      name = "Noto Sans CJK";
+      name = "Inter";
 
       size = 11;
     };

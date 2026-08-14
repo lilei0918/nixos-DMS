@@ -124,6 +124,9 @@
 
   programs.dconf.enable = true;
 
+  # 把 ~/.local/bin 加进 PATH（自定义脚本：futu 等）
+  environment.localBinInPath = true;
+
   ################################
   # DATATB 数据盘自动挂载 (NTFS, ntfs3)
   # 挂载点与 udisks2 自动挂载路径保持一致，daA 的 TDX_DATA_DIR 无需改动

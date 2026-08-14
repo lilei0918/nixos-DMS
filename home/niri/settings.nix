@@ -1,10 +1,17 @@
 {...}: {
   # 命名工作区（供 rules.nix 的 open-on-workspace 使用）
   # ⚠️ niri 的 open-on-workspace 不会自动创建工作区，必须在此声明，否则窗口落到当前工作区
+  # ⚠️ 工作区按 key 排序创建，因此用数字前缀控制顺序，再用 name 指定实际名称
   workspaces = {
-    "browser" = {};
-    "note" = {};
-    "code" = {};
+    "1-browser" = {
+      name = "browser";
+    };
+    "2-note" = {
+      name = "note";
+    };
+    "3-code" = {
+      name = "code";
+    };
   };
 
   # 禁用客户端装饰
