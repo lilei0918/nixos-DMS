@@ -1,0 +1,11 @@
+[project]
+name = "pyside6-app"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "PySide6",
+  "pyqtgraph",
+]
+
+[tool.uv]
+package = false

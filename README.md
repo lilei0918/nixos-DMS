@@ -92,6 +92,7 @@ nixos-DMS/
 ├── flake.nix                # 总入口：inputs / outputs（含 eval 测试、pre-commit 钩子、devShell）
 ├── flake.lock               # 锁定所有 inputs 版本
 ├── README.md                # 本文档（完整参考手册：仓库简介 + 全部配置详解）
+├── MEMO.md                  # 命令速查备忘录（日常备查）
 ├── AGENTS.md                # AI agent 行为规则（安全边界、机密处理、工具默认值）
 ├── agents/
 │   ├── README.md            # 说明本目录（规则/权限配套）
@@ -760,6 +761,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 ---
 
 ## 十、常用命令速查
+
+> 日常备查的完整备忘录见 [`MEMO.md`](./MEMO.md)（按主题分 Nix / 加密盘 / Vaultwarden / sops / 代理 / Hermes / 备份重装 / 排障）。
 
 | 操作 | 命令 |
 |------|------|

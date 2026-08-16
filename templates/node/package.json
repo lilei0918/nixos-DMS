@@ -1,0 +1,9 @@
+{
+  "name": "my-node-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'pnpm dev'",
+    "build": "echo 'pnpm build'"
+  }
+}

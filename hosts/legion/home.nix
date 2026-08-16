@@ -28,6 +28,7 @@ in {
     ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
     ../../home/programs/hermes.nix
+    ../../home/programs/dev.nix
     ../../home/programs/walker.nix
     ../../home/programs/thunar.nix
     ../../home/programs/theme.nix

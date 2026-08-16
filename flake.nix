@@ -198,6 +198,33 @@
     };
 
     # =============================
+    # 项目脚手架模板
+    # 用法：nix flake init -t <flake>#<name>
+    #   本地：nix flake init -t ~/nixos-DMS#python
+    #   GitHub：nix flake init -t github:lilei0918/nixos-DMS#python
+    # 详见 templates/ 与 MEMO「十、开发环境」
+    # =============================
+
+    templates = {
+      python = {
+        path = ./templates/python;
+        description = "Python 项目（uv + direnv）";
+      };
+      python-pyside6 = {
+        path = ./templates/python-pyside6;
+        description = "Python + PySide6/QML 项目（uv + direnv）";
+      };
+      python-ai = {
+        path = ./templates/python-ai;
+        description = "Python AI/Data 项目（uv + direnv）";
+      };
+      node = {
+        path = ./templates/node;
+        description = "Node.js 项目（pnpm + direnv）";
+      };
+    };
+
+    # =============================
     # Formatter
     # =============================
 

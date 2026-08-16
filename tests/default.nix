@@ -4,7 +4,8 @@
   outputs,
 }: let
   # 自动发现 ./tests 下的每个测试子目录（expr.nix + expected.nix）
-  testDirs = builtins.filter (n: n != "default.nix") (
+  # 排除 default.nix / README.md 等非测试文件
+  testDirs = builtins.filter (n: n != "default.nix" && n != "README.md") (
     builtins.attrNames (builtins.readDir ./.)
   );
 
