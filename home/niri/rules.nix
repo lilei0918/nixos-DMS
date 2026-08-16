@@ -150,8 +150,9 @@ _: {
     }
 
     # 11. Thunar 浮动 + 固定尺寸
+    # 注意 app-id 实际是小写 "thunar"（可加 [Tt] 防大小写差异）
     {
-      matches = [{app-id = "Thunar";}];
+      matches = [{app-id = "[Tt]hunar";}];
 
       open-floating = true;
 
@@ -161,6 +162,24 @@ _: {
 
       default-window-height = {
         fixed = 800;
+      };
+    }
+
+    # 11.1 Thunar 重命名对话框（标题形如 Rename "xxx" / 重命名"xxx"）
+    # 放在 Thunar 规则之后，覆盖其 1200x800 固定尺寸，让对话框小尺寸浮动
+    {
+      matches = [
+        {
+          app-id = "[Tt]hunar";
+          title = "Rename \"|重命名\"";
+        }
+      ];
+      open-floating = true;
+      default-column-width = {
+        fixed = 420;
+      };
+      default-window-height = {
+        fixed = 180;
       };
     }
   ];

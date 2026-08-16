@@ -51,6 +51,8 @@
 
     ../../system/packages.nix
 
+    ../../system/nix-ld.nix
+
     ../../system/vault/vaultwarden.nix
 
     ../../system/vault/vaultwarden-backup.nix

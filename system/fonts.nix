@@ -87,13 +87,17 @@
       };
 
       # =========================
-      # 渲染参数（macOS 风格：关闭 hinting，靠字形 + 抗锯齿）
+      # 渲染参数（macOS 风格：slight hinting + 抗锯齿 + RGB 子像素）
+      # macOS 观感是 smooth/soft，不是 Linux 常见的 sharp/pixel；
+      # 所以不要用 full，slight 更接近。
       # =========================
 
       antialias = true; # 抗锯齿
 
       hinting = {
-        enable = false; # macOS 在高 DPI 上不依赖 hinting，关掉更细腻
+        enable = true;
+
+        style = "slight"; # 比 full 更细腻、更接近 macOS
       };
 
       subpixel = {
@@ -147,6 +151,10 @@
         <match target="pattern">
           <test qual="any" name="family"><string>SF Pro Text</string></test>
           <edit name="family" mode="assign" binding="same"><string>Inter</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>SF Mono</string></test>
+          <edit name="family" mode="assign" binding="same"><string>JetBrainsMono Nerd Font</string></edit>
         </match>
 
         <!-- Noto CJK 名 → 思源（装的是分地区子家族；无 JP，JP 落到 SC） -->

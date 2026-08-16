@@ -101,6 +101,14 @@ in {
     # 让 Qt/GTK 使用 dark preference
 
     GTK_APPLICATION_PREFER_DARK_THEME = "1";
+
+    # Wayland 下部分应用不读 GTK 设置，显式声明光标主题/尺寸
+    XCURSOR_THEME = cursorTheme.name;
+
+    XCURSOR_SIZE = toString cursorTheme.size;
+
+    # Qt 统一走 GTK platform theme（Qt5/Qt6 都生效，避免 KDE 风格割裂）
+    QT_QPA_PLATFORMTHEME = "gtk3";
   };
 
   # ======================================

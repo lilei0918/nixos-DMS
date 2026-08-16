@@ -129,7 +129,7 @@
 
     # 运行 AppImage 文件：appimage-run xxx.AppImage
     # 但部分 AppImage（如 longbridge）依赖系统库（webkit），沙箱里没有。
-    # 见下方 programs.nix-ld：解压后直接用 nix-ld 加载器运行即可找到这些库。
+    # 需在 nix-ld 环境下直跑，见 system/nix-ld.nix。
     appimage-run
 
     # ─────────────────────────────
@@ -150,98 +150,4 @@
 
     gnome-text-editor
   ];
-
-  ############################################
-  # 兼容动态链接器（nix-ld）
-  # 让非 Nix 二进制（AppImage 解压、.deb 解压的程序等）通过 nix-ld 加载器
-  # 找到系统库。以下为 Qt/CEF 应用（富途 futu）运行所需的系统库。
-  # 需跑别的非 Nix 软件缺库时，按报错往里补。
-  ############################################
-
-  programs.nix-ld = {
-    enable = true;
-
-    libraries = with pkgs; [
-      # Electron / CEF 应用（富途 futu）所需系统库
-      gtk3
-
-      glib
-
-      pango # libpango（GTK 渲染，nix-ld 不自动带传递依赖）
-
-      cairo # libcairo
-
-      nss
-
-      nspr
-
-      at-spi2-core
-
-      alsa-lib
-
-      cups
-
-      libdrm
-
-      mesa
-
-      libgbm # libgbm.so.1（mesa 不直接提供该 soname）
-
-      libxkbcommon
-
-      libpulseaudio
-
-      xorg.libX11
-
-      xorg.libXcomposite
-
-      xorg.libXdamage
-
-      xorg.libXext
-
-      xorg.libXfixes
-
-      xorg.libXrandr
-
-      xorg.libxcb
-
-      xorg.libXcursor
-
-      xorg.libXi
-
-      xorg.libXrender
-
-      xorg.libXtst
-
-      # Qt xcb 平台插件所需
-      xcbutilwm # libxcb-icccm
-
-      xcbutilimage # libxcb-image
-
-      xcbutilkeysyms # libxcb-keysyms
-
-      xcbutilrenderutil # libxcb-render-util
-
-      xorg.libSM
-
-      xorg.libICE
-
-      dbus
-
-      expat
-
-      # 通用基础
-      stdenv.cc.cc.lib
-
-      zlib
-
-      curl
-
-      openssl
-
-      icu
-
-      libGL
-    ];
-  };
 }

@@ -6,7 +6,7 @@ ignore-files = true
 extend-exclude = [
   "secrets/",
   "assets/",
-  "Hermes.md",
+  "README.md",
 ]
 
 [default]
