@@ -202,7 +202,7 @@
     # 用法：nix flake init -t <flake>#<name>
     #   本地：nix flake init -t ~/nixos-DMS#python
     #   GitHub：nix flake init -t github:lilei0918/nixos-DMS#python
-    # 详见 templates/ 与 MEMO「十、开发环境」
+    # 详见 templates/ 与 MEMO「十一、开发环境」
     # =============================
 
     templates = {

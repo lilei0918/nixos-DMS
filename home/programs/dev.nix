@@ -3,7 +3,7 @@
   # 原则：不装全局 python 包 / node 包（会污染系统、rebuild 后失效、版本冲突）。
   #   Python → uv（版本 / .venv / 依赖 / lock 全由 uv 管）
   #   Node   → pnpm（依赖装项目本地 node_modules，不用 npm -g）
-  # 项目脚手架模板见 templates/；工作流见 MEMO「十、开发环境」。
+  # 项目脚手架模板见 templates/；工作流见 MEMO「十一、开发环境」。
   home.packages = with pkgs; [
     # ─────────────────────────────
     # Python

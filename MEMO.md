@@ -46,7 +46,64 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 三、加密盘 /mnt/vault（LUKS 20G，nvme1n1p3）
+## 三、每周升级（定期维护）
+
+> 建议每周末跑一遍。详细说明见 README「九、系统更新与回滚」。
+
+**流程**：
+```bash
+# 1. 先保存当前状态（未提交的改动先落地）
+git add -A && git commit -m "before update"
+#    （必要时先备份凭据：sudo bash scripts/backup-credentials.sh）
+
+# 2. 更新 flake 锁（只更新非 pin 的 input）
+nix flake update            # 或别名：update
+
+# 3. 校验 + 测试构建（不切换）
+nix flake check             # eval 测试 + pre-commit（alejandra/typos）
+nh os test .#legion         # 或 nix-test：构建并激活，不改启动项
+
+# 4. 确认无误后正式切换
+nh os switch .#legion       # 或 rebuild
+
+# 5. 提交锁文件并推送
+git add flake.lock && git commit -m "update inputs" && git push
+
+# 6.（可选）清理旧 generation
+cleanup
+
+# 7. 升级了内核/引导则重启一次
+reboot
+```
+
+**升级后检查**：
+```bash
+fastfetch                          # 版本/内核
+uname -r                           # 新内核
+systemctl is-active hermes-agent vaultwarden.service daed greetd
+```
+
+**⚠️ 本仓库特有的注意**：
+- **被 pin 的 input 不会随 `nix flake update` 更新**，需手动改 `flake.nix`：
+  - `niri` / `hermes-agent`：nixpkgs pin 在 `624af66`（libdisplay-info 0.2.0）
+  - `daeuniverse`：nixpkgs pin 在 `b12141ef`（pnpm 10.x）
+  - 升级它们前先确认上游已兼容（libdisplay-info 0.3 / pnpm 11），并验证能构建
+- 大升级后建议重启，确认新 generation 能被引导（主引导 Arch GRUB + systemd-boot 次引导，systemd-boot 里可回滚）
+
+**坏了的回滚**：
+- 启动时在 systemd-boot 菜单选旧 generation；或 `rollback`
+
+**常见升级踩坑**：
+| 现象 | 处理 |
+|------|------|
+| daed/daeuniverse 构建失败 | nixpkgs 升级可能动了 pnpm 版本；确认 `daeuniverse` 的 pin 没被破坏，必要时临时启用 garnix 缓存或本地编译 |
+| niri 构建失败 | libdisplay-info 版本断言问题；检查 niri-flake 上游是否修复，临时可回退 home.nix 的 `niri-stable` 覆盖 |
+| hermes 构建变慢/重新下 npm 依赖 | 它的 nixpkgs pin 在 624af66（命中旧缓存）；别轻易升级该 pin，否则全量重下 |
+| 新 generation 无法引导 | systemd-boot 选旧 generation 回滚，修复后再切 |
+
+---
+
+## 四、加密盘 /mnt/vault（LUKS 20G，nvme1n1p3）
 
 | 操作 | 命令 |
 |------|------|
@@ -61,7 +118,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 四、Vaultwarden（密码管理器）
+## 五、Vaultwarden（密码管理器）
 
 | 操作 | 命令/地址 |
 |------|-----------|
@@ -76,7 +133,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 五、sops 机密（secrets/secrets.yaml）
+## 六、sops 机密（secrets/secrets.yaml）
 
 | 操作 | 命令 |
 |------|------|
@@ -88,7 +145,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 六、代理
+## 七、代理
 
 **daed（主用）**
 - 面板：`http://127.0.0.1:2023`（初始密码看 `systemctl status daed` 日志）
@@ -101,7 +158,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 七、Hermes
+## 八、Hermes
 
 | 操作 | 命令 |
 |------|------|
@@ -112,7 +169,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 八、备份与重装
+## 九、备份与重装
 
 | 操作 | 命令 |
 |------|------|
@@ -126,7 +183,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 九、输入法 / 桌面 / 杂项
+## 十、输入法 / 桌面 / 杂项
 
 | 操作 | 命令/按键 |
 |------|-----------|
@@ -137,7 +194,7 @@ fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-t
 
 ---
 
-## 十、开发环境
+## 十一、开发环境
 
 > 原则：**全局只放工具链，项目依赖全部项目隔离**。Python 用 uv，Node 用 pnpm，环境用项目 `flake.nix + devShell`，direnv 自动进入。
 
@@ -174,7 +231,7 @@ nix flake init -t ~/nixos-DMS#node             # Node.js
 
 ---
 
-## 十一、排障速查
+## 十二、排障速查
 
 | 现象 | 处理 |
 |------|------|
