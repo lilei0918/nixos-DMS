@@ -36,7 +36,6 @@ in {
     ../../home/programs/fastfetch.nix
     ../../home/programs/git.nix
     ../../home/programs/btop.nix
-    ../../home/programs/tts.nix
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
     ../../home/programs/AI/pi.nix
