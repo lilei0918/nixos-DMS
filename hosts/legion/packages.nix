@@ -17,12 +17,13 @@ with pkgs; [
   zettlr # 学术级 Markdown 编辑器
   thunderbird
   papers
+  readest
 
   # ─────────────────────────────
   # 💰 金融
   # ─────────────────────────────
 
-  tradingview # TradingView 金融图表分析工具（桌面客户端）
+  #tradingview # TradingView 金融图表分析工具（桌面客户端）
 
   # ─────────────────────────────
   # 💬 通讯
