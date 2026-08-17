@@ -22,13 +22,9 @@ in {
 
     Service = {
       Type = "simple";
-      # -s：run-single，使用 systemd socket 激活传入的监听 fd
-      #     （配合 speechd 包自带的 speech-dispatcher.socket，连接即拉起）；
-      # -t 0：禁止空闲超时自动退出，首次激活后守护进程常驻。
-      # 之前不带参数运行有两个问题：空闲 5s 即退出；socket 激活时未用传入的
-      # fd 而去自建 socket，与 systemd socket 冲突导致守护进程起不来。
+      # 默认 socket 位于 $XDG_RUNTIME_DIR/speech-dispatcher/speechd.sock
       ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %t/speech-dispatcher";
-      ExecStart = "${speechd}/bin/speech-dispatcher -s -t 0";
+      ExecStart = "${speechd}/bin/speech-dispatcher";
       Restart = "on-failure";
       RestartSec = 3;
     };
@@ -50,8 +46,7 @@ in {
 
   xdg.configFile."speech-dispatcher/modules/edge-tts-generic.conf".text = ''
     # generic 输出模块：文本经 edge-tts 转 MP3，再用 mpv 播放。
-    # edge-tts 偶发 NoAudioReceived（微软服务端限流），加三重试 + 间隔。
-    GenericExecuteSynth "export XDATA='$DATA'; TEXT=$(echo \"$XDATA\" | ${pkgs.gnused}/bin/sed -z 's/\\n/ /g'); for i in 1 2 3; do printf '%s' \"$TEXT\" | ${edgeTTSPkg}/bin/edge-tts --file - --voice $VOICE --write-media - && break; sleep 1; done | ${pkgs.mpv}/bin/mpv --no-terminal --keep-open=no -"
+    GenericExecuteSynth "export XDATA='$DATA'; echo \"$XDATA\" | ${pkgs.gnused}/bin/sed -z 's/\\n/ /g' | ${edgeTTSPkg}/bin/edge-tts --file - --voice $VOICE --write-media - | ${pkgs.mpv}/bin/mpv --no-terminal --keep-open=no -"
 
     # --- zh-CN female voices ---
     AddVoice "zh-CN" "FEMALE1" "zh-CN-XiaoxiaoNeural"
