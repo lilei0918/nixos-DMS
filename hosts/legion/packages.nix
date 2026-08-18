@@ -17,12 +17,13 @@ with pkgs; [
   zettlr # 学术级 Markdown 编辑器
   thunderbird
   papers
+  readest
 
   # ─────────────────────────────
   # 💰 金融
   # ─────────────────────────────
 
-  tradingview # TradingView 金融图表分析工具（桌面客户端）
+  #tradingview # TradingView 金融图表分析工具（桌面客户端）
 
   # ─────────────────────────────
   # 💬 通讯
@@ -51,6 +52,7 @@ with pkgs; [
 
   file-roller # 归档管理器（压缩/解压 GUI 前端）
   localsend # 局域网文件传输工具（类似 AirDrop）
+  duf
 
   # ─────────────────────────────
   # 🔊 音频 / 视频
