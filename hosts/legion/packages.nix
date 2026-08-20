@@ -51,6 +51,7 @@ with pkgs; [
   # ─────────────────────────────
 
   file-roller # 归档管理器（压缩/解压 GUI 前端）
+  xz
   localsend # 局域网文件传输工具（类似 AirDrop）
   duf
 
