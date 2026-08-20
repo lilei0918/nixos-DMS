@@ -188,12 +188,24 @@
 
     # Dev Shells（nix develop 进入开发环境）
     devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-      # 进入 nix develop 时自动安装 git pre-commit 钩子
-      inherit (self.checks.x86_64-linux.preCommitCheck) shellHook;
+      # 进入 nix develop 时自动安装自愈式 git pre-commit 钩子：
+      # 钩子经 `nix develop -c pre-commit` 动态解析，store path 变更/GC 后无需重装。
+      shellHook = ''
+        # 生成 .pre-commit-config.yaml（git-hooks.nix 生成，用 GC root 保护 store path）
+        cfg="${preCommitCheck.config.configFile}"
+        if ! readlink .pre-commit-config.yaml >/dev/null 2>&1 \
+          || [[ "$(readlink .pre-commit-config.yaml)" != "$cfg" ]]; then
+          [ -L .pre-commit-config.yaml ] && unlink .pre-commit-config.yaml
+          [ -e .pre-commit-config.yaml ] || nix-store --add-root .pre-commit-config.yaml --indirect --realise "$cfg"
+        fi
+        # 安装自愈式钩子（scripts/git-hooks/pre-commit）
+        install -m 755 ${./scripts/git-hooks/pre-commit} .git/hooks/pre-commit
+      '';
 
       packages = [
         nixpkgs.legacyPackages.x86_64-linux.alejandra
         nixpkgs.legacyPackages.x86_64-linux.typos
+        nixpkgs.legacyPackages.x86_64-linux.pre-commit
       ];
     };
 

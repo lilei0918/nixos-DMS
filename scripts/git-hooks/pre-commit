@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Self-healing pre-commit hook.
+# 每次提交经 `nix develop` 动态解析当前 flake 的 pre-commit，
+# 避免 `nh os switch` 后 nix GC 清掉旧 store path 导致钩子失效。
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+hook_dir="$(cd "$(dirname "$0")" && pwd)"
+
+exec nix develop -c pre-commit hook-impl \
+  --config=.pre-commit-config.yaml \
+  --hook-type=pre-commit \
+  --hook-dir "$hook_dir" \
+  -- "$@"
