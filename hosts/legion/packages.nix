@@ -15,7 +15,7 @@ with pkgs; [
   loupe # GNOME 图片查看器（简单、快速）
   zathura # 轻量级 PDF/文档查看器（Vim 风格快捷键）
   zettlr # 学术级 Markdown 编辑器
-  thunderbird
+  #thunderbird
   papers
   readest
 

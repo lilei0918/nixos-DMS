@@ -25,7 +25,7 @@ in {
     # other modules
     ../../home/programs/rime.nix
     ../../home/programs/vscode/vscode.nix
-    ../../home/programs/firefox.nix
+    # ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
     ../../home/programs/hermes.nix
     ../../home/programs/dev.nix
