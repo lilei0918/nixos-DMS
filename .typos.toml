@@ -26,7 +26,6 @@ extend-ignore-re = [
   "rime",
   "niri",
   "sops",
-  "agenix",
   "typos",
   "lilei",
   "WhiteSur",

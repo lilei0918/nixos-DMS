@@ -1,1 +1,1 @@
-{...}: "Asia/Shanghai"
+_: "Asia/Shanghai"

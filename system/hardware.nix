@@ -1,35 +1,37 @@
 {pkgs, ...}: {
-  hardware.graphics = {
-    enable = true;
+  hardware = {
+    graphics = {
+      enable = true;
 
-    extraPackages = with pkgs; [
-      libva
+      extraPackages = with pkgs; [
+        libva
 
-      libvdpau
+        libvdpau
 
-      vulkan-loader
+        vulkan-loader
 
-      vulkan-tools
+        vulkan-tools
 
-      vulkan-validation-layers
+        vulkan-validation-layers
+      ];
+    };
+
+    bluetooth = {
+      enable = true;
+
+      powerOnBoot = true;
+    };
+
+    enableRedistributableFirmware = true;
+  };
+
+  services = {
+    udev.packages = [
+      pkgs.rwedid
     ];
-  };
 
-  hardware.bluetooth = {
-    enable = true;
+    fstrim.enable = true;
 
-    powerOnBoot = true;
-  };
-
-  hardware.enableRedistributableFirmware = true;
-
-  services.udev.packages = [
-    pkgs.rwedid
-  ];
-
-  services.fstrim.enable = true;
-
-  services.btrfs.autoScrub = {
-    enable = true;
+    btrfs.autoScrub.enable = true;
   };
 }

@@ -11,7 +11,7 @@
 ### 作用
 
 把重装/换机必需的**钥匙与凭据**（不包含业务数据）备份到加密盘，用于新机器复原。
-备份内容固定为 4 项：
+备份内容固定为以下源（不存在的源自动跳过）：
 
 | 源路径 | 备份名 | 说明 |
 |--------|--------|------|
@@ -19,6 +19,9 @@
 | `~/.config/sops/age/keys.txt` | `home-sops-age-keys.txt` | 用户级 sops 解密钥匙（跑 `sops secrets/secrets.yaml` 需要） |
 | `~/.ssh/` | `home-ssh/` | git push 凭据（id_ed25519 / config / known_hosts 等） |
 | `~/.local/share/opencode/auth.json` | `home-opencode-auth.json` | opencode 凭据 |
+| `~/.config/mihomo/config.yaml` | `home-mihomo-config.yaml` | mihomo 订阅配置（含订阅 token；启用 mihomo 时才有） |
+| `~/.pi/agent/auth.json` | `home-pi-auth.json` | pi coding agent 认证 |
+| `/var/lib/hermes/.hermes/auth.json` | `var-lib-hermes-auth.json` | hermes 系统服务认证状态 |
 
 ### 用法
 
@@ -48,6 +51,9 @@ sudo DRY_RUN=1 bash scripts/backup-credentials.sh
 │   ├── etc-sops-age-keys.txt # 600
 │   ├── home-sops-age-keys.txt# 600
 │   ├── home-opencode-auth.json  # 600
+│   ├── home-mihomo-config.yaml  # 600（存在时）
+│   ├── home-pi-auth.json        # 600（存在时）
+│   ├── var-lib-hermes-auth.json # 600（存在时）
 │   └── home-ssh/             # 700，内含 id_ed25519 等
 └── latest -> 20260816-152030 # 软链，指向最新一份
 ```

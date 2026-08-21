@@ -115,10 +115,10 @@
 
       alias dl="cd ~/Downloads"
       alias docs="cd ~/Documents"
-      alias dev="cd ~/Dev"
+      # alias dev="cd ~/Dev"   # 目录不存在，先注释（需要时创建 ~/Dev 再启用）
       alias dots="cd ~/nixos-DMS"
       alias pics="cd ~/Pictures"
-      alias vids="cd ~/Videos"
+      # alias vids="cd ~/Videos" # 目录不存在，先注释（需要时创建 ~/Videos 再启用）
 
 
     '';

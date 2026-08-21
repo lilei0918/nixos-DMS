@@ -1,9 +1,9 @@
 {pkgs, ...}: {
   # Zed 编辑器（nixpkgs 包，二进制名 zeditor）
   # 原则：设置/插件清单/主题全部声明式；API key/登录走 Zed keychain（不进 Nix）
+  # nixd（Nix LSP）统一在 vscode.nix 的 home.packages 安装（同一 profile，PATH 共享）
   home.packages = with pkgs; [
     zed-editor
-    nixd # Nix 语言服务器（Zed 的 Nix 扩展需要，否则提示 nixd not available）
   ];
 
   home.file.".config/zed/settings.json".text = builtins.toJSON {

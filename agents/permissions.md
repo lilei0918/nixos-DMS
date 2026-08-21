@@ -19,7 +19,7 @@
 - **只读 Nix**：`nix eval/build/flake*/store*/search/doctor`、`nixos-rebuild build`、`nh os test`、`alejandra`、`statix check`、`deadnix`
 - **只读 git / gh**：`git status/diff/log/show/branch/remote/tag/blame/reflog/stash list/lfs`、`gh repo/issue/pr view|list`、`gh api/search`
 - **系统诊断（只读）**：`lsblk` `df` `free` `uptime` `uname` `lspci` `lsusb` `sensors` `lsof` `systemctl status/list-*/show` `journalctl`
-- **常规读写工具**：`rg` `fd` `ls` `cat` `head` `tail` `wc` `find` `which` `echo` `pwd` `date` `env` `printenv` `file` `stat` `du` `tree` `bat` `eza` `jq` `yq` `mkdir` `rmdir` `grep` `cp` `mv` `chmod`
+- **常规读写工具**：`rg` `fd` `ls` `cat` `head` `tail` `wc` `find` `which` `echo` `pwd` `date` `file` `stat` `du` `tree` `bat` `eza` `jq` `yq` `mkdir` `rmdir` `grep` `cp` `mv` `chmod`
 - **工具**：`read` `glob` `grep` `edit` `lsp` `skill` `question` `todowrite` `webfetch`
 
 ## 必须确认（ask）
@@ -31,6 +31,7 @@
 | `vault-open` / `vault-close` / `cryptsetup *` | 操作加密盘（解锁密码是全部数据钥匙） |
 | `sops *` | 编辑/解密机密（防明文泄漏） |
 | `rm *` / `rm -rf *` | 删除不可逆 |
+| `env *` / `printenv *` | 可读取环境变量中的 API token 等凭据 |
 | `task` / `external_directory` | 子代理/跨目录访问 |
 
 ## 落地方式

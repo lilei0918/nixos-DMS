@@ -72,7 +72,7 @@ nh os switch .#legion
 
 > 数据核实于 2026-08-16，部分动态值会变化。以实际命令输出为准。
 
-- **NixOS 版本**：26.11.20260807.f13ff45 (Zokor) —— 实际使用 nixpkgs unstable（commit f13ff45），`system.stateVersion` 设为 `25.05`
+- **NixOS 版本**：26.11 (Zokor) —— 实际使用 nixpkgs unstable（commit 以 `flake.lock` 为准，2026-08-20 更新后为 ffb3c9b7），`system.stateVersion` 设为 `25.05`
 - **内核**：Linux 7.1.7（来自 `linuxPackages_latest`）
 - **显示管理器**：greetd + **tuigreet**（Wayland 会话，`--cmd niri-session`）
 - **窗口管理器**：niri stable v25.08（滚动式 Wayland compositor，commit `01be0e65f4eb...`，来自 niri-flake 的 `niri-stable`，见 home.nix 的 package 覆盖）
@@ -98,7 +98,7 @@ nixos-DMS/
 │   ├── README.md            # 说明本目录（规则/权限配套）
 │   └── permissions.md       # 权限策略（敏感文件 deny、命令 allow/ask）
 ├── vars/
-│   └── default.nix          # 集中变量（username/homeDirectory/repoDir/flakeName），经 myvars 注入所有模块
+│   └── default.nix          # 集中变量（username/userfullname/useremail/homeDirectory/repoDir/flakeName/theme），经 myvars 注入所有模块
 ├── tests/                   # flake 求值测试（expr.nix vs expected.nix，`nix flake check` 自动跑）
 ├── secrets/
 │   └── secrets.yaml         # 加密的机密文件（sops：deepseek_api_key / vaultwarden_admin_token / password_hash / vaultwarden_tls_*）
@@ -110,7 +110,8 @@ nixos-DMS/
 │       ├── home.nix            # Home Manager 入口（niri-stable 覆盖）
 │       └── packages.nix        # 用户级软件包列表
 ├── scripts/                # 运维辅助脚本
-│   ├── backup-credentials.sh # 信任根/凭据备份（sops age key / ssh / opencode auth）
+│   ├── backup-credentials.sh # 信任根/凭据备份（sops age key / ssh / opencode / mihomo / pi / hermes auth）
+│   ├── git-hooks/          # 自愈式 git pre-commit 钩子（nix develop 自动安装）
 │   └── README.md           # 脚本用法与故障排查
 ├── system/                  # 系统级配置（影响所有用户）
 │   ├── nix.nix              # Nix 自身设置（flakes、镜像源、GC 3d、NUR overlay）
@@ -157,7 +158,7 @@ nixos-DMS/
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
 │       ├── fastfetch.nix    # 系统信息（logo 用 assets/icons/logo.png，自适应终端宽度）
-│       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置）
+│       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置；⚠️ 当前未导入 home.nix，保留备用）
 │       ├── git.nix          # git + delta
 │       ├── hermes.nix       # Hermes Desktop
 │       ├── rime.nix         # Rime 输入法（rime-ice 方案 + fcitx 环境变量）
@@ -402,7 +403,7 @@ nixos-DMS/
 
 **订阅链接管理**（若启用）：
 - 订阅链接在 `~/.config/mihomo/config.yaml` 的 `proxy-providers.mysub.url`（含 token，属敏感信息，不进 git）
-- systemd 通过 `LoadCredential=config.yaml:...` 注入沙箱，mihomo 读注入副本
+- `systemd.services.mihomo.path = [ pkgs.mihomo ]` 恢复默认高权限沙箱（TUN 需要），mihomo 直接读用户目录的 `config.yaml`
 - **每月更换订阅**：编辑该文件 url → `systemctl restart mihomo` → `curl http://127.0.0.1:9090/providers/proxies` 验证
 - 只刷新订阅（不改配置）：`curl -X PUT "http://127.0.0.1:9090/providers/proxies/mysub"`
 
@@ -411,8 +412,10 @@ nixos-DMS/
 **作用**：系统级软件包（所有用户可用）。
 
 **完整列表**：
-- **基础工具**：`wget`, `curl`, `git`, `lazygit`, `nh`, `jq`, `socat`, `tree`, `ripgrep`, `fd`, `bat`, `eza`
-- **终端**：`alacritty`, `tmux`, `starship`, `fzf`, `zoxide`, `direnv`
+- **基础工具**：`wget`, `curl`, `lazygit`, `nh`, `jq`, `socat`, `tree`, `ripgrep`, `fd`, `bat`, `eza`, `yazi`
+  （`git` 由 home/programs/git.nix 安装，避免双装）
+- **终端**：`fzf`, `zoxide`
+  （`alacritty`/`tmux`/`starship`/`direnv` 由 home 模块安装，避免双装）
 - **压缩解压**：`zip`, `unzip`, `p7zip`, `rar`, `dtrx`
 - **Nix 开发工具**：`nil`, `alejandra`, `statix`, `deadnix`, `nix-tree`, `nix-output-monitor`, `sops`, `age`
 - **编译工具**：`gcc`, `gnumake`
@@ -452,6 +455,7 @@ nixos-DMS/
 - `homeDirectory = "/home/lilei"`
 - `repoDir = "/home/lilei/nixos-DMS"`
 - `flakeName = "legion"`
+- `theme`：GTK/Qt/光标主题统一取值（`gtk`/`icon`/`cursor`/`cursorSize`），见 theme.nix、dconf.nix、niri settings.nix
 
 > 任何需要硬编码用户名/路径的地方，优先用 `myvars.xxx` 而不是写死字符串（fish/zsh 别名、mihomo configFile、thunar、firefox profile 等已改用）。
 
@@ -461,7 +465,7 @@ nixos-DMS/
 
 **结构**：每个测试子目录 `tests/<name>/` 下有 `expr.nix` + `expected.nix`，`tests/default.nix` 自动发现并断言二者相等。
 
-**现有测试**：`home-directory`（home.homeDirectory == /home/lilei）、`state-version`、`timezone`（Asia/Shanghai）、`user-is-normal`。
+**现有测试**：`home-directory`（home.homeDirectory == /home/lilei）、`state-version`、`timezone`（Asia/Shanghai）、`user-is-normal`、`proxy-mutex`（daed 开 / mihomo 关）、`firefox-disabled`、`hm-state-version`。
 
 **新增测试**：在 `tests/` 建目录，`expr.nix` 引用 `outputs.nixosConfigurations.legion.config...`，`expected.nix` 给出期望值。
 
@@ -474,16 +478,16 @@ nixos-DMS/
 - `imports` 列表包含：
   - `inputs.dms.homeModules.dank-material-shell`、`inputs.dms.homeModules.niri`
   - `inputs.niri.homeModules.niri`
-  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`firefox.nix`、`chrome.nix`、`hermes.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
+  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`hermes.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
+    （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
-  - （`xfsettingsd.nix`、`reeden.nix` 未导入）
 - **niri 包覆盖**：⚠️ `programs.niri.package = inputs.niri.packages.${...}.niri-stable`。系统 nixpkgs 的 `pkgs.niri` 引用了被删除的 `libdisplay-info_0_2`（nixpkgs 升 0.3 后），故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix pin 到 624af66）。上游修复后可移除本行。
-- `programs.niri.settings = import ../../home/niri/default.nix { inherit config pkgs inputs lib; }`
+- `programs.niri.settings = import ../../home/niri/default.nix { inherit config pkgs inputs lib myvars; }`
 - `home.packages = lib.mkBefore allPackages`（`allPackages` 来自 `./packages.nix`）
 - Fcitx5/Rime 用户配置：
-  - `home.file."~/.local/share/fcitx5/rime/default.custom.yaml"`：schema `rime_ice`，`page_size: 9`
+  - `home.file."~/.local/share/fcitx5/rime/default.custom.yaml"`（声明在 `home/programs/rime.nix`，非 home.nix）：schema `rime_ice`，`page_size: 9`
   - `xdg.configFile."fcitx5/profile"`：默认输入法 `rime`
-  - ⚠️ fcitx 三件套环境变量（GTK_IM_MODULE/QT_IM_MODULE/XMODIFIERS/SDL_IM_MODULE）已统一移到 `home/programs/rime.nix`
+  - ⚠️ fcitx 环境变量（GTK_IM_MODULE/QT_IM_MODULE/XMODIFIERS/SDL_IM_MODULE）在 `home/programs/rime.nix`（sessionVariables）声明；niri 会话内的同名变量（GLFW_IM_MODULE 等）见 `home/niri/settings.nix`，两处作用域不同、改动需同步
 - `home.sessionVariables`：`EDITOR=vim`
 - `programs.direnv`：启用，`nix-direnv.enable = true`
 - `programs.home-manager.enable = true`
@@ -494,11 +498,11 @@ nixos-DMS/
 
 **完整列表**：
 - **浏览器**：`google-chrome`
-- **办公/阅读**：`libreoffice`, `foliate`, `loupe`, `zathura`, `zettlr`, **`thunderbird`**（邮件），**`papers`**（GNOME 文档阅读器）
-- **金融**：`tradingview`
-- **通讯**：`qq`, **`telegram-desktop`**
+- **办公/阅读**：`libreoffice`, `foliate`, `loupe`, `zathura`, `zettlr`, `papers`, `readest`, `marktext`（`thunderbird` 已注释，未启用）
+- **金融**：`tradingview`（已注释，未启用）
+- **通讯**：`qq`, `telegram-desktop`
 - **桌面配置**：`nwg-look`, `apple-cursor`, `waypaper`, `dconf-editor`, `matugen`, `qt6Packages.qt6ct`
-- **文件管理**：`file-roller`, `localsend`
+- **文件管理**：`file-roller`, `xz`, `localsend`, `duf`
 - **音频/视频**：`pavucontrol`, `mpv`, `gpu-screen-recorder`, `blanket`
 - **音乐**：`spicetify-cli`（已注释，未启用）
 - **笔记**：`siyuan`
@@ -549,9 +553,9 @@ nixos-DMS/
 
 **使用注意事项**：
 - 若要开放注册：临时把 `SIGNUPS_ALLOWED` 改为 `true` → rebuild/重启容器 → 注册完改回 `false`
-- 浏览器端：Firefox 已装 bitwarden 扩展；Chrome 用扩展或直接访问 web 界面
+- 浏览器端：Chrome 用扩展或直接访问 web 界面（Firefox 当前未启用；启用后 `firefox.nix` 已配好 bitwarden 扩展）
 - 证书由 sops 管理，rebuild 不更换；**要换证书**：更新 `secrets.yaml` 的 `vaultwarden_tls_*`（并同步仓库 `certs/vaultwarden-ca.crt` 的公钥）→ rebuild → 重启容器
-- `security.enterprise_roots.enabled = true` 已加入 firefox.nix，让 Firefox 使用系统根证书
+- `security.enterprise_roots.enabled = true` 已加入 firefox.nix（当前未导入，启用 Firefox 后生效），让 Firefox 使用系统根证书
 
 ### 28. `system/vault/vaultwarden-backup.nix`
 
@@ -634,6 +638,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - **输出**：`eDP-1` 1920×1080 @ 165.004Hz，scale 1.0
 - **光标**：size 24、`hide-when-typing`、`hide-after-inactive-ms = 1000`
 - **环境变量**（niri 会话内）：Wayland 全家桶（GDK/QT/MOZ/ELECTRON）、fcitx 四件套（GTK/QT/XMODIFIERS/GLFW）、QT_QPA_PLATFORMTHEME=gtk3（含 QT6）、XCURSOR_THEME=macOS-White
+  - ⚠️ 注意：`GTK_IM_MODULE`/`QT_IM_MODULE`/`XMODIFIERS`/`XCURSOR_THEME` 等在 **niri 会话（本文件 environment）与 HM sessionVariables（rime.nix / theme.nix）各声明一次**，作用域不同（niri 会话 vs systemd user session），**改动需两处同步**
 
 ### keybinds.nix（快捷键）
 | 按键 | 动作 |
@@ -661,10 +666,10 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - Alacritty / Ghostty 固定列宽 800
 - 浏览器类（google-chrome/firefox）`open-maximized`，分配到 `browser` 工作区
 - 开发工具（Zed `dev.zed.Zed` / `codium`）占满列宽，分配到 `code` 工作区
-- 办公/编辑器（libreoffice/zettlr/TradingView/gnome-text-editor）占满列宽
+- 办公/编辑器（libreoffice/zettlr/gnome-text-editor）占满列宽
 - 浮动类：FileRoller、pavucontrol、Blanket、LocalSend、dconf-editor、waypaper、nwg-look、qt6ct、Loupe、zathura、Foliate、Hermes（app-id `hermes`）、**telegram**
 - **QQ**（app-id `QQ`）浮动 + 固定列宽 800（独立规则 6.1）
-- 终端类（Alacritty/Ghostty/htop）与 mpv 均浮动、不分配工作区
+- 终端类（Alacritty/Ghostty）与 mpv 均浮动、不分配工作区
 - 弹窗类居中浮动（Open File/Save File）
 - 画中画（Firefox PiP）右下角浮动 480×270
 - SiYuan（app-id `org.b3log.siyuan`）→ `note` 工作区 + 独占一列 100%
@@ -694,7 +699,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `starship.nix` | 极简 format（user/host/dir/git/cmd_duration/❯） |
 | `tmux.nix` | mouse、history 10 万、vi 模式键、escape-time 0 |
 | `chrome.nix` | `~/.config/chrome-flags.conf`（注意是 **chrome**-flags 不是 chromium-flags，Google Chrome 品牌版只读前者）：Wayland ozone + 全套 GPU 加速 flag；LIBVA_DRIVER_NAME=radeonsi、VAAPI 相关环境变量 |
-| `firefox.nix` | NUR 扩展（bitwarden/darkreader/sponsorblock）、隐私设置、搜索引擎（searxng/nix-packages/nixos-wiki/ddg，默认 ddg）、`security.enterprise_roots.enabled=true`（信任系统根证书，配合 Vaultwarden 本地 CA） |
+| `firefox.nix` | NUR 扩展（bitwarden/darkreader/sponsorblock）、隐私设置、搜索引擎（searxng/nix-packages/nixos-wiki/ddg，默认 ddg）、`security.enterprise_roots.enabled=true`（信任系统根证书，配合 Vaultwarden 本地 CA）；⚠️ 当前未导入 home.nix，保留备用 |
 | `git.nix` | user 信息走 myvars（lilei/lilei0918@gmail.com）、lfs、delta（Catppuccin Mocha、side-by-side）、别名 st/co/br/lg |
 | `theme.nix` | GTK3 WhiteSur-Dark + WhiteSur 图标 + macOS-White 光标（含 `home.pointerCursor`）；**GTK4 用系统默认（`gtk4.theme = null`）**；Qt 走 gtk3；sessionVariables：`GTK_APPLICATION_PREFER_DARK_THEME=1`、XCURSOR_THEME/SIZE、`QT_QPA_PLATFORMTHEME=gtk3`（已删掉破坏 GTK4 的 `GTK_THEME`） |
 | `dconf.nix` | gnome 桌面 WhiteSur 主题、Nerd Font 10 等宽字体 |
@@ -767,7 +772,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | 操作 | 命令 |
 |------|------|
 | 重建系统 | `sudo nixos-rebuild switch --flake .#legion`、`nh os switch .#legion` 或 `rebuild`（fish/zsh 别名，绝对路径，任意目录可用） |
-| 仅测试 | `sudo nixos-rebuild test --flake .#legion`、`nh os test .#legion`、`nix-test`（fish）/ `test`（zsh） |
+| 仅测试 | `sudo nixos-rebuild test --flake .#legion`、`nh os test .#legion`、`nix-test`（fish / zsh 同名） |
 | 以新 generation 启动 | `nh os boot .#legion` 或 `boot` |
 | 回滚 | `sudo nixos-rebuild switch --rollback` 或 `rollback` |
 | 校验配置 | `nix flake check`（eval 测试 + pre-commit） |
@@ -803,7 +808,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 ## 十一、备忘
 
 ### 重装流程（恢复新机器）
-0. **迁移前**：在旧机上解锁加密盘后备份信任根/凭据：`sudo bash scripts/backup-credentials.sh`（备份 `/etc/sops/age/keys.txt`、`~/.config/sops/age/keys.txt`、`~/.ssh/`、opencode `auth.json`）
+0. **迁移前**：在旧机上解锁加密盘后备份信任根/凭据：`sudo bash scripts/backup-credentials.sh`（备份 sops age key ×2、`~/.ssh/`、opencode/pi/mihomo/hermes 凭据，完整源清单见 scripts/README.md）
 1. **分区（二选一）**：
    - **disko 一键分区**（推荐）：在 NixOS 官方 ISO 中执行，只重建 `nvme1n1p2`（btrfs 根分区），**保留 DATATB 数据盘与加密盘**：
      ```bash
@@ -837,13 +842,14 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 ### 未启用模块（保留但不导入）
 - `system/nvidia/nvidia.nix`：完整独显配置，启用时替换 `nvidia-block.nix`（二选一，不可同时启用）。启用后会自动开启 `services.xserver`。
 - `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 daed.nix 的 import（二选一，不可同时开启）。
-- `hosts/legion/packages.nix` 中 `spicetify-cli` / `imagemagick`（注释中）。
+- `home/programs/firefox.nix`：Firefox 配置（home.nix 中 import 被注释），需要时取消注释启用。
+- `hosts/legion/packages.nix` 中 `thunderbird` / `tradingview` / `spicetify-cli` / `imagemagick`（注释中）。
 - `system/nix-ld.nix` 的 garnix 缓存（注释中，需要更新 daed/dae 时临时启用）。
 
 ### 设计说明
 - 主机名 `nixos` ≠ flake 配置名 `legion`：所有 rebuild 命令用 `.#legion`；`hostname` 显示 `nixos` 属正常。
 - niri 工作区：`settings.nix` 用数字前缀 key（`1-browser`/`2-note`/`3-code`）+ `name` 声明三个命名工作区（rules.nix 的 `open-on-workspace` 需要它们），其余工作区按需动态创建。
-- mihomo 配置文件 `~/.config/mihomo/config.yaml` 在用户目录（非仓库内），需自行备份；daed 配置由面板管理（`/etc/daed/`），面板数据建议定期在面板内导出备份。
+- mihomo 配置文件 `~/.config/mihomo/config.yaml` 在用户目录（非仓库内），由 `backup-credentials.sh` 一并备份；daed 配置由面板管理（`/etc/daed/`），面板数据建议定期在面板内导出备份。
 - 自定义脚本放 `~/.local/bin`（`environment.localBinInPath = true` 已加入 PATH），如 futu。
 
 ---
@@ -873,7 +879,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
    ```
    恢复后路径必须是 `/etc/sops/age/keys.txt`（`sops.age.keyFile` 指向它），之后 rebuild 即全自动：密码 hash、Vaultwarden TLS 证书全部由 sops 解密生成，无需其它手动步骤。
 7. **镜像源**：已配置 Tuna/USTC 镜像，更新速度较快。daeuniverse 的 garnix 缓存已禁用（常 503）。
-8. **NixOS 版本**：实际使用 unstable（当前 26.11，nixpkgs f13ff45），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
+8. **NixOS 版本**：实际使用 unstable（当前 26.11，nixpkgs commit 以 `flake.lock` 为准，2026-08-20 更新后为 ffb3c9b7），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
 9. **用户组**：`lilei` 已加入 `hermes` 组，这是使用 Hermes 服务的前提。
 10. **机密文件**：`secrets/secrets.yaml` 已加密，可以提交到 GitHub，但 age 私钥绝不可提交（已在 `.gitignore` 中忽略）。
 11. **Rime 部署**：rebuild/重启后若雾凇输入法未出现，手动运行 `fcitx5-remote -r` 触发部署（rime 目录由 home.file 声明式管理，部署懒触发）。详见 `home/programs/rime.nix` 头部注释。

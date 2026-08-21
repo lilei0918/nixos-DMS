@@ -1,17 +1,8 @@
-{pkgs, ...}: let
-  gtkTheme = {
-    name = "WhiteSur-Dark";
-  };
-
-  iconTheme = {
-    name = "WhiteSur";
-  };
-
-  cursorTheme = {
-    name = "macOS-White";
-    size = 24;
-  };
-in {
+{
+  pkgs,
+  myvars,
+  ...
+}: {
   # ======================================
   # GTK
   # ======================================
@@ -25,21 +16,21 @@ in {
 
     # GTK3 应用
     theme = {
-      name = gtkTheme.name;
+      name = myvars.theme.gtk;
 
       package = pkgs.whitesur-gtk-theme;
     };
 
     iconTheme = {
-      name = iconTheme.name;
+      name = myvars.theme.icon;
 
       package = pkgs.whitesur-icon-theme;
     };
 
     cursorTheme = {
-      name = cursorTheme.name;
+      name = myvars.theme.cursor;
 
-      size = cursorTheme.size;
+      size = myvars.theme.cursorSize;
     };
 
     # 不再强制 GTK4 使用 WhiteSur
@@ -73,55 +64,61 @@ in {
   };
 
   # ======================================
-  # Cursor
+  # Cursor / Env / Theme packages
   # ======================================
 
-  home.pointerCursor = {
-    gtk.enable = true;
+  home = {
+    # ======================================
+    # Cursor
+    # ======================================
 
-    enable = true;
+    pointerCursor = {
+      gtk.enable = true;
 
-    package = pkgs.apple-cursor;
+      enable = true;
 
-    name = cursorTheme.name;
+      package = pkgs.apple-cursor;
 
-    size = cursorTheme.size;
+      name = myvars.theme.cursor;
+
+      size = myvars.theme.cursorSize;
+    };
+
+    # ======================================
+    # 环境变量
+    # ======================================
+
+    sessionVariables = {
+      # 删除 GTK_THEME
+      #
+      # GTK_THEME=WhiteSur-Dark
+      # 会破坏 GTK4
+
+      # 让 Qt/GTK 使用 dark preference
+
+      GTK_APPLICATION_PREFER_DARK_THEME = "1";
+
+      # Wayland 下部分应用不读 GTK 设置，显式声明光标主题/尺寸
+      XCURSOR_THEME = myvars.theme.cursor;
+
+      XCURSOR_SIZE = toString myvars.theme.cursorSize;
+
+      # Qt 统一走 GTK platform theme（Qt5/Qt6 都生效，避免 KDE 风格割裂）
+      QT_QPA_PLATFORMTHEME = "gtk3";
+    };
+
+    # ======================================
+    # Themes
+    # ======================================
+
+    packages = with pkgs; [
+      whitesur-gtk-theme
+
+      whitesur-icon-theme
+
+      adwaita-icon-theme
+
+      gnome-themes-extra
+    ];
   };
-
-  # ======================================
-  # 环境变量
-  # ======================================
-
-  home.sessionVariables = {
-    # 删除 GTK_THEME
-    #
-    # GTK_THEME=WhiteSur-Dark
-    # 会破坏 GTK4
-
-    # 让 Qt/GTK 使用 dark preference
-
-    GTK_APPLICATION_PREFER_DARK_THEME = "1";
-
-    # Wayland 下部分应用不读 GTK 设置，显式声明光标主题/尺寸
-    XCURSOR_THEME = cursorTheme.name;
-
-    XCURSOR_SIZE = toString cursorTheme.size;
-
-    # Qt 统一走 GTK platform theme（Qt5/Qt6 都生效，避免 KDE 风格割裂）
-    QT_QPA_PLATFORMTHEME = "gtk3";
-  };
-
-  # ======================================
-  # Themes
-  # ======================================
-
-  home.packages = with pkgs; [
-    whitesur-gtk-theme
-
-    whitesur-icon-theme
-
-    adwaita-icon-theme
-
-    gnome-themes-extra
-  ];
 }

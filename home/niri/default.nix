@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   lib,
+  myvars,
   ...
 }: let
   settings = import ./settings.nix {
@@ -11,6 +12,7 @@
       pkgs
       inputs
       lib
+      myvars
       ;
   };
   keybinds = import ./keybinds.nix {

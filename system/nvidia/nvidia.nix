@@ -1,12 +1,14 @@
 {pkgs, ...}: {
   # Enable OpenGL
-  hardware.graphics = {
-    enable = true;
-  };
+  hardware.graphics.enable = true;
 
-  boot.kernelModules = ["nvidia_modeset" "nvidia_drm" "nvidia"];
-  boot.blacklistedKernelModules = ["nouveau"];
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot = {
+    kernelModules = ["nvidia_modeset" "nvidia_drm" "nvidia"];
+
+    blacklistedKernelModules = ["nouveau"];
+
+    kernelPackages = pkgs.linuxPackages_latest;
+  };
 
   # Load nvidia driver for Xorg and Wayland
   services.xserver = {
@@ -43,13 +45,14 @@
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
     package = pkgs.linuxPackages_latest.nvidiaPackages.stable;
-  };
 
-  hardware.nvidia.prime = {
-    sync.enable = true;
-    # Make sure to use the correct Bus ID values for your system!
-    amdgpuBusId = "PCI:6:0:0";
-    nvidiaBusId = "PCI:1:0:0";
-    # amdgpuBusId = "PCI:54:0:0"; For AMD GPU
+    prime = {
+      sync.enable = true;
+
+      # Make sure to use the correct Bus ID values for your system!
+      amdgpuBusId = "PCI:6:0:0";
+      nvidiaBusId = "PCI:1:0:0";
+      # amdgpuBusId = "PCI:54:0:0"; For AMD GPU
+    };
   };
 }

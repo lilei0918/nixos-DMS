@@ -7,7 +7,7 @@
     wget
     curl
 
-    git
+    # git 由 home/programs/git.nix（programs.git.enable）安装，避免双装
     lazygit
 
     nh
@@ -26,19 +26,13 @@
 
     # ─────────────────────────────
     # 🖥️ Terminal
+    # 说明：alacritty/tmux/starship/direnv 由 home 模块（programs.*.enable）安装，
+    # 这里只保留仅系统级的 fzf/zoxide（fish/zsh 只 source，不装包）
     # ─────────────────────────────
-
-    alacritty
-
-    tmux
-
-    starship
 
     fzf
 
     zoxide
-
-    direnv
 
     # ─────────────────────────────
     # 📦 压缩 / 解压

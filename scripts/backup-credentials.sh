@@ -6,6 +6,9 @@
 #   ~/.config/sops/age/keys.txt              用户级 sops 解密钥匙（编辑 secrets.yaml 需要）
 #   ~/.ssh/                                  git push 凭据（id_ed25519 / config / known_hosts）
 #   ~/.local/share/opencode/auth.json        opencode 凭据
+#   ~/.config/mihomo/config.yaml             mihomo 订阅配置（含订阅 token；启用 mihomo 时需要）
+#   ~/.pi/agent/auth.json                    pi coding agent 认证
+#   /var/lib/hermes/.hermes/auth.json        hermes 系统服务认证状态
 #
 # 用法：
 #   sudo bash scripts/backup-credentials.sh                  # 备份到 /mnt/vault/credentials-backup
@@ -40,6 +43,10 @@ SOURCES=(
   "${LILEI_HOME}/.config/sops/age/keys.txt:home-sops-age-keys.txt"
   "${LILEI_HOME}/.ssh:home-ssh"
   "${LILEI_HOME}/.local/share/opencode/auth.json:home-opencode-auth.json"
+  # 可选凭据：源不存在时自动跳过（[[ -e ]] 检查）
+  "${LILEI_HOME}/.config/mihomo/config.yaml:home-mihomo-config.yaml"
+  "${LILEI_HOME}/.pi/agent/auth.json:home-pi-auth.json"
+  "/var/lib/hermes/.hermes/auth.json:var-lib-hermes-auth.json"
 )
 
 if [[ $EUID -ne 0 ]]; then

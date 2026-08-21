@@ -6,8 +6,9 @@
 - `btop.nix`       系统监控（desktop entry 走 `ghostty -e btop`）
 - `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（`chrome-flags.conf`）
 - `dconf.nix`      GNOME dconf 主题设置
+- `dev.nix`        全局开发工具链（uv / python / nodejs / pnpm / just / gh / yq）
 - `fastfetch.nix`  系统信息（logo 用 `assets/icons/logo.png`）
-- `firefox.nix`    Firefox：NUR 扩展、searxng/nix 搜索引擎、信任系统根证书
+- `firefox.nix`    Firefox：NUR 扩展、searxng/nix 搜索引擎、信任系统根证书（⚠️ 当前未导入 home.nix，保留备用）
 - `git.nix`        git + delta（user 走 `myvars`）
 - `hermes.nix`     Hermes Desktop（desktop entry，walker / 应用菜单可见）
 - `rime.nix`       rime-ice 方案 + fcitx 环境变量（rebuild 后需 `fcitx5-remote -r` 部署）

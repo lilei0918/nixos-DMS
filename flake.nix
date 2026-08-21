@@ -105,7 +105,7 @@
     pre-commit-hooks,
     ...
   } @ inputs: let
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
     myvars = import ./vars {
       inherit lib;
     };
@@ -120,12 +120,13 @@
       lib.all (v: v) (lib.attrValues tests);
 
     # 把 eval 测试包装成 derivation，供 `nix flake check` 使用
-    # 注意：tests/default.nix 内部用 assertMsg，测试失败会直接抛错，
+    # 注意：tests/default.nix 内部用断言，测试失败会直接抛错，
     # 因此这里只需强制求值 evalTests，求值成功即代表全部通过。
-    evalTestsCheck = nixpkgs.legacyPackages.x86_64-linux.runCommand "eval-tests" {} ''
-      echo "all eval tests passed" > $out
-      ${lib.optionalString evalTests ""}
-    '';
+    evalTestsCheck = nixpkgs.legacyPackages.x86_64-linux.runCommand "eval-tests" {} (
+      assert evalTests; ''
+        echo "all eval tests passed" > $out
+      ''
+    );
 
     # pre-commit 检查（nix 格式化 + 拼写检查）
     preCommitCheck = pre-commit-hooks.lib.x86_64-linux.run {
@@ -143,8 +144,16 @@
             configPath = ".typos.toml";
           };
         };
-        # deadnix.enable = true; # 检测 *.nix 中的未使用变量
-        # statix.enable = true; # nix 代码 lint
+        # 检测 *.nix 中的未使用变量
+        deadnix.enable = true;
+
+        # nix 代码 lint
+        # 注意：statix 钩子 pass_filenames=false，在仓库根全量扫描，
+        # 故排除生成文件要用 statix 自己的 --ignore（excludes 对 statix 无效）
+        statix = {
+          enable = true;
+          settings.ignore = ["hosts/legion/hardware-configuration.nix"];
+        };
       };
     };
   in {

@@ -7,7 +7,7 @@
   binds = with config.lib.niri.actions; let
     google-chrome = lib.getExe' pkgs.google-chrome "google-chrome-stable";
     thunar = lib.getExe' pkgs.thunar "thunar";
-    walker = lib.getExe' pkgs.walker "walker"; # ← fuzzel 改为 walker
+    walker = lib.getExe' pkgs.walker "walker";
   in {
     # 🪟 窗口管理
     "super+q".action = close-window;

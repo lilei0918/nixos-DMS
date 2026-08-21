@@ -63,7 +63,8 @@
 
       rebuild = "nh os switch ${myvars.repoDir}#${myvars.flakeName}";
 
-      test = "nh os test ${myvars.repoDir}#${myvars.flakeName}";
+      # 与 fish 的 nix-test 保持一致（不要叫 test，会遮蔽 zsh 内建 test）
+      nix-test = "nh os test ${myvars.repoDir}#${myvars.flakeName}";
 
       boot = "nh os boot ${myvars.repoDir}#${myvars.flakeName}";
 

@@ -46,7 +46,6 @@ _: {
       matches = [
         {app-id = "libreoffice";}
         {app-id = "zettlr";}
-        {app-id = "TradingView";}
         {app-id = "org.gnome.TextEditor";}
       ];
       default-column-width = {proportion = 1.0;};
@@ -123,7 +122,6 @@ _: {
       matches = [
         {app-id = "Alacritty";}
         {app-id = "com.mitchellh.ghostty";}
-        {app-id = "htop";}
       ];
       open-floating = true;
     }

@@ -7,6 +7,11 @@ niri-colors.generated.kdl
 # secrets
 *.key
 *.age
+*.pem
+.env
+.env.*
+*.env
+*.env.*
 
 # editors
 .vscode/

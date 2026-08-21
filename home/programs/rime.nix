@@ -21,26 +21,42 @@
     hash = "sha256-+C/4Z44+hguaGgA8SShNLs1wKbgVYOFTLkJqGFiOqb8=";
   };
 in {
-  home.sessionVariables = {
-    GTK_IM_MODULE = "fcitx";
+  home = {
+    sessionVariables = {
+      GTK_IM_MODULE = "fcitx";
 
-    QT_IM_MODULE = "fcitx";
+      QT_IM_MODULE = "fcitx";
 
-    XMODIFIERS = "@im=fcitx";
+      XMODIFIERS = "@im=fcitx";
 
-    SDL_IM_MODULE = "fcitx";
+      SDL_IM_MODULE = "fcitx";
+    };
+
+    # rime-ice 配置（整个仓库声明式部署）
+    # ⚠️ 下面的 default.custom.yaml 会覆盖 rime-ice 自带的上游文件：
+    # 上游 default.custom.yaml 里的推荐补丁（开关/快捷键等）不会生效，
+    # 这里仅保留 schema 与候选数。如需上游默认补丁，请在此文件里合并而不是整文件替换。
+    file = {
+      ".local/share/fcitx5/rime" = {
+        source = rimeIceSrc;
+
+        recursive = true;
+      };
+
+      ".local/share/fcitx5/rime/default.custom.yaml".text = ''
+        patch:
+          schema_list:
+            - schema: rime_ice
+
+          menu:
+            page_size: 9
+      '';
+    };
+
+    packages = with pkgs; [
+      librime
+
+      librime-lua
+    ];
   };
-
-  # rime-ice 配置
-  home.file.".local/share/fcitx5/rime" = {
-    source = rimeIceSrc;
-
-    recursive = true;
-  };
-
-  home.packages = with pkgs; [
-    librime
-
-    librime-lua
-  ];
 }

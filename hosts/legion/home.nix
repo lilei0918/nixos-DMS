@@ -10,9 +10,28 @@
     inherit pkgs;
   };
 in {
-  home.username = myvars.username;
-  home.homeDirectory = myvars.homeDirectory;
-  home.stateVersion = "25.05";
+  home = {
+    inherit (myvars) username homeDirectory;
+
+    stateVersion = "25.05";
+
+    ############################################
+    # packages
+    ############################################
+
+    # mkBefore：用户级包在 PATH 中优先于模块自动安装的包
+    packages = lib.mkBefore allPackages;
+
+    ############################################
+    # environment
+    ############################################
+
+    sessionVariables = {
+      EDITOR = "vim";
+    };
+
+    # fcitx5 环境变量统一在 home/programs/rime.nix 中管理
+  };
 
   imports = [
     # DMS
@@ -51,45 +70,45 @@ in {
   # niri
   ############################################
 
-  programs.niri = {
-    enable = true;
+  programs = {
+    niri = {
+      enable = true;
 
-    # 系统 nixpkgs（f13ff45 起）的 pkgs.niri 引用了被删除的 libdisplay-info_0_2，
-    # 故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix 固定到 624af66）。
-    # 上游修复后（niri-flake 改用 libdisplay-info 0.3）可移除本行。
-    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-stable;
+      # 系统 nixpkgs（f13ff45 起）的 pkgs.niri 引用了被删除的 libdisplay-info_0_2，
+      # 故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix 固定到 624af66）。
+      # 上游修复后（niri-flake 改用 libdisplay-info 0.3）可移除本行。
+      package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-stable;
 
-    settings = import ../../home/niri/default.nix {
-      inherit
-        config
-        pkgs
-        inputs
-        lib
-        ;
+      settings = import ../../home/niri/default.nix {
+        inherit
+          config
+          pkgs
+          inputs
+          lib
+          myvars
+          ;
+      };
     };
+
+    ############################################
+    # direnv
+    ############################################
+
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+
+    ############################################
+    # home-manager
+    ############################################
+
+    "home-manager".enable = true;
   };
 
   ############################################
-  # packages
-  ############################################
-
-  home.packages = lib.mkBefore allPackages;
-
-  ############################################
-  # fcitx5 + rime 用户配置
-  ############################################
-
-  home.file.".local/share/fcitx5/rime/default.custom.yaml".text = ''
-    patch:
-      schema_list:
-        - schema: rime_ice
-
-      menu:
-        page_size: 9
-  '';
-
-  ############################################
   # fcitx5 默认输入法设置
+  # （rime 目录与 default.custom.yaml 统一在 home/programs/rime.nix 中声明）
   ############################################
 
   xdg.configFile."fcitx5/profile".text = ''
@@ -109,25 +128,4 @@ in {
     [GroupOrder]
     0=Default
   '';
-
-  ############################################
-  # environment
-  ############################################
-
-  home.sessionVariables = {
-    EDITOR = "vim";
-  };
-
-  # fcitx5 环境变量统一在 home/programs/rime.nix 中管理
-
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-  };
-
-  ############################################
-  # home-manager
-  ############################################
-
-  programs.home-manager.enable = true;
 }

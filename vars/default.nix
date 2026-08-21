@@ -1,4 +1,4 @@
-{lib}: {
+_: {
   # 用户信息（在 specialArgs 中注入，所有模块均可使用）
   username = "lilei";
   userfullname = "lilei";
@@ -12,4 +12,12 @@
 
   # flake 输出名（用于 `nh os switch .#<flakeName>`）
   flakeName = "legion";
+
+  # 主题（GTK/Qt/光标统一从这里取值，见 home/programs/theme.nix、dconf.nix、home/niri/settings.nix）
+  theme = {
+    gtk = "WhiteSur-Dark";
+    icon = "WhiteSur";
+    cursor = "macOS-White";
+    cursorSize = 24;
+  };
 }

@@ -10,7 +10,7 @@
 | 想做什么 | 命令 |
 |----------|------|
 | 重建系统 | `rebuild` 或 `nh os switch .#legion` |
-| 只测试不切换 | `nix-test`（fish）/ `test`（zsh）或 `nh os test .#legion` |
+| 只测试不切换 | `nix-test`（fish / zsh 同名）或 `nh os test .#legion` |
 | 开加密盘 | `sudo vault-open` |
 | 关加密盘 | `sudo vault-close` |
 | 备份信任根/凭据 | `sudo bash scripts/backup-credentials.sh` |

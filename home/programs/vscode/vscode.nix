@@ -116,10 +116,10 @@
   # =========================
   # Nix Development Tools
   # =========================
+  # nixd：VSCodium 与 Zed 共用的 Nix LSP（同一 home profile，PATH 共享）。
+  # alejandra：系统级（system/packages.nix）已安装，这里不重复装，格式化走 PATH。
 
   home.packages = with pkgs; [
     nixd
-
-    alejandra
   ];
 }

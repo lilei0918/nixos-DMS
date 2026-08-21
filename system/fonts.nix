@@ -28,7 +28,7 @@
       # =========================
       # 等宽 / Nerd Font
       # =========================
-      # Maple Mono NF CN 在 nixpkgs(f13ff45) 不可用，用 JetBrainsMono Nerd Font
+      # Maple Mono NF CN 在当时 nixpkgs(f13ff45) 不可用，用 JetBrainsMono Nerd Font
 
       nerd-fonts.jetbrains-mono
 
