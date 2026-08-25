@@ -24,6 +24,12 @@
 
     ../../system/services.nix
 
+    # ZRAM 内存压缩交换
+    ../../system/zram.nix
+
+    # FHS 兼容环境 (通用 fhs + daa-fhs)
+    ../../system/fhs.nix
+
     ################################
     # desktop
     ################################
@@ -58,6 +64,12 @@
     ../../system/vault/vaultwarden-backup.nix
 
     ../../system/vault/vault.nix
+
+    ################################
+    # AI（hermes-agent 系统服务）
+    ################################
+
+    ../../home/programs/AI/hermes-service.nix
 
     ################################
     # greeter
@@ -109,7 +121,7 @@
 
     useUserPackages = true;
 
-    # 给 home.nix / hermes.nix 使用 flake inputs
+    # 给 home.nix / AI 模块使用 flake inputs
 
     extraSpecialArgs = {
       inherit inputs myvars;

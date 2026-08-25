@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   ############################################
   # DankMaterialShell
   ############################################
@@ -40,7 +36,16 @@
       ];
     };
 
-    "power-profiles-daemon".enable = true;
+    # 电源调度: tuned (参照 ryan4yin/nix-config desktop/power.nix)
+    # 替代 power-profiles-daemon —— 全系统功耗策略, ppdSupport 提供兼容 API
+    # (DMS 桌面壳的电源档位切换不受影响)
+    tuned = {
+      enable = true;
+      settings.dynamic_tuning = true;
+      ppdSupport = true;
+      ppdSettings.main.default = "balanced"; # balanced / performance / power-saver
+    };
+    power-profiles-daemon.enable = false; # 与 tuned 冲突, 必须关闭
 
     gvfs.enable = true;
 
@@ -63,26 +68,7 @@
 
     gnome."gnome-keyring".enable = true;
 
-    # Hermes Agent
-    "hermes-agent" = {
-      enable = true;
-
-      settings = {
-        model.default = "deepseek-v4-flash"; # 改为你的模型
-        toolsets = ["all"];
-        terminal = {
-          backend = "local";
-          timeout = 180;
-        };
-      };
-
-      environmentFiles = [
-        config.sops.templates."hermes-env".path
-      ];
-
-      addToSystemPackages = true;
-    };
-
+    # Hermes Agent（hermes-agent 服务）已移至 home/programs/AI/hermes-service.nix
     upower.enable = true;
 
     pulseaudio.enable = false;
@@ -95,29 +81,5 @@
 
     # GNOME Keyring
     pam.services.greetd.enableGnomeKeyring = true;
-  };
-
-  # 修复：auth.json 若属主是交互用户（lilei）则服务（hermes 用户）无法读取。
-  # tmpfiles 规则在启动时把属主统一为 hermes:hermes（权限保持 600 属主可读写）。
-  systemd = {
-    tmpfiles.rules = [
-      "f /var/lib/hermes/.hermes/auth.json 0600 hermes hermes - -"
-    ];
-
-    # 修复：网关排空（drain）需要更长停止超时。
-    # 上游模块未设置 TimeoutStopSec，systemd 默认 10s 会在网关排空时 SIGKILL。
-    services."hermes-agent".serviceConfig.TimeoutStopSec = 30;
-  };
-
-  ############################################
-  # Hermes secrets
-  ############################################
-
-  sops.templates."hermes-env" = {
-    content = ''
-
-      DEEPSEEK_API_KEY=${config.sops.placeholder."deepseek_api_key"}
-
-    '';
   };
 }

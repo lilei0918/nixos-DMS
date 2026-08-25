@@ -29,4 +29,6 @@ extend-ignore-re = [
   "typos",
   "lilei",
   "WhiteSur",
+  # daA: 股票看板程序名 (~/Documents/daA), 防止被当作 data 的错字
+  "daa",
 ]

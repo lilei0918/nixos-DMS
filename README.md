@@ -119,7 +119,7 @@ nixos-DMS/
 │   ├── boot.nix             # 启动引导（systemd-boot）
 │   ├── hardware.nix         # 硬件：GPU 图形、蓝牙、fstrim、btrfs scrub
 │   ├── network.nix          # 网络（NetworkManager、NTP）——防火墙配置已下放到 proxy/*.nix
-│   ├── services.nix         # 系统服务（DMS、PipeWire、Hermes Agent）
+│   ├── services.nix         # 系统服务（DMS、PipeWire）
 │   ├── secrets.nix          # sops 机密声明
 │   ├── fonts.nix            # 字体（思源黑体/宋体、Inter、JetBrainsMono NF + fontconfig 映射）
 │   ├── input.nix            # 输入法（Fcitx5/Rime）
@@ -153,14 +153,13 @@ nixos-DMS/
 │   │   ├── starship.nix     # prompt
 │   │   └── tmux.nix
 │   └── programs/            # 用户软件包及配置
-│       ├── AI/              # AI 工具（zed.nix / opencode.nix / pi.nix）
+│       ├── AI/              # AI 工具（zed / opencode / pi / hermes，含 hermes-agent 系统服务）
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
 │       ├── fastfetch.nix    # 系统信息（logo 用 assets/icons/logo.png，自适应终端宽度）
 │       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置；⚠️ 当前未导入 home.nix，保留备用）
 │       ├── git.nix          # git + delta
-│       ├── hermes.nix       # Hermes Desktop
 │       ├── rime.nix         # Rime 输入法（rime-ice 方案 + fcitx 环境变量）
 │       ├── theme.nix        # GTK/Qt 主题（WhiteSur）
 │       ├── thunar.nix       # 文件管理器（xfconf 依赖）
@@ -308,11 +307,8 @@ nixos-DMS/
 - `services.pipewire`：alsa（含 support32Bit）/pulse/jack/wireplumber 全部开启
 - `security.rtkit.enable = true`
 - `security.pam.services.greetd.enableGnomeKeyring = true`，`services.gnome.gnome-keyring.enable = true`
-- `services.hermes-agent`（详见"五、Hermes Agent 专节"）
-- `sops.templates."hermes-env"`（Hermes 环境变量模板）
-- `systemd.tmpfiles.rules`：修复 hermes `auth.json` 属主（`/var/lib/hermes/.hermes/auth.json 0600 hermes hermes`）
-- `systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30`（网关排空需要更长停止超时）
 - `services.upower.enable = true`，`services.pulseaudio.enable = false`，`services.blueman.enable = true`
+- ⚠️ Hermes Agent 服务已从本文件移出，见 `home/programs/AI/hermes-service.nix`（NixOS 模块）
 
 ### 10. `system/secrets.nix`
 
@@ -478,7 +474,7 @@ nixos-DMS/
 - `imports` 列表包含：
   - `inputs.dms.homeModules.dank-material-shell`、`inputs.dms.homeModules.niri`
   - `inputs.niri.homeModules.niri`
-  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`hermes.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
+  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`、`AI/hermes.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
 - **niri 包覆盖**：⚠️ `programs.niri.package = inputs.niri.packages.${...}.niri-stable`。系统 nixpkgs 的 `pkgs.niri` 引用了被删除的 `libdisplay-info_0_2`（nixpkgs 升 0.3 后），故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix pin 到 624af66）。上游修复后可移除本行。
@@ -508,16 +504,19 @@ nixos-DMS/
 - **笔记**：`siyuan`
 - **图片**：`imagemagick`（已注释，未启用）
 
-### 25. `home/programs/hermes.nix`
+### 25. `home/programs/AI/hermes.nix` + `home/programs/AI/hermes-service.nix`
 
-**作用**：安装 Hermes Desktop（CLI + GUI）。
-```nix
-{ pkgs, inputs, ... }: {
-  home.packages = [ inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.desktop ];
-  xdg.desktopEntries."hermes-desktop" = { ... }; # 声明桌面项，让 Hermes Desktop 出现在 walker / 应用菜单
-}
-```
-- `desktop` 输出同时提供 CLI（hermes/hermes-agent/hermes-acp）和 `hermes-desktop` 启动器，复用 `~/.hermes/` 状态
+**作用**：Hermes AI 助手配置（集中到 AI 目录）。
+
+- `hermes.nix`（home-manager）：安装 Hermes Desktop（CLI + GUI）。
+  ```nix
+  { pkgs, inputs, ... }: {
+    home.packages = [ inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.desktop ];
+    xdg.desktopEntries."hermes-desktop" = { ... }; # 声明桌面项，让 Hermes Desktop 出现在 walker / 应用菜单
+  }
+  ```
+  `desktop` 输出同时提供 CLI（hermes/hermes-agent/hermes-acp）和 `hermes-desktop` 启动器，复用 `/var/lib/hermes/.hermes/` 状态（经 `HERMES_HOME`）。
+- `hermes-service.nix`（**NixOS 模块**，经 `hosts/legion/configuration.nix` 导入）：`services.hermes-agent` 系统服务（systemd 网关）、model/provider 设置、`sops.templates."hermes-env"`、tmpfiles 属主修复、`TimeoutStopSec = 30`。详见「五、Hermes Agent 专节」。
 
 ### 26. `system/vault/vault.nix`（加密数据盘）
 
@@ -574,12 +573,12 @@ nixos-DMS/
 
 ## 五、Hermes Agent 专节
 
-### 配置位置
-- **系统服务**：`system/services.nix` 中 `services.hermes-agent`
+### 配置位置（已集中到 `home/programs/AI/`）
+- **桌面入口/安装**：`home/programs/AI/hermes.nix`（home-manager）
+- **系统服务**：`home/programs/AI/hermes-service.nix`（**NixOS 模块**，经 `hosts/legion/configuration.nix` 导入）中 `services.hermes-agent`
 - **机密**：`system/secrets.nix` 声明 `deepseek_api_key`，实际值由 sops 加密存储在 `secrets/secrets.yaml`
-- **环境变量**：`sops.templates."hermes-env"` 生成包含 `DEEPSEEK_API_KEY` 的环境文件
 
-### 服务配置详情（system/services.nix）
+### 服务配置详情（home/programs/AI/hermes-service.nix）
 ```nix
 services.hermes-agent = {
   enable = true;
@@ -589,6 +588,13 @@ services.hermes-agent = {
     terminal = {
       backend = "local";
       timeout = 180;
+    };
+    # 本地模型：macOS 笔记本上的 OpenAI 兼容端点
+    providers."mac-local" = {
+      name = "Mac Local (Qwen)";
+      api = "http://192.168.0.100:8000/v1";
+      transport = "openai_chat";
+      models = [ "dogfoodai/Qwen3.8-27B-4bit" ];
     };
   };
   environmentFiles = [ config.sops.templates."hermes-env".path ];
@@ -602,11 +608,13 @@ systemd.tmpfiles.rules = [
 
 # 修复：网关排空（drain）需要更长停止超时（默认 10s 会在排空时 SIGKILL）。
 systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
+
+# sops.templates."hermes-env"：由 sops 解密生成含 DEEPSEEK_API_KEY 的环境文件
 ```
 
 ### 使用方式
 - **CLI**：`hermes` 或 `hermes-agent`（系统级命令，通过 `addToSystemPackages` 添加）
-- **GUI**：应用菜单中 "Hermes Desktop"，或 `hermes-desktop`（由 Home Manager 安装，desktop entry 在 `home/programs/hermes.nix`）
+- **GUI**：应用菜单中 "Hermes Desktop"，或 `hermes-desktop`（由 Home Manager 安装，desktop entry 在 `home/programs/AI/hermes.nix`）
 - **临时切换模型**：`hermes --model deepseek-v4-pro`
 
 ### 密钥管理
@@ -692,6 +700,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `AI/zed.nix` | Zed 编辑器（nixpkgs `zed-editor`，二进制 zeditor）+ **`nixd`**（Nix LSP，Zed 的 Nix 扩展需要）：**全声明式**——macOS Classic 主题（`theme.mode=system` 亮/暗自动切换）、5 个插件 auto_install_extensions（catppuccin-icons/git-firefly/html/macos-classic/nix）、vim 模式、minimap="never"、shell=fish（对象格式）、**ACP 链接 opencode**（`opencode acp`，⚠️ 不是 serve——serve 是 HTTP 服务器，Zed 连不上会一直 loading）。API key/登录走 Zed keychain（不进 Nix） |
 | `AI/opencode.nix` | OpenCode AI agent（nixpkgs `opencode`）：**只装工具**，凭据用 `opencode auth login`（切换 provider 无需改 Nix） |
 | `AI/pi.nix` | Pi coding agent（nixpkgs `pi-coding-agent`）：**只装工具**，认证用 `/login`（自动写入 `~/.pi/agent/auth.json`），自定义 provider 才需 `~/.pi/agent/models.json` |
+| `AI/hermes.nix` | Hermes Desktop（home-manager）：桌面入口 + CLI/GUI 安装；provider/model 设置见 `AI/hermes-service.nix` |
+| `AI/hermes-service.nix` | Hermes Agent 系统服务（**NixOS 模块**，经 `configuration.nix` 导入）：systemd 网关、model/provider、sops 模板（详见「五、Hermes Agent 专节」） |
 | `alacritty.nix` | JetBrainsMono Nerd Font 12、Monokai Pro 配色、shell=fish、Ctrl+Shift+C/V、WINIT_UNIX_BACKEND=wayland |
 | `ghostty.nix` | monokai-pro 主题（自定义 palette）、JetBrainsMono 12、无装饰、GTK tabs bottom |
 | `fish.nix` | Nix 别名用**绝对路径**（`rebuild`/`nix-test`/`boot`/`rollback`/`cleanup`/`check`/`update`/`fmt`，任意目录可用）、g* git 别名、ls=eza 等、starship/direnv/zoxide/fzf、fzf-fish 插件、目录快捷 alias |
@@ -904,8 +914,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - **启动后进入 GRUB 救援模式**：可能是 EFI 引导项丢失，需从 Arch 修复 GRUB 并重新生成配置，或手动添加 NixOS 的 EFI 文件。
 - **NixOS 重建后无法引导新 generation**：检查 `/boot/efi/loader/entries/` 是否有新文件，以及 `systemd-boot` 配置是否正确。
 - **Hermes 服务启动失败**：检查 API Key 是否解密（`cat /run/secrets/hermes-env`）、`/var/lib/hermes/.hermes/auth.json` 属主是否为 `hermes:hermes`（否则 `sudo systemctl restart hermes-agent` 后看日志）、模型名称是否正确、网络是否通畅。
-- **`hermes: command not found`**：检查 `system/services.nix` 中 `addToSystemPackages = true` 是否设置，并确保已重建系统。
-- **桌面没有 Hermes 图标**：检查 `home/programs/hermes.nix` 是否被 `home.nix` 正确导入，且已重建。
+- **`hermes: command not found`**：检查 `home/programs/AI/hermes-service.nix` 中 `addToSystemPackages = true` 是否设置，并确保已重建系统。
+- **桌面没有 Hermes 图标**：检查 `home/programs/AI/hermes.nix` 是否被 `home.nix` 正确导入，且已重建。
 - **软件包未安装**：确认添加到了正确的层级（系统 vs 用户），并检查是否在正确的 `packages.nix` 中。
 - **Git 冲突**：若从另一台机器修改并推送，拉取后需手动解决冲突，然后重建。
 - **构建失败（磁盘空间不足）**：运行 `sudo nix-collect-garbage -d` 清理旧 generation。

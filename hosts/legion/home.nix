@@ -46,7 +46,6 @@ in {
     ../../home/programs/vscode/vscode.nix
     # ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
-    ../../home/programs/hermes.nix
     ../../home/programs/dev.nix
     ../../home/programs/walker.nix
     ../../home/programs/thunar.nix
@@ -58,6 +57,7 @@ in {
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
     ../../home/programs/AI/pi.nix
+    ../../home/programs/AI/hermes.nix
     ../../home/terminal/alacritty.nix
     ../../home/terminal/fish.nix
     ../../home/terminal/starship.nix

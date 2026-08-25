@@ -9,7 +9,7 @@
 | `boot.nix`     | systemd-boot、`linuxPackages_latest`、内核参数 |
 | `hardware.nix` | AMD 图形、蓝牙、fstrim、btrfs autoScrub |
 | `network.nix`  | NetworkManager + NTP（防火墙已下放到 proxy/） |
-| `services.nix` | DMS、PipeWire、Hermes Agent、GNOME Keyring |
+| `services.nix` | DMS、PipeWire、GNOME Keyring（Hermes Agent 已移至 `home/programs/AI/hermes-service.nix`） |
 | `secrets.nix`  | sops 机密声明（`defaultSopsFile = ../secrets/secrets.yaml`） |
 | `fonts.nix`    | 思源黑体/宋体 + Inter + JetBrainsMono NF + fontconfig 映射 |
 | `input.nix`    | Fcitx5 + Rime |
