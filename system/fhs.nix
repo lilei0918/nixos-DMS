@@ -121,6 +121,11 @@ in {
       base = pkgs.appimageTools.defaultFhsEnvArgs;
       daaDir = "/home/${myvars.username}/Documents/daA";
       runScript = pkgs.writeShellScript "daa-fhs-run" ''
+        # 用法: daa-fhs [脚本名] [参数...]
+        #   默认 main.py (主界面); 也支持 news_main.py 等
+        _script="''${1:-main.py}"
+        shift 2>/dev/null || true
+
         # libstdc++ 等部分库落在 /usr/lib64, 而 glibc 默认只搜 /lib 与 /usr/lib,
         # 必须显式补全搜索路径; 另需追加 PySide6 自带 Qt 库目录
         # (QtWebEngineProcess 无 rpath, 靠它找 libQt6WebEngineCore)
@@ -141,7 +146,7 @@ in {
         export XMODIFIERS="@im=fcitx"
 
         cd ${daaDir}
-        exec .venv/bin/python main.py "$@"
+        exec .venv/bin/python "$_script" "$@"
       '';
     in
       pkgs.buildFHSEnv (base
