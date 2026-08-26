@@ -8,7 +8,7 @@
   ...
 }: let
   # daA (~/Documents/daA) 的 PySide6/QtWebEngine/akshare 等 pip wheel
-  # 所需的系统 C 库 —— 与 ~/Documents/daA/flake.nix 的 LD_LIBRARY_PATH 清单一致
+  # 所需的系统 C 库 (daA 项目 flake 不再维护库清单, 统一在此维护)
   # 目的: 在 FHS 内免 LD_LIBRARY_PATH 拼接、免 patchelf 直接运行 daA
   daaLibs = with pkgs; [
     # C++ 标准库 (shiboken/numpy 等 C 扩展必需, 必须在最前)
@@ -115,7 +115,7 @@ in {
 
     ############################################
     # daa-fhs 命令: 在 FHS 环境中启动 daA 股票看板
-    # 替代 daA 项目内 LD_LIBRARY_PATH + patchelf 方案
+    # 用法: daa-fhs [脚本名], 默认 main.py
     ############################################
     (let
       base = pkgs.appimageTools.defaultFhsEnvArgs;
