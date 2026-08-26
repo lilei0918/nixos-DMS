@@ -22,11 +22,8 @@
     defaultNetwork.settings.dns_enabled = false;
   };
 
-  # podman-auto-update timer（配合容器 AutoUpdate=registry）
-  # NixOS 24.11/25.05 的 virtualisation.podman 模块暂无 autoUpdate option，
-  # 但 podman 包自带 .service/.timer 单元（已通过 systemd.packages 加载），
-  # 只需用 wantedBy 启用 timer
-  systemd.timers.podman-auto-update.wantedBy = ["timers.target"];
+  # 注：曾为容器 AutoUpdate=registry 启用 podman-auto-update timer，
+  # 现 vaultwarden 已 pin 版本、无自动更新容器，timer 一并移除
 
   # 信任本地 CA（Chrome / Firefox 系统根），CA 公钥提交在仓库，构建期确定
   security.pki.certificateFiles = [
@@ -62,13 +59,15 @@
     Environment=ROCKET_TLS={certs="/tls/server.crt",key="/tls/server.key"}
     # 注册完成后已关闭（需注册时改回 true 并重建）
     Environment=SIGNUPS_ALLOWED=false
-    Environment=WEBSOCKET_ENABLED=true
 
     # 注：Vaultwarden 新版已移除内置备份（BACKUP_* 变量无效，会被忽略），
     # 数据库在线备份由 system/vault/vaultwarden-backup.nix 的 systemd 服务负责
+    # 注：WEBSOCKET_ENABLED 自 1.31 起已移除（websocket 并入主服务），不再设置
     EnvironmentFile=${config.sops.templates."vaultwarden-env".path}
-    Image=docker.io/vaultwarden/server:latest
-    AutoUpdate=registry
+    # 密码管理器：pin 具体版本 + 关闭自动更新。
+    # SQLite 迁移单向不可逆，升级需有意识进行（改版本号 → rebuild），
+    # 升级前建议先跑一次 vaultwarden-backup
+    Image=docker.io/vaultwarden/server:1.37.2
 
     [Service]
     Restart=on-failure

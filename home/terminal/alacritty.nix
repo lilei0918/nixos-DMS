@@ -151,11 +151,6 @@
     };
   };
 
-  # Wayland 环境
-
-  home.sessionVariables = {
-    WINIT_UNIX_BACKEND = "wayland";
-
-    TERM = "alacritty";
-  };
+  # 注：不再设置 WINIT_UNIX_BACKEND（已废弃，alacritty 自动选 Wayland）
+  # 和 TERM=alacritty（全局导出会污染 ssh/其它终端的 TERM，alacritty 自行注入）。
 }

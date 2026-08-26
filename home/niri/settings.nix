@@ -1,4 +1,4 @@
-{myvars, ...}: {
+_: {
   # 命名工作区（供 rules.nix 的 open-on-workspace 使用）
   # ⚠️ niri 的 open-on-workspace 不会自动创建工作区，必须在此声明，否则窗口落到当前工作区
   # ⚠️ 工作区按 key 排序创建，因此用数字前缀控制顺序，再用 name 指定实际名称
@@ -130,7 +130,7 @@
     size = 24;
     #theme = "WhiteSur-cursors";
     hide-when-typing = true;
-    hide-after-inactive-ms = 1000; # ← 移到这里
+    hide-after-inactive-ms = 1000;
   };
 
   # 环境变量
@@ -148,18 +148,9 @@
     XDG_SESSION_TYPE = "wayland";
     XDG_CURRENT_DESKTOP = "niri";
 
-    # 输入法环境变量（fcitx）
-    GTK_IM_MODULE = "fcitx";
-    QT_IM_MODULE = "fcitx";
-    XMODIFIERS = "@im=fcitx";
-    GLFW_IM_MODULE = "fcitx";
-
-    # Qt 主题设置（从 KDL 移植）
-    QT_QPA_PLATFORMTHEME = "gtk3";
-    QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
-
-    XCURSOR_THEME = myvars.theme.cursor;
-    XCURSOR_SIZE = toString myvars.theme.cursorSize;
+    # ⚠️ 输入法变量（GTK/QT_IM_MODULE、XMODIFIERS、GLFW_IM_MODULE）
+    #    统一在 home/programs/rime.nix 管理，勿在此重复声明
+    # ⚠️ Qt 主题 / XCURSOR 变量统一在 home/programs/theme.nix 管理，勿在此重复声明
 
     # GTK 主题（可选）
     # GTK_THEME = "WhiteSur-Dark";

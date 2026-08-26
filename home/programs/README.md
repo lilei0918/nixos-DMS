@@ -8,11 +8,10 @@
 - `dconf.nix`      GNOME dconf 主题设置
 - `dev.nix`        全局开发工具链（uv / python / nodejs / pnpm / just / gh / yq）
 - `fastfetch.nix`  系统信息（logo 用 `assets/icons/logo.png`）
-- `firefox.nix`    Firefox：NUR 扩展、searxng/nix 搜索引擎、信任系统根证书（⚠️ 当前未导入 home.nix，保留备用）
 - `git.nix`        git + delta（user 走 `myvars`）
 - `rime.nix`       rime-ice 方案 + fcitx 环境变量（rebuild 后需 `fcitx5-remote -r` 部署）
 - `theme.nix`      GTK3 WhiteSur / Qt gtk3 / macOS-White 光标（GTK4 走系统默认）
-- `thunar.nix`     文件管理器（xfconf 必需，`force = true`）
+- `thunar.nix`     文件管理器（配置走 HM `xfconf.settings` 模块）
 - `vscode/`        VSCodium + nixd 扩展
 - `walker.nix`     walker 启动器 + elephant 剪贴板依赖
 

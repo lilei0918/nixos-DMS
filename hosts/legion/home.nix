@@ -7,7 +7,7 @@
   ...
 }: let
   allPackages = import ./packages.nix {
-    inherit pkgs;
+    inherit pkgs lib;
   };
 in {
   home = {

@@ -109,16 +109,11 @@
 
     initContent = ''
 
-      # Starship
-
-      eval "$(starship init zsh)"
-
-
-
-      # direnv
-
-      eval "$(direnv hook zsh)"
-
+      # ⚠️ starship / direnv 的初始化由 HM 模块自动注入
+      # （programs.starship.enableZshIntegration、programs.direnv 默认开启），
+      # 手动 eval 会重复初始化，勿加回：
+      #   eval "$(starship init zsh)"
+      #   eval "$(direnv hook zsh)"
 
 
       # zoxide

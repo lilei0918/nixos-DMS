@@ -1,29 +1,12 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
     walker
-    elephant # 剪贴板历史依赖
   ];
 
-  systemd.user.services.elephant = {
-    Unit = {
-      Description = "Elephant Service for Walker";
-      # 关键：明确要求此服务在 graphical-session.target 之后启动
-      After = ["graphical-session.target"];
-      PartOf = ["graphical-session.target"];
-    };
+  # elephant（walker 的 provider 守护进程，剪贴板历史依赖）走 HM 模块：
+  # 替代原手写 systemd.user.services.elephant，由模块生成正确的用户服务与依赖
+  services.elephant.enable = true;
 
-    Service = {
-      Type = "simple";
-      # 使用 elephant 的可执行文件路径
-      ExecStart = "${pkgs.elephant}/bin/elephant";
-      Restart = "on-failure";
-      RestartSec = 3;
-    };
-
-    Install = {
-      WantedBy = ["graphical-session.target"];
-    };
-  };
   # 可选：自定义 walker 配置
   # home.file.".config/walker/config.json".text = builtins.toJSON {
   #   clipboard.enable = true;

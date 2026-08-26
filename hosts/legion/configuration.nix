@@ -150,8 +150,9 @@
     device = "/dev/disk/by-label/DATATB";
     fsType = "ntfs3";
     options = [
-      "uid=1000"
-      "gid=100"
+      # uid/gid 从用户声明动态取，避免硬编码（gid 取 users 组）
+      "uid=${toString config.users.users.${myvars.username}.uid}"
+      "gid=${toString config.users.groups.users.gid}"
       "umask=022"
       "nofail"
       "x-systemd.automount"
@@ -187,7 +188,7 @@
 
       LOG_FILE="/var/log/nixos-rebuild-log.json"
 
-      TIMESTAMP=$(date "+%d/%m")
+      TIMESTAMP=$(date "+%Y-%m-%d")
 
       GENERATION=$(readlink /nix/var/nix/profiles/system | grep -o '[0-9]\+')
 

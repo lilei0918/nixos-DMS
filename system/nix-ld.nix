@@ -1,18 +1,4 @@
-{pkgs, ...}: let
-  # libjpeg.so.8（jpeg-8 ABI）：libmpv 等旧库需要，nixpkgs 的 libjpeg(turbo) 只提供 .62
-  jpeg-8 = pkgs.stdenv.mkDerivation {
-    pname = "jpeg-8";
-    version = "8d";
-    src = pkgs.fetchurl {
-      url = "https://www.ijg.org/files/jpegsrc.v8d.tar.gz";
-      sha256 = "sha256-/cTUwRM4rQKKfSP7U/W7k1RnE5Kmf7G1LgwypxIYkfg=";
-    };
-    configureFlags = [
-      "--enable-shared"
-      "--disable-static"
-    ];
-  };
-in {
+{pkgs, ...}: {
   ############################################
   # 兼容动态链接器（nix-ld）
   # 让非 Nix 二进制（AppImage 解压、.deb 解压的程序等）通过 nix-ld 加载器
@@ -47,7 +33,7 @@ in {
 
       libjpeg # libjpeg.so.62（libjpeg-turbo）
 
-      jpeg-8 # libjpeg.so.8（旧 ABI，libmpv 等需要）
+      libjpeg8 # libjpeg.so.8（jpeg-8 ABI，libmpv 等旧库需要；libjpeg 默认构建只提供 .62）
 
       libtiff # libtiff.so.6
 

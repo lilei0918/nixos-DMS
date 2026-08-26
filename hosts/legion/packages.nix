@@ -1,10 +1,42 @@
-{pkgs, ...}:
+{
+  pkgs,
+  lib,
+  ...
+}:
 with pkgs; [
   # ─────────────────────────────
   # 🌐 浏览器
   # ─────────────────────────────
 
-  google-chrome # Google Chrome 浏览器（闭源，基于 Chromium）
+  # Google Chrome（闭源）：nixpkgs wrapper 不读 chrome-flags.conf，
+  # Wayland/GPU 参数必须经 commandLineArgs 注入（原 conf 内容迁移于此）
+  (google-chrome.override {
+    commandLineArgs = lib.concatStringsSep " " [
+      "--ozone-platform=wayland"
+      "--enable-features=UseOzonePlatform,WebUIDarkMode,DesktopPWAsNotificationIconAndTitle"
+      "--enable-native-notifications"
+      # 显卡硬件加速
+      "--use-gl=desktop"
+      "--ignore-gpu-blocklist"
+      "--enable-gpu-rasterization"
+      "--enable-zero-copy"
+      "--enable-vulkan"
+      "--disable-gpu-driver-bug-workarounds"
+      "--enable-hardware-overlays"
+      "--enable-accelerated-video-decode"
+      "--enable-accelerated-video-encode"
+      "--enable-oop-rasterization"
+      "--enable-raw-draw"
+      "--enable-webgl-developer-extensions"
+      "--enable-accelerated-2d-canvas"
+      "--enable-gpu-compositing"
+      "--enable-smooth-scrolling"
+      "--enable-media-router"
+      # 修复默认行为
+      "--no-default-browser-check"
+      "--no-pings"
+    ];
+  })
 
   # ─────────────────────────────
   # 📄 办公 / 阅读

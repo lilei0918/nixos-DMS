@@ -5,7 +5,9 @@
   ...
 }: {
   binds = with config.lib.niri.actions; let
-    google-chrome = lib.getExe' pkgs.google-chrome "google-chrome-stable";
+    # spawn 经 PATH 解析：chrome 是 packages.nix 里带 commandLineArgs 的 wrapper，
+    # 不能引用裸 pkgs.google-chrome（会拿到无参数版本）
+    google-chrome = "google-chrome-stable";
     thunar = lib.getExe' pkgs.thunar "thunar";
     walker = lib.getExe' pkgs.walker "walker";
   in {

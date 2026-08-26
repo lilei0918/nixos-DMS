@@ -1,11 +1,7 @@
 {inputs, ...}: {
+  # NUR 经官方 overlay 接入（flake-first；旧式 `import inputs.nur {...}` shim 已弃用）
   nixpkgs.overlays = [
-    (_: prev: {
-      nur = import inputs.nur {
-        nurpkgs = prev;
-        pkgs = prev;
-      };
-    })
+    inputs.nur.overlays.default
   ];
 
   nix.settings = {

@@ -1,8 +1,6 @@
 {pkgs, ...}: {
   boot = {
     loader = {
-      grub.enable = false;
-
       systemd-boot = {
         enable = true;
 
@@ -16,7 +14,7 @@
       };
     };
 
-    tmp.cleanOnBoot = true;
+    # 注：/tmp 已是 tmpfs（hardware-configuration.nix），无需 cleanOnBoot
 
     kernelPackages = pkgs.linuxPackages_latest;
 

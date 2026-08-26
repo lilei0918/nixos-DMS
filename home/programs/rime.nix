@@ -22,14 +22,18 @@
   };
 in {
   home = {
+    # ⚠️ 全仓库唯一的输入法环境变量声明处
+    # （niri settings / theme.nix 勿再重复；fcitx5 本体与 addons 在 system/input.nix）
     sessionVariables = {
+      GLFW_IM_MODULE = "fcitx";
+
       GTK_IM_MODULE = "fcitx";
 
       QT_IM_MODULE = "fcitx";
 
-      XMODIFIERS = "@im=fcitx";
-
       SDL_IM_MODULE = "fcitx";
+
+      XMODIFIERS = "@im=fcitx";
     };
 
     # rime-ice 配置（整个仓库声明式部署）

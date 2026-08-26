@@ -17,6 +17,8 @@
   services.mihomo = {
     enable = true;
     # 保持读取你的配置文件
+    # ⚠️ 模块默认以动态沙箱用户运行，可能无权读取家目录下 0600 的 config.yaml；
+    #    切回 mihomo 时若启动报权限错误，把配置复制到 /var/lib/mihomo 或调整权限
     configFile = "${myvars.homeDirectory}/.config/mihomo/config.yaml";
     tunMode = true;
     webui = pkgs.metacubexd;
@@ -28,15 +30,16 @@
   };
 
   # 防火墙放行（TUN 接口 "Meta" 需在 trustedInterfaces 中配置）
+  # ⚠️ 9090（metacubexd 控制面板，无鉴权）不对 LAN 开放：
+  #    config.yaml 的 external-controller 应绑 127.0.0.1，仅本机访问
   networking.firewall = {
     checkReversePath = "loose";
     trustedInterfaces = [
       "Meta"
     ];
     allowedTCPPorts = [
-      9090
       7890
       7891
-    ]; # 放行控制面板及代理端口
+    ]; # 放行代理端口
   };
 }

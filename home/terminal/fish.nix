@@ -18,7 +18,8 @@
 
     shellInit = ''
 
-      set -U fish_history main
+      # 仅首次设置 universal 变量（之后由 fish 持久化，避免每次启动重写）
+      set -q fish_history; or set -U fish_history main
 
     '';
 
@@ -91,24 +92,17 @@
       set fish_greeting
 
 
-      # Starship
-
-      starship init fish | source
-
-
-      # direnv
-
-      direnv hook fish | source
+      # ⚠️ starship / direnv 的初始化由 HM 模块自动注入
+      # （programs.starship.enableFishIntegration、programs.direnv 默认开启），
+      # 手动 source 会重复初始化，勿加回：
+      #   starship init fish | source
+      #   direnv hook fish | source
+      # ⚠️ fzf 快捷键由 fzf-fish 插件提供，手动 `fzf --fish | source` 会重复绑定 Ctrl-R
 
 
       # zoxide
 
       zoxide init fish | source
-
-
-      # fzf
-
-      fzf --fish | source
 
 
       # 快捷目录

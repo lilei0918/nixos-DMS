@@ -71,7 +71,7 @@ _: {
       open-floating = true;
     }
 
-    # 6.1 QQ 浮动 + 固定宽度（1600 的 2 倍）
+    # 6.1 QQ 浮动 + 固定宽度 800
     {
       matches = [{app-id = "QQ";}];
       open-floating = true;

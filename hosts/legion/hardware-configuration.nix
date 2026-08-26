@@ -73,9 +73,9 @@
   swapDevices = [];
 
   # ─────────────────────────────────────────────────────
-  # ✅ 网络配置（默认 DHCP）
+  # ✅ 网络配置（DHCP 由 network.nix 的 NetworkManager 负责）
   # ─────────────────────────────────────────────────────
-  networking.useDHCP = lib.mkDefault true;
+  networking.useDHCP = lib.mkDefault false;
 
   # 可按需启用具体接口：
   # networking.interfaces.eno1.useDHCP = lib.mkDefault true;

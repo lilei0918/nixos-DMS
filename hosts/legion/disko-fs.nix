@@ -9,7 +9,7 @@
 #   nvme1n1p3  20G     LUKS2 加密盘          → 本配置【不】格式化，仅占位保留
 #
 # ⚠️ EFI（/boot/efi）在 nvme0n1p6（Arch 共用 ESP，UUID 9B06-514F），本配置不碰，
-#    由安装步骤手动挂载；NixOS 主引导仍由 Arch GRUB 负责。
+#    由安装步骤手动挂载；NixOS 引导为 systemd-boot（boot.nix，写入该共用 ESP）。
 #
 # 用法（在 NixOS 官方 ISO 中）：
 #   保留 DATATB + 加密盘（分区表已存在，只格式化/挂载根分区）：
@@ -28,15 +28,16 @@
       partitions = {
         DATATB = {
           # 数据盘（NTFS）：占位保留，不格式化（无 content）
-          # 841670983680 B ≈ 783.9 GB（实测分区大小）
-          size = "841670983680";
+          # ⚠️ disko GPT 的裸数字 size 是「512 字节扇区数」不是字节！
+          #    必须用带单位写法；841670983680 B ≈ 783.9 GB（实测）
+          size = "784G";
           type = "0700"; # Microsoft basic data
         };
 
         NIXOS = {
           # NixOS 根分区（btrfs），重装目标
           # 161062674432 B = 150 GiB（实测分区大小）
-          size = "161062674432";
+          size = "150G";
           type = "8300"; # Linux filesystem
 
           content = {
@@ -67,7 +68,7 @@
         VAULT = {
           # 加密盘（LUKS2）：占位保留，不格式化（无 content）
           # 21474836480 B = 20 GiB（实测分区大小）
-          size = "21474836480";
+          size = "20G";
           type = "8309"; # Linux LUKS
         };
       };

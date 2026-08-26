@@ -12,7 +12,7 @@
 
         vulkan-tools
 
-        vulkan-validation-layers
+        # 注：vulkan-validation-layers 仅 Vulkan 调试用，不进常驻图形栈
       ];
     };
 

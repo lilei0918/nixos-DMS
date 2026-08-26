@@ -12,32 +12,17 @@
     "application/x-gnome-saved-search" = "thunar.desktop";
   };
 
-  # Thunar 配置
-  # force = true：xfconf 运行时会改写该文件（破坏符号链接），
-  # 若不 force 则重建时会因 backup 文件已存在而激活失败
-  xdg.configFile."xfce4/xfconf/xfce-perchannel-xml/thunar.xml" = {
-    force = true;
-
-    text = ''
-      <?xml version="1.0" encoding="UTF-8"?>
-
-      <channel name="thunar" version="1.0">
-
-        <property name="last-view" type="string" value="ThunarIconView"/>
-
-        <property name="last-show-hidden" type="bool" value="true"/>
-
-        <property name="last-sort-column" type="string" value="THUNAR_COLUMN_NAME"/>
-
-        <property name="last-sort-order" type="string" value="GTK_SORT_ASCENDING"/>
-
-        <property name="misc-folders-first" type="bool" value="true"/>
-
-        <property name="misc-date-style" type="int" value="2"/>
-
-        <property name="misc-case-sensitive" type="bool" value="false"/>
-
-      </channel>
-    '';
+  # Thunar 配置（HM xfconf 模块：经 xfconf-query 写入 D-Bus，由 xfconfd 持久化）
+  # 相比手写 thunar.xml 的优势：
+  #   1. 无需 force = true 补丁（xfconfd 运行时改写文件不再与 HM 符号链接冲突）
+  #   2. 运行时在 Thunar UI 里改设置不会被下次 rebuild 覆盖
+  xfconf.settings.thunar = {
+    last-view = "ThunarIconView";
+    last-show-hidden = true;
+    last-sort-column = "THUNAR_COLUMN_NAME";
+    last-sort-order = "GTK_SORT_ASCENDING";
+    misc-folders-first = true;
+    misc-date-style = 2;
+    misc-case-sensitive = false;
   };
 }

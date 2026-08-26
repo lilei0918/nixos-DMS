@@ -129,10 +129,11 @@ in {
         # libstdc++ 等部分库落在 /usr/lib64, 而 glibc 默认只搜 /lib 与 /usr/lib,
         # 必须显式补全搜索路径; 另需追加 PySide6 自带 Qt 库目录
         # (QtWebEngineProcess 无 rpath, 靠它找 libQt6WebEngineCore)
-        _pyside_qt_lib="${daaDir}/.venv/lib/python3.12/site-packages/PySide6/Qt/lib"
-        export LD_LIBRARY_PATH="/usr/lib64:/usr/lib:''${_pyside_qt_lib}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        # python 版本动态探测, 避免 venv 升级后路径失效
+        _pyside_qt_lib="$(ls -d ${daaDir}/.venv/lib/python3.*/site-packages/PySide6/Qt/lib 2>/dev/null | head -1)"
+        export LD_LIBRARY_PATH="/usr/lib64:/usr/lib''${_pyside_qt_lib:+:''${_pyside_qt_lib}}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-        export TDX_DATA_DIR="''${TDX_DATA_DIR:-/run/media/lilei/DATATB/TDXdata}"
+        export TDX_DATA_DIR="''${TDX_DATA_DIR:-/run/media/${myvars.username}/DATATB/TDXdata}"
         export TDX_MARK_PATH="$TDX_DATA_DIR/mark.dat"
         export MD_NOTES_PATH="''${MD_NOTES_PATH:-$HOME/Documents/OBbackup/04-自选股}"
         export BOARD_NOTES_PATH="''${BOARD_NOTES_PATH:-$HOME/Documents/OBbackup/05-板块研究}"

@@ -1,9 +1,7 @@
 {pkgs, ...}: {
   spawn-at-startup = [
-    # 🖥️ XWayland 卫星服务
-    {
-      command = ["xwayland-satellite"];
-    }
+    # 🖥️ XWayland：niri 25.08 起内置集成（自动 spawn 并管理 xwayland-satellite），
+    # 不要再手动 spawn（会争抢 X11 socket）；只需保证包在 PATH（system/packages.nix）
     # 🔐 权限管理
     {
       command = ["${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"];

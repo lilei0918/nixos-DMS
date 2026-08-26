@@ -33,13 +33,6 @@
       size = myvars.theme.cursorSize;
     };
 
-    # 不再强制 GTK4 使用 WhiteSur
-    #
-    # 原来的：
-    # gtk4.theme = config.gtk.theme;
-    #
-    # 删除
-
     font = {
       name = "Inter";
 
@@ -54,12 +47,15 @@
   qt = {
     enable = true;
 
+    # 走 GTK 平台主题，让 Qt 应用跟随 GTK2 配色/字体
     platformTheme = {
       name = "gtk3";
     };
 
+    # ⚠️ "gtk3" 不是合法 QStyle（HM 会导出 QT_STYLE_OVERRIDE 并被 Qt 拒绝告警）；
+    # platformTheme 已足够，style 留空让 Qt 用默认
     style = {
-      name = "gtk3";
+      name = null;
     };
   };
 
@@ -103,8 +99,7 @@
 
       XCURSOR_SIZE = toString myvars.theme.cursorSize;
 
-      # Qt 统一走 GTK platform theme（Qt5/Qt6 都生效，避免 KDE 风格割裂）
-      QT_QPA_PLATFORMTHEME = "gtk3";
+      # 注：QT_QPA_PLATFORMTHEME 由 HM qt 模块按 platformTheme.name 自动导出，勿手写
     };
 
     # ======================================

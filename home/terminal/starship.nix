@@ -10,7 +10,7 @@ _: {
       add_newline = false;
 
       format = ''
-        $username$hostname$directory$git_branch$git_status$cmd_duration$character
+        $username$hostname$directory$git_branch$git_status$cmd_duration$nix_shell$character
       '';
 
       # =============================
