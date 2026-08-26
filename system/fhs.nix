@@ -11,6 +11,9 @@
   # 所需的系统 C 库 —— 与 ~/Documents/daA/flake.nix 的 LD_LIBRARY_PATH 清单一致
   # 目的: 在 FHS 内免 LD_LIBRARY_PATH 拼接、免 patchelf 直接运行 daA
   daaLibs = with pkgs; [
+    # C++ 标准库 (shiboken/numpy 等 C 扩展必需, 必须在最前)
+    stdenv.cc.cc.lib
+
     # Qt6 / PySide6 基础库
     libGL
     libGLU
