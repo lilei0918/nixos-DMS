@@ -70,6 +70,27 @@
     libwebp
     libpng
     brotli
+
+    # 以下补充自 system/nix-ld.nix 的库清单(富途 futu 实战验证),
+    # 覆盖 GTK 渲染链、媒体栈与更多传递依赖:
+    gtk3
+    atk
+    pcre2 # glib 依赖
+    libffi # glib 依赖
+    graphite2 # harfbuzz 依赖
+    cups # Chromium 打印支持
+    libdrm
+    libepoxy # GL 派发
+    libpulseaudio
+    libxcursor
+    lz4
+    libbsd
+    libmd # libbsd 依赖
+    libcap
+    libgcrypt
+    libgpg-error
+    librsvg
+    curl
   ];
 in {
   environment.systemPackages = [
