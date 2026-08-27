@@ -91,6 +91,10 @@
   users.users.${myvars.username} = {
     isNormalUser = true;
 
+    # 显式固定 uid：不声明时该值为 null（uid 由 activation 脚本动态分配），
+    # NTFS 挂载等处需要引用具体数值
+    uid = 1000;
+
     description = myvars.userfullname;
 
     shell = pkgs.zsh;

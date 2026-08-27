@@ -128,4 +128,96 @@ in {
     [GroupOrder]
     0=Default
   '';
+
+  # fcitx5 行为配置：按窗口记忆中/英输入状态
+  # ShareInputState=No = 每个窗口各自记住自己的中/英状态（不再全局共享手动切换）
+  # force=true：磁盘已有 fcitx5 运行时写入的真实文件，且之后 configtool 改动也会覆盖符号链接
+  xdg.configFile."fcitx5/config" = {
+    force = true;
+
+    text = ''
+      [Hotkey]
+      # Enumerate when holding modifier of Toggle key
+      EnumerateWithTriggerKeys=True
+      # Enumerate Input Method Forward
+      EnumerateForwardKeys=
+      # Enumerate Input Method Backward
+      EnumerateBackwardKeys=
+      # Skip first input method while enumerating
+      EnumerateSkipFirst=False
+      # Time limit in milliseconds for triggering modifier key shortcuts
+      ModifierOnlyKeyTimeout=250
+
+      [Hotkey/TriggerKeys]
+      0=Control+space
+      1=Zenkaku_Hankaku
+      2=Hangul
+
+      [Hotkey/ActivateKeys]
+      0=Hangul_Hanja
+
+      [Hotkey/DeactivateKeys]
+      0=Hangul_Romaja
+
+      [Hotkey/AltTriggerKeys]
+      0=Shift_L
+
+      [Hotkey/EnumerateGroupForwardKeys]
+      0=Super+space
+
+      [Hotkey/EnumerateGroupBackwardKeys]
+      0=Shift+Super+space
+
+      [Hotkey/PrevPage]
+      0=Up
+
+      [Hotkey/NextPage]
+      0=Down
+
+      [Hotkey/PrevCandidate]
+      0=Shift+Tab
+
+      [Hotkey/NextCandidate]
+      0=Tab
+
+      [Hotkey/TogglePreedit]
+      0=Control+Alt+P
+
+      [Behavior]
+      # Activate input method by default
+      ActiveByDefault=False
+      # Reset state on Focus In
+      resetStateWhenFocusIn=No
+      # Share Input State
+      ShareInputState=No
+      # Show preedit in application
+      PreeditEnabledByDefault=True
+      # Show Input Method Information when switch input method
+      ShowInputMethodInformation=True
+      # Show Input Method Information when changing focus
+      showInputMethodInformationWhenFocusIn=False
+      # Show compact input method information
+      CompactInputMethodInformation=True
+      # Show first input method information
+      ShowFirstInputMethodInformation=True
+      # Default Candidates per page
+      DefaultPageSize=5
+      # Override XKB Option
+      OverrideXkbOption=False
+      # Custom XKB Option
+      CustomXkbOption=
+      # Force Enabled Addons
+      EnabledAddons=
+      # Force Disabled Addons
+      DisabledAddons=
+      # Preload input method to be used by default
+      PreloadInputMethod=True
+      # Allow input method in the password field
+      AllowInputMethodForPassword=False
+      # Show preedit text when typing password
+      ShowPreeditForPassword=False
+      # Interval of saving user data in minutes
+      AutoSavePeriod=30
+    '';
+  };
 }

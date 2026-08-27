@@ -43,7 +43,7 @@
       enable = true;
       settings.dynamic_tuning = true;
       ppdSupport = true;
-      ppdSettings.main.default = "balanced"; # balanced / performance / power-saver
+      ppdSettings.main.default = "power-saver"; # balanced / performance / power-saver
     };
     power-profiles-daemon.enable = false; # 与 tuned 冲突, 必须关闭
 
@@ -74,6 +74,36 @@
     pulseaudio.enable = false;
 
     blueman.enable = true;
+  };
+
+  ############################################
+  # Legion 默认静音模式 (platform_profile = low-power)
+  # 独显已在 BIOS 屏蔽, 但 EC 若停在性能模式, 双风扇高转 + 电源键红灯;
+  # 开机与每次唤醒后强制写回 low-power(静音)。Fn+Q / DMS 手动切换仍可覆盖。
+  ############################################
+
+  systemd.services."quiet-fan-boot" = {
+    description = "Force quiet platform profile at boot";
+    after = ["tuned.service" "multi-user.target"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      if [ -w /sys/firmware/acpi/platform_profile ]; then
+        echo low-power > /sys/firmware/acpi/platform_profile
+      fi
+    '';
+  };
+
+  systemd.services."quiet-fan-resume" = {
+    description = "Reapply quiet platform profile after resume";
+    after = ["suspend.target" "hibernate.target" "hybrid-sleep.target"];
+    wantedBy = ["suspend.target" "hibernate.target" "hybrid-sleep.target"];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      if [ -w /sys/firmware/acpi/platform_profile ]; then
+        echo low-power > /sys/firmware/acpi/platform_profile
+      fi
+    '';
   };
 
   security = {
