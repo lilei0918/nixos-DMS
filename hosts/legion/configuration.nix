@@ -44,7 +44,13 @@
     # programs
     ################################
 
-    ../../system/nvidia/nvidia-block.nix
+    # 独显切换: 核显模式屏蔽独显(nvidia-block.nix) / 启用模式加载 NVIDIA 驱动(nvidia.nix)
+    # 由 vars/default.nix 的 myvars.enableNvidia 控制
+    (
+      if myvars.enableNvidia
+      then ../../system/nvidia/nvidia.nix
+      else ../../system/nvidia/nvidia-block.nix
+    )
 
     ################################
     # proxy (daed 主用，mihomo 备用)

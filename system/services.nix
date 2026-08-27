@@ -77,17 +77,22 @@
   };
 
   ############################################
-  # Legion 默认静音模式 (platform_profile = low-power)
+  # Legion 默认静音模式 (platform_profile = low-power + PPD power-saver)
   # 独显已在 BIOS 屏蔽, 但 EC 若停在性能模式, 双风扇高转 + 电源键红灯;
-  # 开机与每次唤醒后强制写回 low-power(静音)。Fn+Q / DMS 手动切换仍可覆盖。
+  # 开机强制 PPD 档位回 power-saver(DMS bar 来源) + EC 写回 low-power(静音),
+  # 每次唤醒后再写回 low-power。Fn+Q / DMS 手动切换在当前会话仍可覆盖, 重启后回到静音。
   ############################################
 
   systemd.services."quiet-fan-boot" = {
     description = "Force quiet platform profile at boot";
-    after = ["tuned.service" "multi-user.target"];
+    after = ["tuned.service" "tuned-ppd.service" "multi-user.target"];
     wantedBy = ["multi-user.target"];
     serviceConfig.Type = "oneshot";
     script = ''
+      # PPD 模拟层(tuned-ppd): 持久化档位可能被 DMS/Fn 切到 performance,
+      # 开机强制回到 power-saver, 使 DMS bar 显示正确。
+      busctl --system set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s power-saver || true
+
       if [ -w /sys/firmware/acpi/platform_profile ]; then
         echo low-power > /sys/firmware/acpi/platform_profile
       fi
@@ -104,6 +109,24 @@
         echo low-power > /sys/firmware/acpi/platform_profile
       fi
     '';
+  };
+
+  # initrd 阶段提前写回 low-power: 把 ideapad_laptop 打进 initrd,
+  # 模块加载完立刻把 EC 档位切到静音(在切换根文件系统前完成),
+  # 电源键 LED 在内核阶段即变蓝, 不再全程红灯等到 multi-user.target。
+  boot.initrd = {
+    kernelModules = ["ideapad_laptop"];
+    systemd.services."quiet-fan-initrd" = {
+      description = "Force quiet platform profile in initrd";
+      after = ["systemd-modules-load.service"];
+      wantedBy = ["initrd.target"];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        if [ -w /sys/firmware/acpi/platform_profile ]; then
+          echo low-power > /sys/firmware/acpi/platform_profile
+        fi
+      '';
+    };
   };
 
   security = {

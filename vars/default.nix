@@ -13,6 +13,10 @@ _: {
   # flake 输出名（用于 `nh os switch .#<flakeName>`）
   flakeName = "legion";
 
+  # 独立显卡开关: false = 屏蔽独显(核显, 省电); true = 启用 NVIDIA 驱动(PRIME offload)
+  # 切换后 `nh os switch .#legion` 即生效
+  enableNvidia = false;
+
   # 主题（GTK/Qt/光标统一从这里取值，见 home/programs/theme.nix、dconf.nix、home/niri/settings.nix）
   theme = {
     gtk = "WhiteSur-Dark";

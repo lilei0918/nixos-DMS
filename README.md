@@ -24,7 +24,7 @@ nh os switch .#legion
 - **CPU**：AMD Ryzen 5 5600H（12 线程，基础频率 3.3GHz，最高 4.28 GHz）
 - **GPU**：
   - 集成显卡：AMD Radeon Vega Series（当前驱动 `amdgpu`）
-  - 独立显卡：NVIDIA（当前通过 `nvidia-block.nix` 屏蔽 Nouveau 和 nvidia 内核模块，未启用；`system/nvidia/nvidia.nix` 保留完整独显配置供日后启用）
+  - 独立显卡：NVIDIA RTX 3060（默认通过 `nvidia-block.nix` 屏蔽、仅用核显省电；`vars/default.nix` 的 `enableNvidia = true` 可切换启用 `nvidia.nix` 的 PRIME offload + RTD3 省电方案）
 - **内存**：32GB
 - **存储**（⚠️ NVMe 设备名 `nvme0n1`/`nvme1n1` 会随 BIOS 枚举顺序变化，**一切以 UUID 为准**，详见下方分区详表）：
   - **nvme0n1 — SKHynix 512GB**（型号 SKHynix_HFS512GDE9X084N）：Windows 11 + Arch Linux 双系统盘（Arch 的 btrfs 分区 `myArch` 是 Vaultwarden 备份的自动镜像目标）
@@ -130,9 +130,9 @@ nixos-DMS/
 │   ├── proxy/               # 代理（daed 主用，mihomo 备用）
 │   │   ├── daed.nix             # 【启用】daed（dae eBPF 透明代理 + Web 面板）
 │   │   └── mihomo.nix           # 【备用】mihomo（TUN 模式，切回方法见文件头注释）
-│   ├── nvidia/              # NVIDIA 显卡模块
-│   │   ├── nvidia-block.nix     # 【启用】屏蔽 NVIDIA 独显（省电）
-│   │   └── nvidia.nix           # 【未启用】完整 NVIDIA 独显配置（prime sync，供日后启用）
+│   ├── nvidia/              # NVIDIA 显卡模块（myvars.enableNvidia 二选一）
+│   │   ├── nvidia-block.nix     # 【默认】屏蔽 NVIDIA 独显（省电，纯核显）
+│   │   └── nvidia.nix           # 启用时加载：PRIME offload + RTD3 空闲断电
 │   └── vault/               # 加密数据盘 + Vaultwarden 密码管理器
 │       ├── vault.nix            # LUKS 加密盘（vault-open / vault-close，手动解锁）
 │       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
@@ -302,7 +302,8 @@ nixos-DMS/
 - `programs.dms-shell`（DankMaterialShell）：`enable = true`，systemd（`restartIfChanged = true`）、系统监控、动态主题、音频波长、VPN、日历事件全部开启
 - ⚠️ 未启用 `services.xserver`（纯 Wayland；X 应用走 `xwayland-satellite`，AMD 图形由 `hardware.graphics` 提供）
 - `services.dbus.enable = true`，`packages` 包含 `bluez`
-- `services.power-profiles-daemon.enable = true`
+- **电源调度**：`services.tuned`（`enable = true`、`settings.dynamic_tuning`、`ppdSupport`，PPD 默认档 `power-saver`）；`services.power-profiles-daemon.enable = false`（与 tuned 冲突，必须关）
+- **Legion 静音兜底**：`quiet-fan-boot` / `quiet-fan-resume` / initrd `quiet-fan-initrd` 三处把 EC `platform_profile` 写回 `low-power`（电源键蓝灯），`quiet-fan-boot` 另强制 PPD 档回 `power-saver`（DMS bar 显示正确）。tuned 会持久化被切过的 PPD 档，重启被这些服务强制回静音
 - `services.gvfs.enable = true`，`services.tumbler.enable = true`
 - `services.pipewire`：alsa（含 support32Bit）/pulse/jack/wireplumber 全部开启
 - `security.rtkit.enable = true`
@@ -425,22 +426,22 @@ nixos-DMS/
 - **系统控制**：`playerctl`, `brightnessctl`, `libnotify`
 - **编辑器**：`vim`, `gnome-text-editor`
 
-### 19. `system/nvidia/nvidia-block.nix`（启用中）
+### 19. `system/nvidia/nvidia-block.nix`（默认启用，屏蔽独显）
 
 **作用**：屏蔽 NVIDIA 独显以省电（仅用 AMD iGPU）。
 - `boot.extraModprobeConfig`：blacklist nouveau
 - `services.udev.extraRules`：移除 NVIDIA USB/音频/VGA 设备（power control）
 - `boot.blacklistedKernelModules = [ "nouveau" "nvidia" "nvidia_drm" "nvidia_modeset" ]`
 
-### 20. `system/nvidia/nvidia.nix`（未启用，保留备用）
+### 20. `system/nvidia/nvidia.nix`（`enableNvidia = true` 时启用）
 
-**作用**：完整 NVIDIA 独显配置（future use）。
+**作用**：启用 NVIDIA RTX 3060 独显（PRIME offload 省电方案，闲置自动断电）。
 - `hardware.graphics.enable = true`
 - 内核模块 `nvidia_modeset`/`nvidia_drm`/`nvidia`，blacklist nouveau
-- `services.xserver = { enable = true; videoDrivers = [ "nvidia" ] }`（备用方案启用时自动开启 X11）
-- `hardware.nvidia`：modesetting、`powerManagement.enable = false`、`open = false`、`nvidiaSettings = true`、`package = linuxPackages_latest.nvidiaPackages.stable`
-- `hardware.nvidia.prime`：`sync.enable = true`，`amdgpuBusId = "PCI:6:0:0"`，`nvidiaBusId = "PCI:1:0:0"`
-- ⚠️ **启用方法**：在 `configuration.nix` 的 imports 中把 `../../system/nvidia/nvidia-block.nix` 替换为 `../../system/nvidia/nvidia.nix`（二选一，不可同时启用）
+- `services.xserver = { enable = true; videoDrivers = [ "nvidia" ] }`（XWayland 也走此驱动）
+- `hardware.nvidia`：modesetting、`powerManagement.enable = true`（suspend 保存 VRAM，防唤醒花屏）、`powerManagement.finegrained = true`（RTD3 空闲进入 D3cold 断电）、`open = true`（开源内核模块，595 驱动已稳定）、`nvidiaSettings = true`、`package = linuxPackages_latest.nvidiaPackages.stable`
+- `hardware.nvidia.prime.offload.enable = true`（按需渲染），`amdgpuBusId = "PCI:6:0:0"`，`nvidiaBusId = "PCI:1:0:0"`
+- ⚠️ **启用方法**：改 `vars/default.nix` 的 `enableNvidia = true` 后 `nh os switch .#legion`（与 nvidia-block.nix 由该开关自动二选一，无需改 imports）
 
 ### 21. `vars/default.nix`（新增）
 
@@ -451,6 +452,7 @@ nixos-DMS/
 - `homeDirectory = "/home/lilei"`
 - `repoDir = "/home/lilei/nixos-DMS"`
 - `flakeName = "legion"`
+- `enableNvidia = false`：独显开关（false 屏蔽独显走核显省电；true 启用 NVIDIA offload + RTD3）
 - `theme`：GTK/Qt/光标主题统一取值（`gtk`/`icon`/`cursor`/`cursorSize`），见 theme.nix、dconf.nix、niri settings.nix
 
 > 任何需要硬编码用户名/路径的地方，优先用 `myvars.xxx` 而不是写死字符串（fish/zsh 别名、mihomo configFile、thunar、firefox profile 等已改用）。
@@ -850,7 +852,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 5. `sudo nixos-rebuild switch --flake .#legion`（或 `rebuild`）——密码 hash、Vaultwarden TLS 证书全部由 sops 自动解密生成，无需手动配置
 
 ### 未启用模块（保留但不导入）
-- `system/nvidia/nvidia.nix`：完整独显配置，启用时替换 `nvidia-block.nix`（二选一，不可同时启用）。启用后会自动开启 `services.xserver`。
+- `system/nvidia/nvidia.nix`：独显启用配置（PRIME offload + RTD3 空闲断电），`vars/default.nix` 的 `enableNvidia = true` 时自动切换导入（与 nvidia-block.nix 二选一）。启用后会自动开启 `services.xserver`。
 - `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 daed.nix 的 import（二选一，不可同时开启）。
 - `home/programs/firefox.nix`：Firefox 配置（home.nix 中 import 被注释），需要时取消注释启用。
 - `hosts/legion/packages.nix` 中 `thunderbird` / `tradingview` / `spicetify-cli` / `imagemagick`（注释中）。
@@ -869,7 +871,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 1. **多系统引导**：NixOS 的 `systemd-boot` 仅用于内部版本选择，主引导由 Arch 的 GRUB 管理。
 2. **Btrfs 子卷**：系统使用 Btrfs 子卷布局（`@`, `@home`, `@nix`, `@log`），快照和回滚可基于此进行（当前未配置自动快照，但有 btrfs autoScrub）。
 3. **无交换分区**：内存充足（32GB），因此未配置 swap。
-4. **显卡驱动**：GPU 实际使用 AMD 核显（amdgpu），NVIDIA 独显被屏蔽（`nvidia-block.nix`）；`nvidia.nix` 保留完整独显配置，启用时二选一。系统为纯 Wayland，未启用 `services.xserver`（X 应用走 `xwayland-satellite`），`nvidia.nix` 启用时会自动开启。
+4. **显卡驱动**：默认使用 AMD 核显（amdgpu），NVIDIA RTX 3060 被屏蔽省电（`nvidia-block.nix`）；`vars/default.nix` 的 `enableNvidia = true` 切换到 `nvidia.nix`（PRIME offload + RTD3，独显空闲自动断电）。系统为纯 Wayland，未启用 `services.xserver`（X 应用走 `xwayland-satellite`），启用独显时会自动开启。
 5. **密码哈希**：存于 `secrets/secrets.yaml` 的 `password_hash`（sops 加密，不落仓库明文）。修改：用 `openssl passwd -6`（或 `mkpasswd -m sha-512`）生成新 hash → `sops secrets/secrets.yaml` 更新该值 → rebuild。
 6. **sops 私钥（信任根）**：`/etc/sops/age/keys.txt`（对应公钥 `age14hwqm9aumaek4k6gn2zn8269ztzemgyvt8kqu4aq4lpxqtpl8uys5q42qn`）必须备份，丢了它 `secrets/secrets.yaml` 永远解不开。已备份到 win11 数据盘和 qqmail。用户级解密还依赖 `~/.config/sops/age/keys.txt`（跑 `sops secrets/secrets.yaml` 用），同样要备份。**推荐直接用备份脚本**（含上述两把 key + `~/.ssh/` + opencode `auth.json`）：
    ```bash
