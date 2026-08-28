@@ -1,10 +1,10 @@
 # 权限策略（agents/permissions.md）
 
-本仓库对 AI agent 的权限策略。原则：**默认 ask**，只放行只读/安全检查类操作；敏感文件与高风险命令必须确认。
+本仓库对 AI agent 的权限策略。原则：**bash 默认 allow**（日常低风险命令不再逐个确认），敏感文件 deny，高危命令 ask。
 
 行为规则见根目录 `AGENTS.md`；opencode 权限配置落地见 `home/programs/AI/opencode.nix`。
 
-## 敏感文件（deny 读取）
+## 敏感文件（deny 读取与编辑）
 
 | 模式 | 权限 |
 |------|------|
@@ -14,23 +14,18 @@
 | `.ssh/**` `.gnupg/**` `.aws/**` `.kube/**` | deny |
 | `~/.config/mihomo/**`（订阅 token） | deny |
 
-## 放行（allow，无需确认）
-
-- **只读 Nix**：`nix eval/build/flake*/store*/search/doctor`、`nixos-rebuild build`、`nh os test`、`alejandra`、`statix check`、`deadnix`
-- **只读 git / gh**：`git status/diff/log/show/branch/remote/tag/blame/reflog/stash list/lfs`、`gh repo/issue/pr view|list`、`gh api/search`
-- **系统诊断（只读）**：`lsblk` `df` `free` `uptime` `uname` `lspci` `lsusb` `sensors` `lsof` `systemctl status/list-*/show` `journalctl`
-- **常规读写工具**：`rg` `fd` `ls` `cat` `head` `tail` `wc` `find` `which` `echo` `pwd` `date` `file` `stat` `du` `tree` `bat` `eza` `jq` `yq` `mkdir` `rmdir` `grep` `cp` `mv` `chmod`
-- **工具**：`read` `glob` `grep` `edit` `lsp` `skill` `question` `todowrite` `webfetch`
-
-## 必须确认（ask）
+## 高危命令（ask，需逐次确认）
 
 | 命令/工具 | 原因 |
 |-----------|------|
-| `sudo *` | 提权操作，需逐次确认 |
-| `nh os switch *` / `nh os boot *` | 切换系统 generation，影响启动 |
+| `sudo *` | 提权操作 |
+| `nh os switch/boot *`、`nixos-rebuild switch/boot *` | 切换系统 generation，影响启动 |
+| `rm *` | 删除不可逆 |
 | `vault-open` / `vault-close` / `cryptsetup *` | 操作加密盘（解锁密码是全部数据钥匙） |
 | `sops *` | 编辑/解密机密（防明文泄漏） |
-| `rm *` / `rm -rf *` | 删除不可逆 |
+| `git push *`、`gh pr create/issue create/repo create` | 远程改写（推送到远端/建 PR） |
+| `mount` / `umount` / `mkfs` / `fdisk` / `parted` / `dd` | 磁盘/分区操作 |
+| `shutdown` / `reboot` / `poweroff` | 关机重启 |
 | `env *` / `printenv *` | 可读取环境变量中的 API token 等凭据 |
 | `task` / `external_directory` | 子代理/跨目录访问 |
 

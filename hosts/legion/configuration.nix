@@ -52,6 +52,9 @@
       else ../../system/nvidia/nvidia-block.nix
     )
 
+    # 游戏配置: Steam + GameMode（nvidia-offload 用法见 system/nvidia/README.md）
+    ../../system/gaming.nix
+
     ################################
     # proxy (daed 主用，mihomo 备用)
     ################################

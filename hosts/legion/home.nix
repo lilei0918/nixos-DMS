@@ -43,6 +43,7 @@ in {
 
     # other modules
     ../../home/programs/rime.nix
+    ../../home/programs/fcitx5.nix
     ../../home/programs/vscode/vscode.nix
     # ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
@@ -54,6 +55,7 @@ in {
     ../../home/programs/fastfetch.nix
     ../../home/programs/git.nix
     ../../home/programs/btop.nix
+    ../../home/programs/gaming.nix
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
     ../../home/programs/AI/pi.nix

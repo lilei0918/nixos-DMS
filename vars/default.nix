@@ -14,8 +14,9 @@ _: {
   flakeName = "legion";
 
   # 独立显卡开关: false = 屏蔽独显(核显, 省电); true = 启用 NVIDIA 驱动(PRIME offload)
+  # 平时核显输出, 游戏用 `nvidia-offload %command%` 走独显
   # 切换后 `nh os switch .#legion` 即生效
-  enableNvidia = false;
+  enableNvidia = true;
 
   # 主题（GTK/Qt/光标统一从这里取值，见 home/programs/theme.nix、dconf.nix、home/niri/settings.nix）
   theme = {

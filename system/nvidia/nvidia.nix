@@ -38,7 +38,11 @@
 
     prime = {
       # 按需渲染 (offload): 独显仅在应用显式请求时点亮, 闲置自动断电, 最省电。
-      offload.enable = true;
+      offload = {
+        enable = true;
+        # 生成 nvidia-offload 命令: 游戏/应用用 `nvidia-offload <cmd>` 强制走独显
+        enableOffloadCmd = true;
+      };
       # 备选: 需要独显常开时改用 sync.enable = true 并去掉 offload。
       # sync.enable = true;
 
