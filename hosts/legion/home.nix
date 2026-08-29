@@ -43,7 +43,6 @@ in {
 
     # other modules
     ../../home/programs/rime.nix
-    ../../home/programs/fcitx5.nix
     ../../home/programs/vscode/vscode.nix
     # ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
@@ -55,7 +54,8 @@ in {
     ../../home/programs/fastfetch.nix
     ../../home/programs/git.nix
     ../../home/programs/btop.nix
-    ../../home/programs/gaming.nix
+    # 暂停使用游戏工具包（保留文件，需要时取消注释重新导入）
+    # ../../home/programs/gaming.nix
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
     ../../home/programs/AI/pi.nix
@@ -76,9 +76,11 @@ in {
     niri = {
       enable = true;
 
-      # 系统 nixpkgs（f13ff45 起）的 pkgs.niri 引用了被删除的 libdisplay-info_0_2，
-      # 故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix 固定到 624af66）。
-      # 上游修复后（niri-flake 改用 libdisplay-info 0.3）可移除本行。
+      # 说明（2026-08 核实）：nixpkgs 侧已修复——锁定 nixpkgs 的 pkgs.niri（26.04）
+      # 用 libdisplay-info 0.4.0 正常构建，libdisplay-info_0_2 已删除；
+      # 但 niri-flake 仍未修复（其 master flake.nix 仍 assert libdisplay-info_0_2 == "0.2.0"），
+      # 故继续用 niri-flake 自带的 niri-stable（v25.08，其 nixpkgs pin 在 flake.nix 的 624af66）。
+      # 待 niri-flake 改用 libdisplay-info 0.3+ 后可移除本行（并改用 pkgs.niri）。
       package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-stable;
 
       settings = import ../../home/niri/default.nix {
@@ -111,6 +113,11 @@ in {
   ############################################
   # fcitx5 默认输入法设置
   # （rime 目录与 default.custom.yaml 统一在 home/programs/rime.nix 中声明）
+  #
+  # ⚠️ 曾尝试"分程序输入法状态"（fcitx5-input-state 按 app_id 强制中/英文），
+  # 实测不可靠（依赖 niri event-stream 的 WindowOpenedOrChanged 事件，但当前 niri
+  # 只发 WindowFocusChanged；且 -o/-c 只切换激活状态、不切 rime/keyboard-us），
+  # 已整体移除：所有程序默认英文输入（fcitx5 inactive），需要中文时手动切 rime。
   ############################################
 
   xdg.configFile."fcitx5/profile".text = ''
@@ -130,96 +137,4 @@ in {
     [GroupOrder]
     0=Default
   '';
-
-  # fcitx5 行为配置：按窗口记忆中/英输入状态
-  # ShareInputState=No = 每个窗口各自记住自己的中/英状态（不再全局共享手动切换）
-  # force=true：磁盘已有 fcitx5 运行时写入的真实文件，且之后 configtool 改动也会覆盖符号链接
-  xdg.configFile."fcitx5/config" = {
-    force = true;
-
-    text = ''
-      [Hotkey]
-      # Enumerate when holding modifier of Toggle key
-      EnumerateWithTriggerKeys=True
-      # Enumerate Input Method Forward
-      EnumerateForwardKeys=
-      # Enumerate Input Method Backward
-      EnumerateBackwardKeys=
-      # Skip first input method while enumerating
-      EnumerateSkipFirst=False
-      # Time limit in milliseconds for triggering modifier key shortcuts
-      ModifierOnlyKeyTimeout=250
-
-      [Hotkey/TriggerKeys]
-      0=Control+space
-      1=Zenkaku_Hankaku
-      2=Hangul
-
-      [Hotkey/ActivateKeys]
-      0=Hangul_Hanja
-
-      [Hotkey/DeactivateKeys]
-      0=Hangul_Romaja
-
-      [Hotkey/AltTriggerKeys]
-      0=Shift_L
-
-      [Hotkey/EnumerateGroupForwardKeys]
-      0=Super+space
-
-      [Hotkey/EnumerateGroupBackwardKeys]
-      0=Shift+Super+space
-
-      [Hotkey/PrevPage]
-      0=Up
-
-      [Hotkey/NextPage]
-      0=Down
-
-      [Hotkey/PrevCandidate]
-      0=Shift+Tab
-
-      [Hotkey/NextCandidate]
-      0=Tab
-
-      [Hotkey/TogglePreedit]
-      0=Control+Alt+P
-
-      [Behavior]
-      # Activate input method by default
-      ActiveByDefault=False
-      # Reset state on Focus In
-      resetStateWhenFocusIn=No
-      # Share Input State
-      ShareInputState=No
-      # Show preedit in application
-      PreeditEnabledByDefault=True
-      # Show Input Method Information when switch input method
-      ShowInputMethodInformation=True
-      # Show Input Method Information when changing focus
-      showInputMethodInformationWhenFocusIn=False
-      # Show compact input method information
-      CompactInputMethodInformation=True
-      # Show first input method information
-      ShowFirstInputMethodInformation=True
-      # Default Candidates per page
-      DefaultPageSize=5
-      # Override XKB Option
-      OverrideXkbOption=False
-      # Custom XKB Option
-      CustomXkbOption=
-      # Force Enabled Addons
-      EnabledAddons=
-      # Force Disabled Addons
-      DisabledAddons=
-      # Preload input method to be used by default
-      PreloadInputMethod=True
-      # Allow input method in the password field
-      AllowInputMethodForPassword=False
-      # Show preedit text when typing password
-      ShowPreeditForPassword=False
-      # Interval of saving user data in minutes
-      AutoSavePeriod=30
-    '';
-  };
 }

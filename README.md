@@ -192,7 +192,8 @@ nixos-DMS/
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
   - `daeuniverse`（固定 commit `42ece300b6360bab592f13c64ce1987df20475d5`，nixpkgs 固定 `b12141ef`，**不 follows**）
 - **nixpkgs pin 说明**：
-  - `niri` / `hermes-agent` 的 nixpkgs pin 到 `624af66`（libdisplay-info 0.2.0）。新 nixpkgs 升到 0.3 并删掉 `libdisplay-info_0_2`，niri-flake 仍断言 0.2.0，故 pin 到验证过的旧 commit 避免连带破坏。
+  - `niri` 的 nixpkgs pin 到 `624af66`（libdisplay-info 0.2.0）：⚠️ 2026-08 核实——nixpkgs 侧已修复（锁定 nixpkgs 的 `pkgs.niri` 26.04 正常，libdisplay-info 0.4.0，`libdisplay-info_0_2` 已删），但 **niri-flake 仍未修复**（master 仍 `assert libdisplay-info_0_2.version == "0.2.0"`），只要还用 niri-flake 的 `niri-stable`（home.nix 覆盖），本 pin 就必须保留。
+  - `hermes-agent` 的 nixpkgs pin 到 `624af66` 是另一原因：其 npm 依赖从 registry.npmjs.org 抓取（本机直连慢），pin 旧 nixpkgs 可命中旧缓存、避免每次升级重下 npm 依赖。
   - `daeuniverse` 不 follows、pin 到 `b12141ef`（pnpm 10.x）。跟随最新 nixpkgs（pnpm 11+）会导致 daed 的 `fetchPnpmDeps(fetcherVersion=3)` 构建失败。
 - `outputs`：
   - `nixosConfigurations.legion`：`nixosSystem`（system = `x86_64-linux`），`specialArgs = { inherit self inputs myvars; }`（`myvars` 来自 `./vars`），模块：
@@ -479,13 +480,13 @@ nixos-DMS/
   - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`、`AI/hermes.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
-- **niri 包覆盖**：⚠️ `programs.niri.package = inputs.niri.packages.${...}.niri-stable`。系统 nixpkgs 的 `pkgs.niri` 引用了被删除的 `libdisplay-info_0_2`（nixpkgs 升 0.3 后），故改用 niri-flake 自带的包（其 nixpkgs 已在 flake.nix pin 到 624af66）。上游修复后可移除本行。
+- **niri 包覆盖**：⚠️ `programs.niri.package = inputs.niri.packages.${...}.niri-stable`（v25.08）。2026-08 核实：nixpkgs 侧已修复（`pkgs.niri` 26.04 正常构建），但 **niri-flake 仍未修复**（master 仍断言 libdisplay-info 0.2.0），故继续用 niri-flake 的包（其 nixpkgs pin 在 624af66）。待 niri-flake 修复后可移除本行、改用 `pkgs.niri`。
 - `programs.niri.settings = import ../../home/niri/default.nix { inherit config pkgs inputs lib myvars; }`
 - `home.packages = lib.mkBefore allPackages`（`allPackages` 来自 `./packages.nix`）
 - Fcitx5/Rime 用户配置：
   - `home.file."~/.local/share/fcitx5/rime/default.custom.yaml"`（声明在 `home/programs/rime.nix`，非 home.nix）：schema `rime_ice`，`page_size: 9`
   - `xdg.configFile."fcitx5/profile"`：默认输入法 `rime`
-  - ⚠️ fcitx 环境变量（GTK_IM_MODULE/QT_IM_MODULE/XMODIFIERS/SDL_IM_MODULE）在 `home/programs/rime.nix`（sessionVariables）声明；niri 会话内的同名变量（GLFW_IM_MODULE 等）见 `home/niri/settings.nix`，两处作用域不同、改动需同步
+  - fcitx 环境变量（GTK_IM_MODULE / QT_IM_MODULE / QT_IM_MODULES / XMODIFIERS / SDL_IM_MODULE）统一在 `home/programs/rime.nix`（sessionVariables）声明，niri 会话不再重复声明（见 `home/niri/settings.nix` 注释）
 - `home.sessionVariables`：`EDITOR=vim`
 - `programs.direnv`：启用，`nix-direnv.enable = true`
 - `programs.home-manager.enable = true`
@@ -591,13 +592,6 @@ services.hermes-agent = {
       backend = "local";
       timeout = 180;
     };
-    # 本地模型：macOS 笔记本上的 OpenAI 兼容端点
-    providers."mac-local" = {
-      name = "Mac Local (Qwen)";
-      api = "http://192.168.0.100:8000/v1";
-      transport = "openai_chat";
-      models = [ "dogfoodai/Qwen3.8-27B-4bit" ];
-    };
   };
   environmentFiles = [ config.sops.templates."hermes-env".path ];
   addToSystemPackages = true;
@@ -647,8 +641,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - **输入**：键盘 us + numlock；触控板（tap、natural-scroll、two-finger、button-areas、middle-emulation、accel-profile adaptive）；`focus-follows-mouse.enable = true`、`warp-mouse-to-focus.enable = false`、`workspace-auto-back-and-forth = true`
 - **输出**：`eDP-1` 1920×1080 @ 165.004Hz，scale 1.0
 - **光标**：size 24、`hide-when-typing`、`hide-after-inactive-ms = 1000`
-- **环境变量**（niri 会话内）：Wayland 全家桶（GDK/QT/MOZ/ELECTRON）、fcitx 四件套（GTK/QT/XMODIFIERS/GLFW）、QT_QPA_PLATFORMTHEME=gtk3（含 QT6）、XCURSOR_THEME=macOS-White
-  - ⚠️ 注意：`GTK_IM_MODULE`/`QT_IM_MODULE`/`XMODIFIERS`/`XCURSOR_THEME` 等在 **niri 会话（本文件 environment）与 HM sessionVariables（rime.nix / theme.nix）各声明一次**，作用域不同（niri 会话 vs systemd user session），**改动需两处同步**
+- **环境变量**（niri 会话内）：Wayland 全家桶（GDK/QT/MOZ/ELECTRON）、XDG_SESSION_TYPE / XDG_CURRENT_DESKTOP
+  - 输入法变量（GTK/QT_IM_MODULE、QT_IM_MODULES、XMODIFIERS、SDL_IM_MODULE）统一在 `home/programs/rime.nix`；Qt 主题 / XCURSOR 统一在 `home/programs/theme.nix`（经会话环境传递生效，niri 不再重复声明）
 
 ### keybinds.nix（快捷键）
 | 按键 | 动作 |
@@ -710,7 +704,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `zsh.nix` | oh-my-zsh（git/sudo/colored-man-pages/extract）、syntaxHighlighting、历史 10 万、同名 Nix 别名（`rebuild`/`test`/`boot`/`rollback`/`cleanup`/`check`/`update`/`fmt`，绝对路径）、cd=z |
 | `starship.nix` | 极简 format（user/host/dir/git/cmd_duration/❯） |
 | `tmux.nix` | mouse、history 10 万、vi 模式键、escape-time 0 |
-| `chrome.nix` | `~/.config/chrome-flags.conf`（注意是 **chrome**-flags 不是 chromium-flags，Google Chrome 品牌版只读前者）：Wayland ozone + 全套 GPU 加速 flag；LIBVA_DRIVER_NAME=radeonsi、VAAPI 相关环境变量 |
+| `chrome.nix` | nixpkgs wrapper 不读 `chrome-flags.conf`，Wayland/GPU 参数经 `hosts/legion/packages.nix` 的 `commandLineArgs` 注入（含 `--enable-wayland-ime --wayland-text-input-version=3`）；本文件管环境变量：LIBVA_DRIVER_NAME=radeonsi、VAAPI 相关 |
 | `firefox.nix` | NUR 扩展（bitwarden/darkreader/sponsorblock）、隐私设置、搜索引擎（searxng/nix-packages/nixos-wiki/ddg，默认 ddg）、`security.enterprise_roots.enabled=true`（信任系统根证书，配合 Vaultwarden 本地 CA）；⚠️ 当前未导入 home.nix，保留备用 |
 | `git.nix` | user 信息走 myvars（lilei/lilei0918@gmail.com）、lfs、delta（Catppuccin Mocha、side-by-side）、别名 st/co/br/lg |
 | `theme.nix` | GTK3 WhiteSur-Dark + WhiteSur 图标 + macOS-White 光标（含 `home.pointerCursor`）；**GTK4 用系统默认（`gtk4.theme = null`）**；Qt 走 gtk3；sessionVariables：`GTK_APPLICATION_PREFER_DARK_THEME=1`、XCURSOR_THEME/SIZE、`QT_QPA_PLATFORMTHEME=gtk3`（已删掉破坏 GTK4 的 `GTK_THEME`） |
@@ -903,7 +897,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
 18. **加密盘备份策略**：备份脚本第 3 层只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过；加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
-20. **nixpkgs pin**：`niri`、`hermes-agent`（pin 624af66，libdisplay-info 0.2.0）、`daeuniverse`（pin b12141ef，pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。home.nix 里 `niri-stable` 的 package 覆盖与其配套。
+20. **nixpkgs pin**：`niri`（624af66：niri-flake 仍未兼容 libdisplay-info 0.3+，2026-08 核实）、`hermes-agent`（624af66：npm 依赖命中旧缓存）、`daeuniverse`（b12141ef：pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。home.nix 里 `niri-stable` 的 package 覆盖与其配套。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。
 22. **清理策略**：journal 上限 50M；`~/.cache/{uv,pip,nix,elephant}` 3 天自动清理（`system/cleanup.nix`）；系统 GC 每日自动删 3 天前 generation。
 23. **截图**：已用 niri 内置截图（Print/Alt+Print/Ctrl+Print），保存到 `~/Pictures/Screenshots/`；grim/slurp/wl-clip-persist 已移除，旧文档中的 grim 命令不再适用。

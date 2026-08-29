@@ -25,11 +25,13 @@ in {
     # ⚠️ 全仓库唯一的输入法环境变量声明处
     # （niri settings / theme.nix 勿再重复；fcitx5 本体与 addons 在 system/input.nix）
     sessionVariables = {
-      GLFW_IM_MODULE = "fcitx";
-
       GTK_IM_MODULE = "fcitx";
 
       QT_IM_MODULE = "fcitx";
+
+      # Qt 6.7+：回退列表，Qt 应用优先走 compositor 的 text-input-v3（niri 支持），
+      # 失败再回退 fcitx im module / ibus 协议
+      QT_IM_MODULES = "wayland;fcitx";
 
       SDL_IM_MODULE = "fcitx";
 

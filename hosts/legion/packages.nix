@@ -13,6 +13,9 @@ with pkgs; [
   (google-chrome.override {
     commandLineArgs = lib.concatStringsSep " " [
       "--ozone-platform=wayland"
+      # 原生 Wayland 输入法（text-input-v3）：不加此参数 Chrome 无 IME 通道，中文输入法打不出字
+      "--enable-wayland-ime"
+      "--wayland-text-input-version=3"
       "--enable-features=UseOzonePlatform,WebUIDarkMode,DesktopPWAsNotificationIconAndTitle"
       "--enable-native-notifications"
       # 显卡硬件加速

@@ -53,7 +53,8 @@
     )
 
     # 游戏配置: Steam + GameMode（nvidia-offload 用法见 system/nvidia/README.md）
-    ../../system/gaming.nix
+    # 暂停使用（保留文件，需要时取消注释重新导入）
+    # ../../system/gaming.nix
 
     ################################
     # proxy (daed 主用，mihomo 备用)

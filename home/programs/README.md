@@ -4,11 +4,10 @@
 
 - `AI/`            zed / opencode / pi / hermes（Hermes 含桌面入口 + 系统服务）四个 AI 工具
 - `btop.nix`       系统监控（desktop entry 走 `ghostty -e btop`）
-- `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（`chrome-flags.conf`）
+- `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（启动参数经 `hosts/legion/packages.nix` commandLineArgs 注入）
 - `dconf.nix`      GNOME dconf 主题设置
 - `dev.nix`        全局开发工具链（uv / python / nodejs / pnpm / just / gh / yq）
 - `fastfetch.nix`  系统信息（logo 用 `assets/icons/logo.png`）
-- `fcitx5.nix`     输入法状态说明：仅 fcitx5 + rime，所有程序默认英文，需要中文时手动切换（曾尝试分程序强制中/英，不可靠已移除）
 - `git.nix`        git + delta（user 走 `myvars`）
 - `rime.nix`       rime-ice 方案 + fcitx 环境变量（rebuild 后需 `fcitx5-remote -r` 部署）
 - `theme.nix`      GTK3 WhiteSur / Qt gtk3 / macOS-White 光标（GTK4 走系统默认）

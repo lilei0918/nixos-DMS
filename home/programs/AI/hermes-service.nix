@@ -15,16 +15,6 @@
         backend = "local";
         timeout = 180;
       };
-
-      # 本地模型：macOS 笔记本上的 OpenAI 兼容端点（dogfoodai 自托管）
-      providers."mac-local" = {
-        name = "Mac Local (Qwen)";
-        api = "http://192.168.0.100:8000/v1";
-        transport = "openai_chat";
-        models = [
-          "dogfoodai/Qwen3.8-27B-4bit"
-        ];
-      };
     };
 
     environmentFiles = [

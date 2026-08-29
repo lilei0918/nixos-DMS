@@ -41,11 +41,11 @@
     niri = {
       url = "github:sodiboo/niri-flake";
 
-      # 新 nixpkgs 把 libdisplay-info 升到 0.3 并删除 libdisplay-info_0_2，
-      # 而 niri-flake 仍断言 0.2.0（其 flake.nix: assert libdisplay-info_0_2.version == "0.2.0"），
-      # 故把 niri 自己的 nixpkgs 固定到验证过的旧 commit（624af66，libdisplay-info 0.2.0）。
-      # 参照 daeuniverse 的写法，避免 nixpkgs 升级连带弄坏 niri。
-      # 上游修复（改用 libdisplay-info 0.3）后可移除本 pin。
+      # 背景（2026-08 核实）：nixpkgs 侧已修复——当前 nixpkgs 的 pkgs.niri（26.04）
+      # 用 libdisplay-info 0.4.0 正常构建，且已删除 libdisplay-info_0_2；
+      # 但 niri-flake 仍未修复（其 master flake.nix 仍 assert libdisplay-info_0_2.version == "0.2.0"），
+      # 故只要还用 niri-flake 的 niri-stable 包（home.nix 的 package 覆盖），本 pin 就必须保留。
+      # 待 niri-flake 改用 libdisplay-info 0.3+ 后，可移除本 pin 与 home.nix 的覆盖（改用 pkgs.niri）。
       inputs.nixpkgs.url = "github:NixOS/nixpkgs/624af665418d3c65d544145b4d34ad696439570e";
     };
 

@@ -102,7 +102,7 @@ _: {
 
   # 显示器输出设置
   outputs = {
-    "eDP-1" = {
+    "eDP-2" = {
       mode = {
         width = 1920;
         height = 1080;
@@ -114,16 +114,22 @@ _: {
         y = 0;
       };
     };
-    # 如果你有第二个显示器，可以像这样添加：
-    # "DP-2" = {
-    #   mode = {
-    #     width = 2560;
-    #     height = 1600;
-    #     refresh = 60.001;
-    #   };
-    #   scale = 1.25;
-    #   position = { x = -64; y = -1280; };
-    # };
+    "DP-2" = {
+      mode = {
+        width = 2560;
+        height = 1600;
+        refresh = 60.001;
+      };
+      # 16 英寸 2.5K（约 189 PPI）相对内屏 1080p（约 141 PPI）做 1.25 缩放，
+      # 使字号接近内屏；逻辑分辨率 2048x1280
+      scale = 1.25;
+      # 外接屏物理位于笔记本屏幕正上方：y 取负使其处于 eDP-2 上方，
+      # x 用 (1920 - 2048) / 2 = -64 水平居中
+      position = {
+        x = -64;
+        y = -1280;
+      };
+    };
   };
 
   cursor = {
@@ -148,7 +154,7 @@ _: {
     XDG_SESSION_TYPE = "wayland";
     XDG_CURRENT_DESKTOP = "niri";
 
-    # ⚠️ 输入法变量（GTK/QT_IM_MODULE、XMODIFIERS、GLFW_IM_MODULE）
+    # ⚠️ 输入法变量（GTK/QT_IM_MODULE、XMODIFIERS、QT_IM_MODULES）
     #    统一在 home/programs/rime.nix 管理，勿在此重复声明
     # ⚠️ Qt 主题 / XCURSOR 变量统一在 home/programs/theme.nix 管理，勿在此重复声明
 
