@@ -77,6 +77,9 @@ with pkgs; [
   dconf-editor # Dconf 配置编辑器（GNOME 底层设置）
   matugen # 动态主题生成器（根据壁纸生成配色方案）
 
+  # polkit 认证代理（niri spawn-at-startup 启动，提供图形化授权提示）
+  polkit_gnome
+
   # Qt
 
   qt6Packages.qt6ct # Qt6 配置工具（主题、字体、界面设置）

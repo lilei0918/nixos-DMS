@@ -1,8 +1,8 @@
 // 自动启动
 // XWayland：niri 25.08 起内置集成（自动 spawn xwayland-satellite），无需手动
 
-// 🔐 权限管理（polkit 认证代理）
-spawn-at-startup "/nix/store/175dqv3r08f19lm06bwr55cn9gsvrlgi-polkit-gnome-0.105/libexec/polkit-gnome-authentication-agent-1"
+// 🔐 权限管理（polkit 认证代理；走 PATH 解析，包在 hosts/legion/packages.nix）
+spawn-at-startup "polkit-gnome-authentication-agent-1"
 
 // ⌨️ 输入法（fcitx5 守护进程，-d 后台运行）
 spawn-at-startup "fcitx5" "-d"
