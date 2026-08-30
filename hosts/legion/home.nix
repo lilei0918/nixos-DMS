@@ -120,6 +120,15 @@ in {
   # 已整体移除：所有程序默认英文输入（fcitx5 inactive），需要中文时手动切 rime。
   ############################################
 
+  # fcitx5 由 niri autostart（home/niri/autostart.nix）显式 spawn，
+  # 用 Hidden=true 覆盖 fcitx5 包自带的 XDG autostart 条目，
+  # 否则 systemd-xdg-autostart-generator 会二次拉起 fcitx5，
+  # 争抢 D-Bus 名导致 "Is there another fcitx already running?"。
+  xdg.configFile."autostart/org.fcitx.Fcitx5.desktop".text = ''
+    [Desktop Entry]
+    Hidden=true
+  '';
+
   xdg.configFile."fcitx5/profile".text = ''
     [Groups/0]
     Name=Default

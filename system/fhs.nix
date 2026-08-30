@@ -134,7 +134,8 @@ in {
         export LD_LIBRARY_PATH="/usr/lib64:/usr/lib''${_pyside_qt_lib:+:''${_pyside_qt_lib}}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
         export TDX_DATA_DIR="''${TDX_DATA_DIR:-/run/media/${myvars.username}/DATATB/TDXdata}"
-        export TDX_MARK_PATH="$TDX_DATA_DIR/mark.dat"
+        # 备注(长/短)以 win11 通达信(zd_zybGA) 显示的 T0002/mark.dat 为准
+        export TDX_MARK_PATH="''${TDX_MARK_PATH:-/run/media/${myvars.username}/DATATB/Program Files/zd_zybGA/T0002/mark.dat}"
         export MD_NOTES_PATH="''${MD_NOTES_PATH:-$HOME/Documents/OBbackup/04-自选股}"
         export BOARD_NOTES_PATH="''${BOARD_NOTES_PATH:-$HOME/Documents/OBbackup/05-板块研究}"
         mkdir -p "$TDX_DATA_DIR/blocknew" "$MD_NOTES_PATH" "$BOARD_NOTES_PATH"
