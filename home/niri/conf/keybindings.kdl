@@ -1,0 +1,31 @@
+// 快捷键（binds）
+binds {
+    // 🪟 窗口管理
+    super+q { close-window; }
+    super+f { fullscreen-window; }
+    super+shift+f { maximize-column; }
+    super+t { toggle-window-floating; }
+    super+c { center-column; }
+
+    // 🔄 工作区切换
+    super+tab { focus-workspace-previous; }
+
+    // 📐 列宽调整
+    super+1 { set-column-width "25%"; }
+    super+2 { set-column-width "50%"; }
+    super+3 { set-column-width "75%"; }
+    super+4 { set-column-width "100%"; }
+
+    // 🖥️ 启动程序
+    super+shift+return { spawn "ghostty"; }
+    super+return { spawn "alacritty"; }
+    super+d { spawn "walker"; }
+    super+e { spawn "thunar"; }
+    super+b { spawn "google-chrome-stable"; }
+
+    // 📸 截图（niri 内置，Enter/Space 保存，Ctrl+Enter 复制到剪贴板）
+    Print { screenshot; }
+    Alt+Print { screenshot-window; }
+    Ctrl+Print { screenshot-screen; }
+    Mod+P { screenshot; }
+}

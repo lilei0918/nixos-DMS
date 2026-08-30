@@ -35,21 +35,6 @@
     };
 
     # =============================
-    # Niri
-    # =============================
-
-    niri = {
-      url = "github:sodiboo/niri-flake";
-
-      # 背景（2026-08 核实）：nixpkgs 侧已修复——当前 nixpkgs 的 pkgs.niri（26.04）
-      # 用 libdisplay-info 0.4.0 正常构建，且已删除 libdisplay-info_0_2；
-      # 但 niri-flake 仍未修复（其 master flake.nix 仍 assert libdisplay-info_0_2.version == "0.2.0"），
-      # 故只要还用 niri-flake 的 niri-stable 包（home.nix 的 package 覆盖），本 pin 就必须保留。
-      # 待 niri-flake 改用 libdisplay-info 0.3+ 后，可移除本 pin 与 home.nix 的覆盖（改用 pkgs.niri）。
-      inputs.nixpkgs.url = "github:NixOS/nixpkgs/624af665418d3c65d544145b4d34ad696439570e";
-    };
-
-    # =============================
     # Hermes Agent
     # =============================
 

@@ -1,0 +1,14 @@
+// 自动启动
+// XWayland：niri 25.08 起内置集成（自动 spawn xwayland-satellite），无需手动
+
+// 🔐 权限管理（polkit 认证代理）
+spawn-at-startup "/nix/store/175dqv3r08f19lm06bwr55cn9gsvrlgi-polkit-gnome-0.105/libexec/polkit-gnome-authentication-agent-1"
+
+// ⌨️ 输入法（fcitx5 守护进程，-d 后台运行）
+spawn-at-startup "fcitx5" "-d"
+
+// 🔵 蓝牙托盘程序
+spawn-at-startup "blueman-applet"
+
+// 📌 延迟启动的应用（QQ 等）
+spawn-at-startup "bash" "-c" "sleep 10 && exec qq"

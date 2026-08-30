@@ -9,8 +9,9 @@ _: {
         # 若 auto 在 alacritty 下仍无 logo，可改 "chafa"（块字符渲染，任何终端可用）。
         type = "auto";
         source = ../../assets/icons/logo.png;
-        # 不设 width —— 让 fastfetch 按终端宽度自动缩放；
-        # height 限制最大行数，宽高比自动保持
+        # 显式限制宽度（字符列数）：不设时 fastfetch 默认取终端宽度一半，
+        # 80 列终端下 logo 占 40 列会把右侧信息挤掉。20x20 方形保持宽高比。
+        width = 20;
         height = 20;
         padding = {
           top = 8;

@@ -85,10 +85,10 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 
 **⚠️ 本仓库特有的注意**：
 - **被 pin 的 input 不会随 `nix flake update` 更新**，需手动改 `flake.nix`：
-  - `niri`：nixpkgs pin 在 `624af66`（⚠️ 2026-08 核实：nixpkgs 侧已修，但 niri-flake 仍未兼容 libdisplay-info 0.3+，此 pin 需保留）
   - `hermes-agent`：nixpkgs pin 在 `624af66`（npm 依赖命中旧缓存，别轻易升）
   - `daeuniverse`：nixpkgs pin 在 `b12141ef`（pnpm 10.x）
-  - 升级它们前先确认上游已兼容（niri-flake 改用 libdisplay-info 0.3 / pnpm 11），并验证能构建
+  - 升级它们前先确认上游已兼容（pnpm 11 等），并验证能构建
+  - ⚠️ `niri` 已不再 pin（2026-08-30 改）：改用 nixpkgs `pkgs.niri`，配置为手写 KDL（`home/niri/conf/*.kdl`）
 - 大升级后建议重启，确认新 generation 能被引导（主引导 Arch GRUB + systemd-boot 次引导，systemd-boot 里可回滚）
 
 **坏了的回滚**：
@@ -98,7 +98,7 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 | 现象 | 处理 |
 |------|------|
 | daed/daeuniverse 构建失败 | nixpkgs 升级可能动了 pnpm 版本；确认 `daeuniverse` 的 pin 没被破坏，必要时临时启用 garnix 缓存或本地编译 |
-| niri 构建失败 | libdisplay-info 版本断言问题；2026-08 核实 niri-flake 仍未修复，保持 flake.nix 的 624af66 pin 不动即可（别升级该 pin） |
+| niri 配置解析失败 | 用 `niri validate` 校验 `~/.config/niri/config.kdl`；niri 随 nixpkgs 升级，KDL 语法若有破坏性变更需同步改 `home/niri/conf/` |
 | hermes 构建变慢/重新下 npm 依赖 | 它的 nixpkgs pin 在 624af66（命中旧缓存）；别轻易升级该 pin，否则全量重下 |
 | 新 generation 无法引导 | systemd-boot 选旧 generation 回滚，修复后再切 |
 

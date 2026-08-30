@@ -1,0 +1,122 @@
+// niri 主配置（手写 KDL）
+// 语法参考：https://niri-wm.github.io/niri/
+// 本文件由 Home Manager 链接到 ~/.config/niri/config.kdl
+
+// 引入分片配置
+include "./keybindings.kdl"
+include "./windowrules.kdl"
+include "./spawn-at-startup.kdl"
+
+// 动态配色（DMS 随壁纸生成，换壁纸自动重载；可选 include 防文件不存在时报错）
+include optional=true "dms/colors.kdl"
+include optional=true "dms/layout.kdl"
+include optional=true "dms/outputs.kdl"
+include optional=true "dms/wpblur.kdl"
+include optional=true "dms/alttab.kdl"
+
+// 输入设备配置
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        numlock
+    }
+
+    touchpad {
+        tap
+        dwt
+        dwtp
+        natural-scroll
+        middle-emulation
+        accel-profile "adaptive"
+        scroll-method "two-finger"
+        click-method "button-areas"
+        tap-button-map "left-right-middle"
+    }
+
+    focus-follows-mouse
+    workspace-auto-back-and-forth
+}
+
+// 显示器输出（eDP-2 内屏 / DP-2 外接，外接屏物理位于正上方）
+output "eDP-2" {
+    scale 1.000000
+    transform "normal"
+    position x=0 y=0
+    mode "1920x1080@165.004000"
+}
+
+output "DP-2" {
+    scale 1.250000
+    transform "normal"
+    // 外接屏 2.5K（189 PPI）相对内屏 1080p（141 PPI）做 1.25 缩放，
+    // 逻辑分辨率 2048x1280；物理位于内屏正上方（y 负），水平居中（x 负）
+    position x=-64 y=-1280
+    mode "2560x1600@60.001000"
+}
+
+// 截图保存路径
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// 禁用客户端装饰（focus ring 画在窗口周围而非背景）
+prefer-no-csd
+
+// 布局与外观
+layout {
+    gaps 4
+
+    struts {
+        left 8
+        right 8
+        top 1
+        bottom 1
+    }
+
+    // 焦点环颜色由 include 的 dms/colors.kdl 提供（随壁纸变色）
+    focus-ring {
+        width 1
+    }
+
+    border { off; }
+
+    background-color "#00000000" // 透明背景（DMS 提供壁纸层）
+
+    default-column-width { proportion 0.750000; }
+
+    preset-column-widths {
+        proportion 0.250000
+        proportion 0.500000
+        proportion 0.750000
+        proportion 1.000000
+    }
+
+    center-focused-column "never"
+}
+
+cursor {
+    xcursor-theme "default"
+    xcursor-size 24
+    hide-when-typing
+    hide-after-inactive-ms 1000
+}
+
+hotkey-overlay { skip-at-startup; }
+
+// 会话环境变量
+environment {
+    "CLUTTER_BACKEND" "wayland"
+    "ELECTRON_OZONE_PLATFORM_HINT" "auto"
+    "GDK_BACKEND" "wayland,x11"
+    "MOZ_ENABLE_WAYLAND" "1"
+    "NIXOS_OZONE_WL" "1"
+    "QT_QPA_PLATFORM" "wayland"
+    "QT_WAYLAND_DISABLE_WINDOWDECORATION" "1"
+    "XDG_CURRENT_DESKTOP" "niri"
+    "XDG_SESSION_TYPE" "wayland"
+}
+
+// 命名工作区（供 windowrules.kdl 的 open-on-workspace 使用）
+workspace "browser"
+workspace "note"
+workspace "code"

@@ -36,10 +36,9 @@ in {
   imports = [
     # DMS
     inputs.dms.homeModules.dank-material-shell
-    inputs.dms.homeModules.niri
 
-    # niri
-    inputs.niri.homeModules.niri
+    # niri 手写 KDL 配置（系统层 programs.niri 见 system/niri.nix）
+    ../../home/niri/kdl.nix
 
     # other modules
     ../../home/programs/rime.nix
@@ -69,35 +68,10 @@ in {
   ];
 
   ############################################
-  # niri
+  # direnv
   ############################################
 
   programs = {
-    niri = {
-      enable = true;
-
-      # 说明（2026-08 核实）：nixpkgs 侧已修复——锁定 nixpkgs 的 pkgs.niri（26.04）
-      # 用 libdisplay-info 0.4.0 正常构建，libdisplay-info_0_2 已删除；
-      # 但 niri-flake 仍未修复（其 master flake.nix 仍 assert libdisplay-info_0_2 == "0.2.0"），
-      # 故继续用 niri-flake 自带的 niri-stable（v25.08，其 nixpkgs pin 在 flake.nix 的 624af66）。
-      # 待 niri-flake 改用 libdisplay-info 0.3+ 后可移除本行（并改用 pkgs.niri）。
-      package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-stable;
-
-      settings = import ../../home/niri/default.nix {
-        inherit
-          config
-          pkgs
-          inputs
-          lib
-          myvars
-          ;
-      };
-    };
-
-    ############################################
-    # direnv
-    ############################################
-
     direnv = {
       enable = true;
       nix-direnv.enable = true;
@@ -120,7 +94,7 @@ in {
   # 已整体移除：所有程序默认英文输入（fcitx5 inactive），需要中文时手动切 rime。
   ############################################
 
-  # fcitx5 由 niri autostart（home/niri/autostart.nix）显式 spawn，
+  # fcitx5 由 niri spawn-at-startup（home/niri/conf/spawn-at-startup.kdl）显式 spawn，
   # 用 Hidden=true 覆盖 fcitx5 包自带的 XDG autostart 条目，
   # 否则 systemd-xdg-autostart-generator 会二次拉起 fcitx5，
   # 争抢 D-Bus 名导致 "Is there another fcitx already running?"。

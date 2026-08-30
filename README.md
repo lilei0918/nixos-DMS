@@ -75,7 +75,7 @@ nh os switch .#legion
 - **NixOS 版本**：26.11 (Zokor) —— 实际使用 nixpkgs unstable（commit 以 `flake.lock` 为准，2026-08-20 更新后为 ffb3c9b7），`system.stateVersion` 设为 `25.05`
 - **内核**：Linux 7.1.7（来自 `linuxPackages_latest`）
 - **显示管理器**：greetd + **tuigreet**（Wayland 会话，`--cmd niri-session`）
-- **窗口管理器**：niri stable v25.08（滚动式 Wayland compositor，commit `01be0e65f4eb...`，来自 niri-flake 的 `niri-stable`，见 home.nix 的 package 覆盖）
+- **窗口管理器**：niri 26.04（nixpkgs 自带 `pkgs.niri`，跟随 unstable；配置为手写 KDL，见 `home/niri/`）
 - **默认终端**：alacritty 0.17.0（`super+return`）；ghostty 为次选（`super+shift+return`）
 - **当前 Shell**：fish 4.8.1（终端常用）；默认登录 shell 为 zsh 5.9.2，可自由切换
 - **系统 Generation**：103（2026-08-16 实测 `/nix/var/nix/profiles/system-103-link`；仓库工作区可能已有未提交的「before switch」改动，以新 generation 为准）
@@ -107,7 +107,7 @@ nixos-DMS/
 │       ├── configuration.nix   # NixOS 系统配置入口（导入所有模块；DATATB 自动挂载）
 │       ├── hardware-configuration.nix  # 硬件自动生成（勿手动修改）
 │       ├── disko-fs.nix        # disko 声明式分区（重装用，只动 nvme1n1p2，保留 DATATB/加密盘）
-│       ├── home.nix            # Home Manager 入口（niri-stable 覆盖）
+│       ├── home.nix            # Home Manager 入口（niri KDL 配置、fcitx5 覆盖等）
 │       └── packages.nix        # 用户级软件包列表
 ├── scripts/                # 运维辅助脚本
 │   ├── backup-credentials.sh # 信任根/凭据备份（sops age key / ssh / opencode / mihomo / pi / hermes auth）
@@ -139,12 +139,12 @@ nixos-DMS/
 │       ├── vaultwarden-backup.nix  # 每日在线备份（本地 + Arch 盘 + 加密盘按需）
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
 ├── home/                    # 用户级配置（仅 lilei）
-│   ├── niri/                # Niri 窗口管理器配置
-│   │   ├── default.nix      # 入口（合并 settings/keybinds/rules/autostart）
-│   │   ├── settings.nix     # 核心设置（工作区、布局、输入、输出、环境变量）
-│   │   ├── keybinds.nix     # 快捷键（截图用 niri 内置动作）
-│   │   ├── rules.nix        # 窗口规则
-│   │   └── autostart.nix    # 自动启动程序
+│   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
+│   │   ├── kdl.nix          # HM 模块：链接 conf/ 到 ~/.config/niri/
+│   │   ├── conf/config.kdl  # 主配置（input/输出/layout/环境变量，include 分片）
+│   │   ├── conf/keybindings.kdl  # 快捷键
+│   │   ├── conf/windowrules.kdl  # 窗口规则
+│   │   └── conf/spawn-at-startup.kdl  # 自启动
 │   ├── terminal/            # 终端相关
 │   │   ├── alacritty.nix    # 主终端（Monokai Pro 配色、fish）
 │   │   ├── ghostty.nix      # 次选终端（Monokai Pro 主题）
@@ -186,14 +186,13 @@ nixos-DMS/
   - `home-manager`（follows nixpkgs）
   - `nur`（NUR 仓库）
   - `dms`（DankMaterialShell，`github:AvengeMedia/DankMaterialShell/stable`，follows nixpkgs）
-  - `niri`（`github:sodiboo/niri-flake`，**nixpkgs 固定到 `624af66`**，见下）
   - `hermes-agent`（固定 commit `1cdb8ce361e91c79cfbd6bee550ee6c09d290261`，nixpkgs 也固定 `624af66`）
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
   - `daeuniverse`（固定 commit `42ece300b6360bab592f13c64ce1987df20475d5`，nixpkgs 固定 `b12141ef`，**不 follows**）
 - **nixpkgs pin 说明**：
-  - `niri` 的 nixpkgs pin 到 `624af66`（libdisplay-info 0.2.0）：⚠️ 2026-08 核实——nixpkgs 侧已修复（锁定 nixpkgs 的 `pkgs.niri` 26.04 正常，libdisplay-info 0.4.0，`libdisplay-info_0_2` 已删），但 **niri-flake 仍未修复**（master 仍 `assert libdisplay-info_0_2.version == "0.2.0"`），只要还用 niri-flake 的 `niri-stable`（home.nix 覆盖），本 pin 就必须保留。
-  - `hermes-agent` 的 nixpkgs pin 到 `624af66` 是另一原因：其 npm 依赖从 registry.npmjs.org 抓取（本机直连慢），pin 旧 nixpkgs 可命中旧缓存、避免每次升级重下 npm 依赖。
+  - ⚠️ **niri 已不使用 niri-flake**（2026-08-30 改）：改用 nixpkgs 自带 `pkgs.niri`（跟随 nixpkgs unstable，26.04，支持 `include` 语法），配置改为手写 KDL（`home/niri/conf/*.kdl`）。曾因 niri-flake 的 nixpkgs pin（`624af66`，libdisplay-info 0.2.0）而锁定 stable 25.08，现已废弃该方案。
+  - `hermes-agent` 的 nixpkgs pin 到 `624af66`：其 npm 依赖从 registry.npmjs.org 抓取（本机直连慢），pin 旧 nixpkgs 可命中旧缓存、避免每次升级重下 npm 依赖。
   - `daeuniverse` 不 follows、pin 到 `b12141ef`（pnpm 10.x）。跟随最新 nixpkgs（pnpm 11+）会导致 daed 的 `fetchPnpmDeps(fetcherVersion=3)` 构建失败。
 - `outputs`：
   - `nixosConfigurations.legion`：`nixosSystem`（system = `x86_64-linux`），`specialArgs = { inherit self inputs myvars; }`（`myvars` 来自 `./vars`），模块：
@@ -475,18 +474,17 @@ nixos-DMS/
 **关键内容**：
 - `home.username = myvars.username`，`home.homeDirectory = myvars.homeDirectory`，`home.stateVersion = "25.05"`
 - `imports` 列表包含：
-  - `inputs.dms.homeModules.dank-material-shell`、`inputs.dms.homeModules.niri`
-  - `inputs.niri.homeModules.niri`
+  - `inputs.dms.homeModules.dank-material-shell`
+  - `../../home/niri/kdl.nix`（niri 手写 KDL 配置链接）
   - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`、`AI/hermes.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
-- **niri 包覆盖**：⚠️ `programs.niri.package = inputs.niri.packages.${...}.niri-stable`（v25.08）。2026-08 核实：nixpkgs 侧已修复（`pkgs.niri` 26.04 正常构建），但 **niri-flake 仍未修复**（master 仍断言 libdisplay-info 0.2.0），故继续用 niri-flake 的包（其 nixpkgs pin 在 624af66）。待 niri-flake 修复后可移除本行、改用 `pkgs.niri`。
-- `programs.niri.settings = import ../../home/niri/default.nix { inherit config pkgs inputs lib myvars; }`
+- **niri**：⚠️ 已放弃 niri-flake（2026-08-30 改）。niri 用 nixpkgs 自带 `programs.niri`（`system/niri.nix`，`pkgs.niri` 26.04，支持 include）；配置为**手写 KDL**（`home/niri/conf/*.kdl`，经 `home/niri/kdl.nix` 链接到 `~/.config/niri/`）。主 `config.kdl` 用 `include` 引入 DMS 生成的 `dms/*.kdl`，实现焦点环随壁纸动态变色。
 - `home.packages = lib.mkBefore allPackages`（`allPackages` 来自 `./packages.nix`）
 - Fcitx5/Rime 用户配置：
   - `home.file."~/.local/share/fcitx5/rime/default.custom.yaml"`（声明在 `home/programs/rime.nix`，非 home.nix）：schema `rime_ice`，`page_size: 9`
   - `xdg.configFile."fcitx5/profile"`：默认输入法 `rime`
-  - fcitx 环境变量（GTK_IM_MODULE / QT_IM_MODULE / QT_IM_MODULES / XMODIFIERS / SDL_IM_MODULE）统一在 `home/programs/rime.nix`（sessionVariables）声明，niri 会话不再重复声明（见 `home/niri/settings.nix` 注释）
+  - fcitx 环境变量（GTK_IM_MODULE / QT_IM_MODULE / QT_IM_MODULES / XMODIFIERS / SDL_IM_MODULE）统一在 `home/programs/rime.nix`（sessionVariables）声明，niri 会话不再重复声明（见 `home/niri/conf/config.kdl` 注释）
 - `home.sessionVariables`：`EDITOR=vim`
 - `programs.direnv`：启用，`nix-direnv.enable = true`
 - `programs.home-manager.enable = true`
@@ -622,29 +620,22 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 ## 六、Niri 配置详解（home/niri/）
 
-### default.nix（入口）
-- 合并 `settings // keybinds // rules // autostart` 四个文件的属性集
+> ⚠️ **架构（2026-08-30 改）**：放弃 niri-flake 属性集，改用**手写 KDL**（参照 ryan4yin/nix-config 风格）。
+> niri 版本来自 nixpkgs `pkgs.niri`（`system/niri.nix`，26.04，支持 `include`）。
+> `home/niri/kdl.nix`（HM 模块）把 `conf/*.kdl` 链接到 `~/.config/niri/`。
 
-### settings.nix（核心设置）
-- **工作区**：⚠️ 现在用**数字前缀 + name** 声明三个命名工作区（key 决定顺序，name 为实际名）：
-  ```
-  workspaces = {
-    "1-browser" = { name = "browser"; };
-    "2-note"   = { name = "note"; };
-    "3-code"   = { name = "code"; };
-  };
-  ```
-  （`open-on-workspace` 不会自动创建工作区，必须在此声明，否则窗口落到当前工作区；terminal/media 工作区已移除）
-- `prefer-no-csd = true`（禁用客户端装饰）
-- `hotkey-overlay.skip-at-startup = true`
-- **布局**：背景透明、focus-ring 启用（active `#ABC7FF` catppuccin Sapphire / inactive `#585b70` Surface2，width 1）、预设列宽 25/50/75/100%、默认列宽 75%、gaps 4、struts 8/8/1/1
-- **输入**：键盘 us + numlock；触控板（tap、natural-scroll、two-finger、button-areas、middle-emulation、accel-profile adaptive）；`focus-follows-mouse.enable = true`、`warp-mouse-to-focus.enable = false`、`workspace-auto-back-and-forth = true`
-- **输出**：`eDP-1` 1920×1080 @ 165.004Hz，scale 1.0
+### conf/config.kdl（主配置）
+- 顶部 `include` 分片：`./keybindings.kdl`、`./windowrules.kdl`、`./spawn-at-startup.kdl`
+- **动态配色**：`include optional=true "dms/colors.kdl"` 等 —— DMS 随壁纸生成，换壁纸自动热重载
+- **工作区**：`workspace "browser"` / `"note"` / `"code"`（`open-on-workspace` 需先声明）
+- `prefer-no-csd`（禁用客户端装饰）
+- **布局**：背景透明（DMS 提供壁纸层）、focus-ring width 1（**颜色由 dms/colors.kdl 提供，随壁纸变**）、预设列宽 25/50/75/100%、默认 75%、gaps 4、struts 8/8/1/1、`border off`
+- **输入**：键盘 us + numlock；触控板（tap、natural-scroll、two-finger、button-areas、middle-emulation、accel-profile adaptive）；`focus-follows-mouse`、`workspace-auto-back-and-forth`
+- **输出**：`eDP-2` 1920×1080 @ 165.004Hz scale 1.0；`DP-2` 2560×1600 @ 60.001Hz scale 1.25（外接屏物理位于内屏正上方）
 - **光标**：size 24、`hide-when-typing`、`hide-after-inactive-ms = 1000`
-- **环境变量**（niri 会话内）：Wayland 全家桶（GDK/QT/MOZ/ELECTRON）、XDG_SESSION_TYPE / XDG_CURRENT_DESKTOP
-  - 输入法变量（GTK/QT_IM_MODULE、QT_IM_MODULES、XMODIFIERS、SDL_IM_MODULE）统一在 `home/programs/rime.nix`；Qt 主题 / XCURSOR 统一在 `home/programs/theme.nix`（经会话环境传递生效，niri 不再重复声明）
+- **环境变量**：Wayland 全家桶（GDK/QT/MOZ/ELECTRON）、XDG_SESSION_TYPE / XDG_CURRENT_DESKTOP
 
-### keybinds.nix（快捷键）
+### conf/keybindings.kdl（快捷键）
 | 按键 | 动作 |
 |------|------|
 | `super+q` | 关闭窗口 |
@@ -663,10 +654,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `Ctrl+Print` | 截图全屏 |
 | `Mod+P` | 截图（等同 Print） |
 
-> ⚠️ **截图已改用 niri 内置动作**（`action.screenshot*`，Enter/Space 保存、Ctrl+Enter 复制到剪贴板），grim/slurp/wl-clip-persist 已移除。`config.lib.niri.actions` 是 niri-flake 缓存的旧清单不含 screenshot*，必须用 `action.<动作名>` 直接写 KDL 动作名。
-
-### rules.nix（窗口规则）
-- 通用圆角：`10 / 10 / 5 / 5`（左上/右上/左下/右下），`clip-to-geometry = true`
+### conf/windowrules.kdl（窗口规则）
+- 通用圆角：`10 / 10 / 5 / 5`（左上/右上/左下/右下），`clip-to-geometry true`
 - Alacritty / Ghostty 固定列宽 800
 - 浏览器类（google-chrome/firefox）`open-maximized`，分配到 `browser` 工作区
 - 开发工具（Zed `dev.zed.Zed` / `codium`）占满列宽，分配到 `code` 工作区
@@ -679,13 +668,12 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - SiYuan（app-id `org.b3log.siyuan`）→ `note` 工作区 + 独占一列 100%
 - thunar（app-id `[Tt]hunar`）浮动 + 1200×800；**重命名对话框**（标题含 Rename/重命名）420×180 小浮动（规则 11.1 覆盖）
 
-### autostart.nix（自启动）
-- `xwayland-satellite`（XWayland 卫星服务）
+### conf/spawn-at-startup.kdl（自启动）
 - `polkit-gnome-authentication-agent-1`（权限代理）
 - `fcitx5 -d`（输入法）
 - `blueman-applet`（蓝牙托盘）
 - `sleep 10 && exec qq`（延迟启动 QQ）
-- ⚠️ `wl-clip-persist` 已移除（截图改用 niri 内置）
+- ⚠️ XWayland：niri 25.08 起内置集成（自动 spawn xwayland-satellite），无需手动
 
 ---
 
@@ -897,7 +885,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
 18. **加密盘备份策略**：备份脚本第 3 层只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过；加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
-20. **nixpkgs pin**：`niri`（624af66：niri-flake 仍未兼容 libdisplay-info 0.3+，2026-08 核实）、`hermes-agent`（624af66：npm 依赖命中旧缓存）、`daeuniverse`（b12141ef：pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。home.nix 里 `niri-stable` 的 package 覆盖与其配套。
+20. **nixpkgs pin**：`hermes-agent`（624af66：npm 依赖命中旧缓存）、`daeuniverse`（b12141ef：pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。⚠️ `niri` 已不 pin（改用 nixpkgs `pkgs.niri`，见「六」）。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。
 22. **清理策略**：journal 上限 50M；`~/.cache/{uv,pip,nix,elephant}` 3 天自动清理（`system/cleanup.nix`）；系统 GC 每日自动删 3 天前 generation。
 23. **截图**：已用 niri 内置截图（Print/Alt+Print/Ctrl+Print），保存到 `~/Pictures/Screenshots/`；grim/slurp/wl-clip-persist 已移除，旧文档中的 grim 命令不再适用。

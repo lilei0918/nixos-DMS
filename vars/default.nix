@@ -18,7 +18,7 @@ _: {
   # 切换后 `nh os switch .#legion` 即生效
   enableNvidia = true;
 
-  # 主题（GTK/Qt/光标统一从这里取值，见 home/programs/theme.nix、dconf.nix、home/niri/settings.nix）
+  # 主题（GTK/Qt/光标统一从这里取值，见 home/programs/theme.nix、dconf.nix）
   theme = {
     gtk = "WhiteSur-Dark";
     icon = "WhiteSur";
