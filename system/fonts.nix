@@ -16,7 +16,7 @@
       source-serif # Source Serif 4（衬线阅读）
 
       # =========================
-      # 中文（思源黑体/宋体）
+      # 中文（思源黑体/宋体 + 霞鹜文楷阅读）
       # =========================
 
       source-han-serif # 思源宋体（SC/TC）
@@ -24,6 +24,8 @@
       source-han-sans # 思源黑体（SC/TC）
 
       source-han-mono # 思源等宽（SC/TC）
+
+      lxgw-wenkai-screen # 霞鹜文楷 屏幕阅读版（阅读体中文）
 
       # =========================
       # 等宽 / Nerd Font
@@ -87,9 +89,10 @@
       };
 
       # =========================
-      # 渲染参数（macOS 风格：slight hinting + 抗锯齿 + RGB 子像素）
+      # 渲染参数（macOS 风格：slight hinting + 抗锯齿 + 灰度子像素）
       # macOS 观感是 smooth/soft，不是 Linux 常见的 sharp/pixel；
-      # 所以不要用 full，slight 更接近。
+      # macOS 从 Mojave 起即纯灰度渲染，HiDPI 下 rgb 子像素收益甚微，
+      # 故用 none（灰度）更接近；非 HiDPI 屏想更锐利可改回 rgb。
       # =========================
 
       antialias = true; # 抗锯齿
@@ -101,7 +104,7 @@
       };
 
       subpixel = {
-        rgba = "rgb"; # IPS 屏 rgb 子像素排列
+        rgba = "none"; # 灰度渲染（macOS 式）；1080p 屏可改回 rgb 更锐
 
         lcdfilter = "default"; # lcddefault
       };
@@ -136,6 +139,18 @@
         </match>
         <match target="pattern">
           <test qual="any" name="family"><string>-apple-system</string></test>
+          <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>system-ui</string></test>
+          <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>BlinkMacSystemFont</string></test>
+          <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
+        </match>
+        <match target="pattern">
+          <test qual="any" name="family"><string>Segoe UI</string></test>
           <edit name="family" mode="assign" binding="same"><string>sans-serif</string></edit>
         </match>
 

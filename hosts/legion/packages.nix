@@ -1,46 +1,5 @@
-{
-  pkgs,
-  lib,
-  ...
-}:
+{pkgs, ...}:
 with pkgs; [
-  # ─────────────────────────────
-  # 🌐 浏览器
-  # ─────────────────────────────
-
-  # Google Chrome（闭源）：nixpkgs wrapper 不读 chrome-flags.conf，
-  # Wayland/GPU 参数必须经 commandLineArgs 注入（原 conf 内容迁移于此）
-  (google-chrome.override {
-    commandLineArgs = lib.concatStringsSep " " [
-      "--ozone-platform=wayland"
-      # 原生 Wayland 输入法（text-input-v3）：不加此参数 Chrome 无 IME 通道，中文输入法打不出字
-      "--enable-wayland-ime"
-      "--wayland-text-input-version=3"
-      "--enable-features=UseOzonePlatform,WebUIDarkMode,DesktopPWAsNotificationIconAndTitle"
-      "--enable-native-notifications"
-      # 显卡硬件加速
-      "--use-gl=desktop"
-      "--ignore-gpu-blocklist"
-      "--enable-gpu-rasterization"
-      "--enable-zero-copy"
-      "--enable-vulkan"
-      "--disable-gpu-driver-bug-workarounds"
-      "--enable-hardware-overlays"
-      "--enable-accelerated-video-decode"
-      "--enable-accelerated-video-encode"
-      "--enable-oop-rasterization"
-      "--enable-raw-draw"
-      "--enable-webgl-developer-extensions"
-      "--enable-accelerated-2d-canvas"
-      "--enable-gpu-compositing"
-      "--enable-smooth-scrolling"
-      "--enable-media-router"
-      # 修复默认行为
-      "--no-default-browser-check"
-      "--no-pings"
-    ];
-  })
-
   # ─────────────────────────────
   # 📄 办公 / 阅读
   # ─────────────────────────────
@@ -121,4 +80,7 @@ with pkgs; [
   # ─────────────────────────────
 
   #imagemagick # 命令行图像处理工具（转换、编辑、生成）
+
+  gnome-sudoku
+  gnome-mines
 ]

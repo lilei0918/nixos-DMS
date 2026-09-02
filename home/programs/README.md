@@ -4,7 +4,7 @@
 
 - `AI/`            zed / opencode / pi / hermes（Hermes 含桌面入口 + 系统服务）四个 AI 工具
 - `btop.nix`       系统监控（desktop entry 走 `ghostty -e btop`）
-- `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（启动参数经 `hosts/legion/packages.nix` commandLineArgs 注入）
+- `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（包本体 + 启动参数 commandLineArgs + 环境变量均在此）
 - `dconf.nix`      GNOME dconf 主题设置
 - `dev.nix`        全局开发工具链（uv / python / nodejs / pnpm / just / gh / yq）
 - `fastfetch.nix`  系统信息（logo 用 `assets/icons/logo.png`）

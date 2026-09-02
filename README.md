@@ -494,7 +494,6 @@ nixos-DMS/
 **作用**：用户级软件包列表（仅 lilei 可用）。
 
 **完整列表**：
-- **浏览器**：`google-chrome`
 - **办公/阅读**：`libreoffice`, `foliate`, `loupe`, `zathura`, `zettlr`, `papers`, `readest`, `marktext`（`thunderbird` 已注释，未启用）
 - **金融**：`tradingview`（已注释，未启用）
 - **通讯**：`qq`, `telegram-desktop`
@@ -692,7 +691,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `zsh.nix` | oh-my-zsh（git/sudo/colored-man-pages/extract）、syntaxHighlighting、历史 10 万、同名 Nix 别名（`rebuild`/`test`/`boot`/`rollback`/`cleanup`/`check`/`update`/`fmt`，绝对路径）、cd=z |
 | `starship.nix` | 极简 format（user/host/dir/git/cmd_duration/❯） |
 | `tmux.nix` | mouse、history 10 万、vi 模式键、escape-time 0 |
-| `chrome.nix` | nixpkgs wrapper 不读 `chrome-flags.conf`，Wayland/GPU 参数经 `hosts/legion/packages.nix` 的 `commandLineArgs` 注入（含 `--enable-wayland-ime --wayland-text-input-version=3`）；本文件管环境变量：LIBVA_DRIVER_NAME=radeonsi、VAAPI 相关 |
+| `chrome.nix` | nixpkgs wrapper 不读 `chrome-flags.conf`，包本体 + Wayland/GPU 启动参数经 `commandLineArgs` 注入（含 `--enable-wayland-ime --wayland-text-input-version=3`）+ 环境变量：LIBVA_DRIVER_NAME=radeonsi、VAAPI 相关（原在 `hosts/legion/packages.nix`） |
 | `firefox.nix` | NUR 扩展（bitwarden/darkreader/sponsorblock）、隐私设置、搜索引擎（searxng/nix-packages/nixos-wiki/ddg，默认 ddg）、`security.enterprise_roots.enabled=true`（信任系统根证书，配合 Vaultwarden 本地 CA）；⚠️ 当前未导入 home.nix，保留备用 |
 | `git.nix` | user 信息走 myvars（lilei/lilei0918@gmail.com）、lfs、delta（Catppuccin Mocha、side-by-side）、别名 st/co/br/lg |
 | `theme.nix` | GTK3 WhiteSur-Dark + WhiteSur 图标 + macOS-White 光标（含 `home.pointerCursor`）；**GTK4 用系统默认（`gtk4.theme = null`）**；Qt 走 gtk3；sessionVariables：`GTK_APPLICATION_PREFER_DARK_THEME=1`、XCURSOR_THEME/SIZE、`QT_QPA_PLATFORMTHEME=gtk3`（已删掉破坏 GTK4 的 `GTK_THEME`） |

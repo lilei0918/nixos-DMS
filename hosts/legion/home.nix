@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   lib,
   inputs,
@@ -7,7 +6,7 @@
   ...
 }: let
   allPackages = import ./packages.nix {
-    inherit pkgs lib;
+    inherit pkgs;
   };
 in {
   home = {

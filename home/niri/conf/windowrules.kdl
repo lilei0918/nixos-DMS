@@ -62,6 +62,15 @@ window-rule {
     open-floating true
 }
 
+// 6.2 GNOME 小游戏（数独 / 扫雷）浮动 + 终端尺寸
+window-rule {
+    match app-id="org.gnome.Sudoku"
+    match app-id="org.gnome.Mines"
+    default-column-width { fixed 800; }
+    default-window-height { fixed 800; }
+    open-floating true
+}
+
 // 7. 弹窗类窗口居中浮动
 window-rule {
     match title="Open File"
