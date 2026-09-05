@@ -144,7 +144,7 @@ nixos-DMS/
 │   └── vault/               # 加密数据盘 + Vaultwarden 密码管理器
 │       ├── vault.nix            # LUKS 加密盘（vault-open / vault-close，手动解锁）
 │       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
-│       ├── vaultwarden-backup.nix  # 每日在线备份（本地 7 天 + 加密盘按需归档）
+│       ├── vaultwarden-backup.nix  # 每日在线备份（本地 7 天 + DATATB 镜像 + 加密盘归档）
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
@@ -573,15 +573,16 @@ nixos-DMS/
 
 ### 28. `system/vault/vaultwarden-backup.nix`
 
-**作用**：Vaultwarden 数据库每日在线备份（**两层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。历史同步目标（Arch btrfs 盘 `nvme0n1p7`，UUID `9dccd22a-…`）已于 2026-09 Arch 删除时一并移除。
+**作用**：Vaultwarden 数据库每日在线备份（**三层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。原异盘同步目标（Arch btrfs 盘 `nvme0n1p7`，UUID `9dccd22a-…`）于 2026-09 Arch 删除，镜像改落本机数据盘 DATATB。
 
-**两层备份**：
+**三层备份**：
 1. **本地**：`sqlite3 .backup` → `/var/lib/vaultwarden/backups/backup-*.db`（保留 7 天；生成后跑 `PRAGMA integrity_check`，校验失败的文件直接删除并让本次备份失败，避免留坏档）
-2. **加密盘（按需，长期归档）**：备份脚本末尾检测 `[ -b /dev/mapper/vault ] && mountpoint -q /mnt/vault`，已解锁则 rsync（**只增不删**）到 `/mnt/vault/vaultwarden/backups/`；未解锁自动跳过并留日志
+2. **DATATB 镜像**：`rsync --delete` → `/run/media/lilei/DATATB/vaultwarden-backup/`（ntfs3 自动挂载数据盘，与本地同滚动 7 天）
+3. **加密盘（按需，长期归档）**：检测 `[ -b /dev/mapper/vault ] && mountpoint -q /mnt/vault`，已解锁则 rsync（**只增不删**）到 `/mnt/vault/vaultwarden/backups/`；未解锁自动跳过并留日志
 
 **使用**：
 - 手动触发一次：`sudo systemctl start vaultwarden-backup`
-- ⚠️ 本地与加密盘现同属 **nvme1n1 一块物理盘**，Arch 删除后已无异盘容灾；加密盘归档请定期外导（U 盘等离线介质）再保一份（习惯同 `scripts/backup-credentials.sh`）
+- ⚠️ 本地 / DATATB / 加密盘分属 **nvme1n1 上不同分区但同块物理盘**，提供分区与文件系统级冗余，异盘容灾仍无；长期归档请定期外导（U 盘等离线介质）再保一份（习惯同 `scripts/backup-credentials.sh`）
 
 ---
 
@@ -902,7 +903,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 15. **Vaultwarden 证书**：本地 CA + 证书位于 `/var/lib/vaultwarden/tls/`（0700 root），由 sops 解密生成（`secrets.yaml` 的 `vaultwarden_tls_*`），rebuild 不轮换；CA 公钥 `system/vault/certs/vaultwarden-ca.crt` 经 `security.pki.certificateFiles` 写入系统信任，浏览器零警告无需手动导入。换证书流程见「vaultwarden.nix」一节。
 16. **加密盘手动解锁**：LUKS 加密盘（`/dev/nvme1n1p3`，UUID `86c742fc-8de5-4c59-9a30-196484a35695`）开机**不自动挂载**，用 `sudo vault-open` / `sudo vault-close` 管理。**解锁密码 = 全部数据的钥匙**，丢失即永久丢失、无法找回，务必离线备份（纸质 / U 盘，参照 sops age key 的备份习惯）。
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
-18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；本地与加密盘同属一块物理盘，加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。
+18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；镜像副本另有 DATATB `/run/media/lilei/DATATB/vaultwarden-backup/`（随本地 7 天滚动）。本地 / DATATB / 加密盘同属一块物理盘（nvme1n1），建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
 20. **nixpkgs pin**：`hermes-agent`（624af66：npm 依赖命中旧缓存）、`daeuniverse`（b12141ef：pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。⚠️ `niri` 已不 pin（改用 nixpkgs `pkgs.niri`，见「六」）。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。

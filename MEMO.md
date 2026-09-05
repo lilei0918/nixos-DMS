@@ -130,7 +130,7 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 | 数据库文件 | `/var/lib/vaultwarden/db.sqlite3` |
 | 本地备份目录 | `/var/lib/vaultwarden/backups/`（保留 7 天） |
 
-备份两层：本地(7d) + 加密盘 `/mnt/vault/vaultwarden/backups/`（只增不删，vault 解锁时才归档）。
+备份三层：本地(7d) + DATATB 镜像 `/run/media/lilei/DATATB/vaultwarden-backup/`（随 7 天滚动）+ 加密盘 `/mnt/vault/vaultwarden/backups/`（只增不删，vault 解锁时才归档）。
 
 ---
 

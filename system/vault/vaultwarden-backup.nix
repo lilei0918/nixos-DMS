@@ -1,25 +1,28 @@
 {pkgs, ...}: {
   ############################################
-  # Vaultwarden 数据库在线备份（本地 + 加密盘按需归档）
-  # 历史：曾把加密盘副本外的另一份 rsync 到 Arch btrfs 分区
-  #       （UUID 9dccd22a-…，README 分区表记为 nvme0n1p7），Arch 已于 2026-09 删除，
-  #       nvme0n1 现为 Win11 + NixOS 双系统，异盘同步段已移除。
+  # Vaultwarden 数据库在线备份（本地 + DATATB 镜像 + 加密盘归档）
+  # 历史：曾把备份 rsync 到 Arch btrfs 分区（UUID 9dccd22a-…，README 记为 nvme0n1p7），
+  #       Arch 已于 2026-09 删除，异盘同步段移除后改镜像到本机数据盘 DATATB。
   # 现在的备份：
   #   1. 本地：sqlite3 .backup → /var/lib/vaultwarden/backups/（保留 7 天）
-  #   2. 加密盘（按需，长期归档）：vault 已解锁挂载才 rsync（只增不删）到
+  #   2. DATATB（镜像）：rsync --delete → /run/media/lilei/DATATB/vaultwarden-backup/
+  #      （与本地同滚动 7 天；DATATB 为 ntfs3 自动挂载的数据盘）
+  #   3. 加密盘（按需，长期归档）：vault 已解锁挂载才 rsync（只增不删）到
   #      /mnt/vault/vaultwarden/backups/；未解锁跳过并留日志
-  # 注：本地与加密盘现同属 nvme1n1 一块物理盘，异盘容灾已不存在；
-  #     长期归档请定期外导（U 盘等离线介质）再保一份（习惯同 backup-credentials.sh）。
+  # 注：本地、DATATB、加密盘分属 nvme1n1 的不同分区但同属一块物理盘，
+  #     分区/文件系统级冗余有，异盘容灾仍没有；长期归档请定期外导
+  #     （U 盘等离线介质）再保一份（习惯同 backup-credentials.sh）。
   # 注：Vaultwarden 新版已移除内置备份，故用 sqlite3 .backup 在线备份（WAL 安全）
   ############################################
   systemd.services.vaultwarden-backup = {
-    description = "Backup Vaultwarden db (local + vault archive)";
+    description = "Backup Vaultwarden db (local + DATATB mirror + vault archive)";
 
     after = ["vaultwarden.service"];
 
     path = with pkgs; [
       sqlite # sqlite3 在线备份 + integrity_check
-      rsync # 同步到加密盘
+      rsync # 同步到 DATATB / 加密盘
+      util-linux # mountpoint：检测 DATATB / vault 是否挂载
       coreutils
       findutils
     ];
@@ -66,6 +69,17 @@
       # 本地保留最近 KEEP_DAYS 天
       find "$BACKUP_DIR" -name 'backup-*.db' -mtime +$((KEEP_DAYS - 1)) -delete
 
+      # DATATB 数据盘镜像（随本地 7 天滚动，--delete 保持同步）
+      DATATB_MP=/run/media/lilei/DATATB
+      DATATB_DEST="$DATATB_MP/vaultwarden-backup"
+      if mountpoint -q "$DATATB_MP"; then
+        mkdir -p "$DATATB_DEST"
+        rsync -a --delete "$BACKUP_DIR/" "$DATATB_DEST/"
+        echo "vaultwarden backups mirrored to $DATATB_DEST"
+      else
+        echo "DATATB not mounted, skip mirror"
+      fi
+
       # 加密盘副本（按需，长期归档）：vault 已解锁挂载才同步
       if [ -b /dev/mapper/vault ] && mountpoint -q /mnt/vault; then
         VAULT_DEST=/mnt/vault/vaultwarden/backups
@@ -80,7 +94,7 @@
   };
 
   systemd.timers.vaultwarden-backup = {
-    description = "Daily backup of Vaultwarden (local + vault archive)";
+    description = "Daily backup of Vaultwarden (local + DATATB mirror + vault archive)";
 
     wantedBy = ["timers.target"];
 
