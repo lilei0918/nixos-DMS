@@ -19,11 +19,14 @@
         # GRUB theme: nixos-grub-themes 'nixos' (NixOS default look)
         theme = inputs.nixos-grub-themes.packages.${pkgs.system}.nixos;
 
-        # Deterministically add Windows: GRUB scans all disks at boot for
-        # bootmgfw.efi (across the separate ESP), no os-prober dependency.
+        # Deterministically add Windows: locate the separate Windows ESP (p1)
+        # by filesystem UUID instead of scanning all disks for bootmgfw.efi,
+        # which is flaky at boot. No os-prober dependency.
         extraEntries = ''
           menuentry "Windows 11" {
-            search --file /EFI/Microsoft/Boot/bootmgfw.efi --set=root
+            insmod part_gpt
+            insmod fat
+            search --fs-uuid --set=root 785A-7651
             chainloader /EFI/Microsoft/Boot/bootmgfw.efi
           }
         '';
