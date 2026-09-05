@@ -46,7 +46,7 @@
 
 ## 6. 环境
 
-- 主机：Lenovo Legion R7000P 2021；NixOS（主机名 `nixos`，flake 名 `legion`）+ Arch + Win11 多系统引导。
+- 主机：Lenovo Legion R7000P 2021；NixOS（主机名 `nixos`，flake 名 `legion`）+ Win11 双系统引导（NixOS GRUB 主引导；Arch 已于 2026-09 删除）。
 - 会话：niri（Wayland）桌面；终端常用 fish，默认登录 shell zsh。
 - 挂载点：数据盘 `/run/media/lilei/DATATB`（ntfs3 自动挂载）、加密盘 `/mnt/vault`（`vault-open` / `vault-close` 手动解锁）。
 - 涉及 `systemctl` / `nh` / `sudo` / 加密盘的操作默认需用户确认（详见 `agents/permissions.md`）。

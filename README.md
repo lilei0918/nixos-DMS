@@ -13,8 +13,7 @@ nh os switch .#legion
 
 
 > **目标**：让 AI 助手（Hermes 等）理解这套 NixOS 配置的完整结构、硬件背景和日常维护流程，以便提供精准的操作建议。
-> **本文档基于仓库实际文件内容整理（2026-08-16 通读核实），与配置仓库同步维护。**
-> 动态值（generation、版本号等）以实际命令输出为准。
+> **本文档为静态知识库**：只维护长期不变的事实（硬件拓扑、模块结构、维护流程）。系统版本、generation、内核、服务状态等动态值**一律不写入文档**，需要时按「二、当前系统状态」的获取命令实时查询。涉及硬件事实的测量日期在对应表格处标注。
 
 ---
 
@@ -27,14 +26,15 @@ nh os switch .#legion
   - 独立显卡：NVIDIA RTX 3060（默认通过 `nvidia-block.nix` 屏蔽、仅用核显省电；`vars/default.nix` 的 `enableNvidia = true` 可切换启用 `nvidia.nix` 的 PRIME offload + RTD3 省电方案）
 - **内存**：32GB
 - **存储**（⚠️ NVMe 设备名 `nvme0n1`/`nvme1n1` 会随 BIOS 枚举顺序变化，**一切以 UUID 为准**，详见下方分区详表）：
-  - **nvme0n1 — SKHynix 512GB**（型号 SKHynix_HFS512GDE9X084N）：Windows 11 + Arch Linux 双系统盘（Arch 的 btrfs 分区 `myArch` 是 Vaultwarden 备份的自动镜像目标）
-  - **nvme1n1 — ZHITAI 1TB**（型号 ZHITAI TiPlus7100 1TB）：NixOS 主盘（Btrfs 根分区）+ NTFS 数据盘 DATATB + **20G LUKS 加密盘**，用作密码库/个人文件
+  - **nvme0n1 — SKHynix 512GB**（型号 SKHynix_HFS512GDE9X084N）：Windows 11 系统盘 + **NixOS EFI 分区**（`nvme0n1p6`，NixOS GRUB 引导所在）
+  - **nvme1n1 — ZHITAI 1TB**（型号 ZHITAI TiPlus7100 1TB）：NixOS 主盘（Btrfs 根分区）+ NTFS 数据盘 DATATB + **20G LUKS 加密盘**，用作密码库/个人文件（含 Vaultwarden 备份归档）
 
-### 存储与分区详表（2026-08-04 实测，2026-08-16 复验未变）
+### 存储与分区详表（2026-09-05 实测）
 
-> 数据核实于 2026-08-04（`lsblk` / `blkid`）。⚠️ 设备名（`nvme0n1`/`nvme1n1`、`p1`~`p7`）在不同启动可能互换，**配置与脚本一律用 UUID**，故本表 UUID 才是权威标识。
+> 数据核实于 2026-09-05（`lsblk` / `blkid`）；核对命令：`lsblk -f`、`sudo blkid`。
+> ⚠️ 设备名（`nvme0n1`/`nvme1n1`、`p1`~`p6`）在不同启动可能互换，**配置与脚本一律用 UUID**，故本表 UUID 才是权威标识。
 
-#### 盘 A：`nvme0n1` — SKHynix 512GB（GPT，Windows 11 + Arch Linux）
+#### 盘 A：`nvme0n1` — SKHynix 512GB（GPT，Windows 11 + NixOS EFI）
 
 | 分区 | 大小 | 文件系统 | 标签 | 用途 | UUID（FS） | PARTUUID |
 |------|------|---------|------|------|-----------|----------|
@@ -43,11 +43,9 @@ nh os switch .#legion
 | `nvme0n1p3` | 148.5 GB | ntfs | Win11 | Windows 11 系统盘 (C:) | `68D4EDC8D4ED9918` | `e68b0315-6182-4c7f-b465-ae6b74480f0e` |
 | `nvme0n1p4` | 860 MB | ntfs | — | Windows 恢复分区 (WinRE) | `B01E9F761E9F33F6` | `c9a86558-9295-4e88-8553-3061acf3c73e` |
 | `nvme0n1p5` | 571 MB | ntfs | — | Windows 恢复分区 (WinRE) | `6016A3AC16A381A0` | `29f912b6-a781-4cba-8913-41767db0879e` |
-| `nvme0n1p6` | 2 GB | vfat | — | **NixOS EFI**（GRUB 主引导，挂载 `/boot/efi`；2026-09-05 复验） | `AC09-EF5B` | `cc17ada6-9af8-4df3-b926-33770fe489cb` |
-| `nvme0n1p7` | 325.9 GB | btrfs | myArch | **Arch Linux 根分区** | `9dccd22a-c64e-494b-ab1a-e226b843516e` | `5db57926-a703-4680-ae4a-9da3465bd86e` |
+| `nvme0n1p6` | 2 GB | vfat | — | **NixOS EFI**（GRUB 主引导，挂载 `/boot/efi`） | `AC09-EF5B` | `cc17ada6-9af8-4df3-b926-33770fe489cb` |
 
-- nvme0n1p7 的 Btrfs 顶层（`subvol=/`）下子卷：`@`、`@cache`、`@home`、`@log`、`@snapshots`、`@tmp`（Arch 侧）
-- Vaultwarden 每日备份的 Arch 盘镜像目标即此分区（`subvol=/` 顶层，`@home/anan/Documents/vaultwarden-backup`），与配置文件 `vaultwarden-backup.nix` 中的 UUID `9dccd22a-...` 对应
+- 盘 A 另有约 325 GB 未分配空间（原 Arch 根分区 `nvme0n1p7` 已于 2026-09 删除，现为纯双系统）
 
 #### 盘 B：`nvme1n1` — ZHITAI TiPlus7100 1TB（NixOS 主盘）
 
@@ -61,27 +59,37 @@ nh os switch .#legion
 - `nvme1n1p3` 即 LUKS 加密盘，对应 `vault.nix` 中的 LUKS UUID `86c742fc-...`；解锁后为 ext4，挂载 `/mnt/vault`
 - **DATATB 自动挂载**：已在 `hosts/legion/configuration.nix` 的 `fileSystems."/run/media/lilei/DATATB"` 中配置（`ntfs3` + `x-systemd.automount`，`nofail`，uid=1000/gid=100/umask=022），挂载点与 udisks2 路径保持一致
 
-- **多系统引导（2026-09-05 实测）**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI，挂 `/boot/efi`）是**两个独立 ESP**。主引导为 p6 上的 **NixOS GRUB**，开机直接进 GRUB 菜单（最新 NixOS 默认 + `Windows 11`，5 秒倒计时），NixOS 的 generations 也在同一菜单内选择；Windows 原生 EFI 留在 p1 不动。⚠️ 盘 A 上 `p7`（Arch Linux 根分区）为**旧版布局残留**：2026-09-05 实测已不存在（约 325 GB 未分配），若 `vaultwarden-backup.nix` 仍指向旧 Arch 子卷 UUID `9dccd22a-…` 需一并核对。引导细节与 NVRAM 说明见「四.6 `system/boot.nix`」与「九」的『特别注意（多系统引导）』。
+- **多系统引导（2026-09-05 实测）**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI，挂 `/boot/efi`）是**两个独立 ESP**。主引导为 p6 上的 **NixOS GRUB**，开机直接进 GRUB 菜单（最新 NixOS 默认 + `Windows 11`，5 秒倒计时），NixOS 的 generations 也在同一菜单内选择；Windows 原生 EFI 留在 p1 不动。引导细节与 NVRAM 说明见「四.6 `system/boot.nix`」与「九」的『特别注意（多系统引导）』。
 - **主机名**：`nixos`（`system/network.nix` 中设置；flake 配置名才是 `legion`）
 - **NixOS 用户**：仅 **`lilei`**（普通用户，加入 `wheel`、`networkmanager`、`video`、`input`、`hermes` 组）。
 - **配置仓库**：`git@github.com:lilei0918/nixos-DMS.git`（本地路径 `/home/lilei/nixos-DMS`），已备份。
 
 ---
 
-## 二、当前系统状态（快照）
+## 二、当前系统状态（以命令实测为准）
 
-> 数据核实于 2026-08-16，部分动态值会变化。以实际命令输出为准。
+> 本节只给**获取命令**与**不变的架构事实**，不保存会过期的版本号 / generation / 服务状态 / 运行时长。
+> 需要某时刻的实测值时执行对应命令即可，输出即为当时状态。
 
-- **NixOS 版本**：26.11 (Zokor) —— 实际使用 nixpkgs unstable（commit 以 `flake.lock` 为准，2026-08-20 更新后为 ffb3c9b7），`system.stateVersion` 设为 `25.05`
-- **内核**：Linux 7.1.7（来自 `linuxPackages_latest`）
-- **显示管理器**：greetd + **tuigreet**（Wayland 会话，`--cmd niri-session`）
-- **窗口管理器**：niri 26.04（nixpkgs 自带 `pkgs.niri`，跟随 unstable；配置为手写 KDL，见 `home/niri/`）
-- **默认终端**：alacritty 0.17.0（`super+return`）；ghostty 为次选（`super+shift+return`）
-- **当前 Shell**：fish 4.8.1（终端常用）；默认登录 shell 为 zsh 5.9.2，可自由切换
-- **系统 Generation**：103（2026-08-16 实测 `/nix/var/nix/profiles/system-103-link`；仓库工作区可能已有未提交的「before switch」改动，以新 generation 为准）
-- **系统已安装天数**：19 天（从本次安装算起，`stat -c %W /` 的 birth time）
-- **Hermes 服务状态**：`hermes-agent` 运行中（active）
-- **其他服务**：`greetd` / `daed` / `vaultwarden.service` 均 active
+**固定架构（不随升级变化的部分）**：
+- 显示管理器：greetd + **tuigreet**（Wayland，`--cmd niri-session`）
+- 窗口管理器：**niri**（nixpkgs 自带 `pkgs.niri`，手写 KDL，见「六、Niri 配置」）
+- 终端：主用 **alacritty**（`super+return`）；次选 **ghostty**（`super+shift+return`）
+- Shell：终端常用 **fish**；默认登录 shell 为 **zsh**，可自由切换
+- 会话：纯 Wayland（X 应用走 xwayland-satellite）
+
+**动态值 → 获取命令**：
+
+| 要查什么 | 命令 |
+|----------|------|
+| NixOS 版本 | `nixos-version` |
+| 内核版本 | `uname -r` |
+| nixpkgs unstable commit | `nix flake metadata`（或直接看 `flake.lock`） |
+| 当前 / 历史 generation | `sudo nixos-rebuild list-generations` |
+| 系统安装天数 | `echo $(( ($(date +%s) - $(stat -c %W /)) / 86400 ))` |
+| 各服务状态 | `systemctl is-active greetd daed vaultwarden.service hermes-agent` |
+| 磁盘 / 分区（UUID 权威） | `lsblk -f`、`sudo blkid` |
+| 快速总览 | `fastfetch` |
 
 ---
 
@@ -136,7 +144,7 @@ nixos-DMS/
 │   └── vault/               # 加密数据盘 + Vaultwarden 密码管理器
 │       ├── vault.nix            # LUKS 加密盘（vault-open / vault-close，手动解锁）
 │       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
-│       ├── vaultwarden-backup.nix  # 每日在线备份（本地 + Arch 盘 + 加密盘按需）
+│       ├── vaultwarden-backup.nix  # 每日在线备份（本地 7 天 + 加密盘按需归档）
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
@@ -236,7 +244,7 @@ nixos-DMS/
   - `/` → 子卷 `@`，`compress=zstd,noatime,discard=async`
   - `/home` → 子卷 `@home`、`/nix` → 子卷 `@nix`、`/var/log` → 子卷 `@log`
   - `/tmp` → tmpfs（`mode=1777,nosuid,nodev,size=4G`）
-  - `/boot/efi` → VFAT，UUID `9B06-514F`，`fmask=0022,dmask=0022`
+  - `/boot/efi` → VFAT，UUID `AC09-EF5B`（nvme0n1p6，NixOS 独立 ESP；权威值以本文件为准），`fmask=0022,dmask=0022`
 - `swapDevices = []`（无交换）
 - `networking.useDHCP = lib.mkDefault true`
 - `nixpkgs.hostPlatform = "x86_64-linux"`
@@ -378,7 +386,8 @@ nixos-DMS/
 
 **关键内容**：
 - `imports = [ inputs.daeuniverse.nixosModules.daed ]`
-- `services.daed.enable = true`，面板监听 `127.0.0.1:2023`，tproxy 端口 12345
+- `services.daed.enable = true`，面板监听 `127.0.0.1:2023`，tproxy 端口 12345（**仅本机透明代理用**）
+- `openFirewall.enable = false`：不对外放行 tproxy 端口（上游模块默认 true 会把 TCP/UDP 12345 开给局域网，属多余暴露面；仅当确要当局域网代理网关时才改回 true）
 - `assetsPaths` 使用 **Loyalsoldier 增强版规则库**（`v2ray-rules-dat`，含 `geosite:gfw` 等分类）；默认的 `v2ray-domain-list-community` 无 gfw 分类会报 `code gfw not found`
 - `networking.firewall.checkReversePath = "loose"`（dae 用 TPROXY 分流，回程流量需放行）
 - ⚠️ **garnix 二进制缓存已注释禁用**：`cache.garnix.io` 时常 503 挂掉拖慢每次 rebuild；需要更新 daed/dae 时再临时启用，或本地编译
@@ -387,7 +396,7 @@ nixos-DMS/
 
 **日常使用**：
 1. 访问 `http://127.0.0.1:2023` 打开面板（初始密码看 `systemctl status daed` 日志）
-2. 初始化配置：tproxy_port 填 **12345**（与 `openFirewall.port` 一致）
+2. 初始化配置：tproxy_port 填 **12345**（仅本机透明代理用，防火墙不放行此端口）
 3. 添加订阅 URL → 自动导入节点 → 配置 group / routing → 运行
 4. 面板可网页内更新订阅、切换节点，无需改 nix 配置
 5. 若报 `code xxx not found in geosite.dat`：确认 `/etc/daed/geosite.dat` 软链指向 `v2ray-rules-dat`（`ls -l /etc/daed/`），必要时 `systemctl restart daed`
@@ -564,16 +573,15 @@ nixos-DMS/
 
 ### 28. `system/vault/vaultwarden-backup.nix`
 
-**作用**：Vaultwarden 数据库每日在线备份（**三层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。
+**作用**：Vaultwarden 数据库每日在线备份（**两层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。历史同步目标（Arch btrfs 盘 `nvme0n1p7`，UUID `9dccd22a-…`）已于 2026-09 Arch 删除时一并移除。
 
-**三层备份**：
-1. **本地**：`sqlite3 .backup` → `/var/lib/vaultwarden/backups/backup-*.db`（保留 7 天）
-2. **Arch 盘（自动镜像）**：systemd timer `vaultwarden-sync.timer`（`OnCalendar=daily` + `Persistent=true`，关机错过则开机补跑）→ 挂载 Arch btrfs 盘（`nvme0n1p7`，UUID `9dccd22a-c64e-494b-ab1a-e226b843516e`，`subvol=/` 顶层）rsync `--delete` 到 `@home/anan/Documents/vaultwarden-backup`（Arch 侧 `/home/anan/Documents/vaultwarden-backup`）后卸载
-3. **加密盘（按需，长期归档）**：备份脚本末尾检测 `[ -b /dev/mapper/vault ] && mountpoint -q /mnt/vault`，已解锁则 rsync（**只增不删**）到 `/mnt/vault/vaultwarden/backups/`；未解锁自动跳过，不影响 Arch 那份
+**两层备份**：
+1. **本地**：`sqlite3 .backup` → `/var/lib/vaultwarden/backups/backup-*.db`（保留 7 天；生成后跑 `PRAGMA integrity_check`，校验失败的文件直接删除并让本次备份失败，避免留坏档）
+2. **加密盘（按需，长期归档）**：备份脚本末尾检测 `[ -b /dev/mapper/vault ] && mountpoint -q /mnt/vault`，已解锁则 rsync（**只增不删**）到 `/mnt/vault/vaultwarden/backups/`；未解锁自动跳过并留日志
 
 **使用**：
-- 手动触发一次：`sudo systemctl start vaultwarden-sync`
-- 三份备份分属两块物理盘（nvme0n1 Arch 盘 + nvme1n1 加密盘），单盘损坏不丢全部；加密盘副本作为长期归档，不随 7 天策略滚动删除
+- 手动触发一次：`sudo systemctl start vaultwarden-backup`
+- ⚠️ 本地与加密盘现同属 **nvme1n1 一块物理盘**，Arch 删除后已无异盘容灾；加密盘归档请定期外导（U 盘等离线介质）再保一份（习惯同 `scripts/backup-credentials.sh`）
 
 ---
 
@@ -803,7 +811,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | 查看 NixOS 版本 | `nixos-version` |
 | 打开加密盘（解锁+挂载） | `sudo vault-open` |
 | 关闭加密盘（卸载+锁） | `sudo vault-close` |
-| 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-sync` |
+| 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-backup` |
 | 备份信任根/凭据 | `sudo bash scripts/backup-credentials.sh`（到加密盘，默认保留 5 份） |
 | 查看加密盘状态 | `cryptsetup status vault`、`lsblk /dev/nvme1n1p3` |
 | 运行非 Nix 二进制 | 直接运行解压后的 AppImage/.deb（nix-ld 提供系统库），或 `appimage-run xxx.AppImage` |
@@ -884,7 +892,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
    ```
    恢复后路径必须是 `/etc/sops/age/keys.txt`（`sops.age.keyFile` 指向它），之后 rebuild 即全自动：密码 hash、Vaultwarden TLS 证书全部由 sops 解密生成，无需其它手动步骤。
 7. **镜像源**：已配置 Tuna/USTC 镜像，更新速度较快。daeuniverse 的 garnix 缓存已禁用（常 503）。
-8. **NixOS 版本**：实际使用 unstable（当前 26.11，nixpkgs commit 以 `flake.lock` 为准，2026-08-20 更新后为 ffb3c9b7），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
+8. **NixOS 版本**：实际使用 nixpkgs **unstable**（具体版本 / commit 以 `flake.lock` 为准，`nixos-version` / `nix flake metadata` 可查），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
 9. **用户组**：`lilei` 已加入 `hermes` 组，这是使用 Hermes 服务的前提。
 10. **机密文件**：`secrets/secrets.yaml` 已加密，可以提交到 GitHub，但 age 私钥绝不可提交（已在 `.gitignore` 中忽略）。
 11. **Rime 部署**：rebuild/重启后若雾凇输入法未出现，手动运行 `fcitx5-remote -r` 触发部署（rime 目录由 home.file 声明式管理，部署懒触发）。详见 `home/programs/rime.nix` 头部注释。
@@ -894,7 +902,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 15. **Vaultwarden 证书**：本地 CA + 证书位于 `/var/lib/vaultwarden/tls/`（0700 root），由 sops 解密生成（`secrets.yaml` 的 `vaultwarden_tls_*`），rebuild 不轮换；CA 公钥 `system/vault/certs/vaultwarden-ca.crt` 经 `security.pki.certificateFiles` 写入系统信任，浏览器零警告无需手动导入。换证书流程见「vaultwarden.nix」一节。
 16. **加密盘手动解锁**：LUKS 加密盘（`/dev/nvme1n1p3`，UUID `86c742fc-8de5-4c59-9a30-196484a35695`）开机**不自动挂载**，用 `sudo vault-open` / `sudo vault-close` 管理。**解锁密码 = 全部数据的钥匙**，丢失即永久丢失、无法找回，务必离线备份（纸质 / U 盘，参照 sops age key 的备份习惯）。
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
-18. **加密盘备份策略**：备份脚本第 3 层只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过；加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。
+18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；本地与加密盘同属一块物理盘，加密盘内文件建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
 20. **nixpkgs pin**：`hermes-agent`（624af66：npm 依赖命中旧缓存）、`daeuniverse`（b12141ef：pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。⚠️ `niri` 已不 pin（改用 nixpkgs `pkgs.niri`，见「六」）。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。

@@ -3,7 +3,7 @@
 # =============================================================================
 # daed 使用方式：
 #   1. 首次启用后访问 http://127.0.0.1:2023
-#   2. 初始化时配置：tproxy_port 填 12345（与下方 openFirewall.port 一致）
+#   2. 初始化时配置：tproxy_port 填 12345（仅本机透明代理用，不对外放行防火墙）
 #   3. 在面板中添加订阅 URL、配置 group / routing，点运行即可
 #
 # 注意：daed 与 mihomo（system/proxy/mihomo.nix）不能同时开启。
@@ -34,10 +34,12 @@
       "${pkgs.v2ray-rules-dat}/share/v2ray/geosite.dat"
     ];
 
-    # 开放 tproxy 端口（需与面板里的 tproxy_port 一致，默认 12345）
+    # tproxy 端口仅供本机 eBPF 透明代理，无需对局域网开放。
+    # 上游模块默认 openFirewall.enable=true 会把 TCP/UDP 12345 放行到全网，
+    # 属多余暴露面，显式关闭（仅当确要当局域网代理网关时才改回 true）。
     openFirewall = {
-      enable = true;
-      port = 12345;
+      enable = false;
+      port = 12345; # 与面板 tproxy_port 保持一致，供文档/排查核对
     };
   };
 

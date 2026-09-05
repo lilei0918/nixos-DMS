@@ -8,8 +8,9 @@
 #   nvme1n1p2  150G    btrfs NIXOS   根分区  → 本配置格式化为 btrfs + 子卷（⚠️ 会清空此分区）
 #   nvme1n1p3  20G     LUKS2 加密盘          → 本配置【不】格式化，仅占位保留
 #
-# ⚠️ EFI（/boot/efi）在 nvme0n1p6（Arch 共用 ESP，UUID 9B06-514F），本配置不碰，
-#    由安装步骤手动挂载；NixOS 引导为 systemd-boot（boot.nix，写入该共用 ESP）。
+# ⚠️ EFI（/boot/efi）在 nvme0n1p6（NixOS 独立 ESP，UUID AC09-EF5B，2026-09-05 实测），
+#    本配置不碰，由安装步骤手动挂载；NixOS 引导为 GRUB（boot.nix，写入该 ESP）。
+#    Windows 11 在 nvme0n1p1 的独立 ESP，二者互不相干。
 #
 # 用法（在 NixOS 官方 ISO 中）：
 #   保留 DATATB + 加密盘（分区表已存在，只格式化/挂载根分区）：

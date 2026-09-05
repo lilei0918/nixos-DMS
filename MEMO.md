@@ -89,10 +89,10 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
   - `daeuniverse`：nixpkgs pin 在 `b12141ef`（pnpm 10.x）
   - 升级它们前先确认上游已兼容（pnpm 11 等），并验证能构建
   - ⚠️ `niri` 已不再 pin（2026-08-30 改）：改用 nixpkgs `pkgs.niri`，配置为手写 KDL（`home/niri/conf/*.kdl`）
-- 大升级后建议重启，确认新 generation 能被引导（主引导 Arch GRUB + systemd-boot 次引导，systemd-boot 里可回滚）
+- 大升级后建议重启，确认新 generation 能被引导（NixOS GRUB 主引导，GRUB 菜单里可选旧 generation 回滚）
 
 **坏了的回滚**：
-- 启动时在 systemd-boot 菜单选旧 generation；或 `rollback`
+- 启动时在 GRUB 菜单选旧 generation；或 `rollback`
 
 **常见升级踩坑**：
 | 现象 | 处理 |
@@ -100,7 +100,7 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 | daed/daeuniverse 构建失败 | nixpkgs 升级可能动了 pnpm 版本；确认 `daeuniverse` 的 pin 没被破坏，必要时临时启用 garnix 缓存或本地编译 |
 | niri 配置解析失败 | 用 `niri validate` 校验 `~/.config/niri/config.kdl`；niri 随 nixpkgs 升级，KDL 语法若有破坏性变更需同步改 `home/niri/conf/` |
 | hermes 构建变慢/重新下 npm 依赖 | 它的 nixpkgs pin 在 624af66（命中旧缓存）；别轻易升级该 pin，否则全量重下 |
-| 新 generation 无法引导 | systemd-boot 选旧 generation 回滚，修复后再切 |
+| 新 generation 无法引导 | GRUB 选旧 generation 回滚，修复后再切 |
 
 ---
 
@@ -126,11 +126,11 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 | 访问 | `https://localhost:8080`（必须 https） |
 | 管理后台 | `https://localhost:8080/admin` |
 | 重启容器 | `sudo systemctl restart vaultwarden.service` |
-| 手动备份一次 | `sudo systemctl start vaultwarden-sync` |
+| 手动备份一次 | `sudo systemctl start vaultwarden-backup` |
 | 数据库文件 | `/var/lib/vaultwarden/db.sqlite3` |
 | 本地备份目录 | `/var/lib/vaultwarden/backups/`（保留 7 天） |
 
-备份三层：本地(7d) + Arch 盘 rsync + 加密盘 `/mnt/vault/vaultwarden/backups/`（只增不删）。
+备份两层：本地(7d) + 加密盘 `/mnt/vault/vaultwarden/backups/`（只增不删，vault 解锁时才归档）。
 
 ---
 

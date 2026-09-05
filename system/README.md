@@ -6,7 +6,7 @@
 |------|------|
 | `nix.nix`      | Nix 设置：flakes、Tuna/USTC 镜像、GC（每日删 3 天）、NUR overlay |
 | `cleanup.nix`  | journal 上限 50M + `~/.cache` 用户缓存 tmpfiles 3 天清理 |
-| `boot.nix`     | systemd-boot、`linuxPackages_latest`、内核参数 |
+| `boot.nix`     | GRUB 主引导（NixOS ESP，Windows 11 经 extraEntries）、`linuxPackages_latest`、内核参数 |
 | `hardware.nix` | AMD 图形、蓝牙、fstrim、btrfs autoScrub |
 | `network.nix`  | NetworkManager + NTP（防火墙已下放到 proxy/） |
 | `services.nix` | DMS、PipeWire、tuned 电源调度（PPD 模拟）+ Legion 静音兜底（Hermes Agent 已移至 `home/programs/AI/hermes-service.nix`） |
