@@ -16,8 +16,8 @@
 
         device = "nodev";
 
-        # GRUB theme: nixos-grub-themes 'bigsur' (macOS look)
-        theme = inputs.nixos-grub-themes.packages.${pkgs.system}.big-sur;
+        # GRUB theme: nixos-grub-themes 'nixos' (NixOS default look)
+        theme = inputs.nixos-grub-themes.packages.${pkgs.system}.nixos;
 
         # Deterministically add Windows: GRUB scans all disks at boot for
         # bootmgfw.efi (across the separate ESP), no os-prober dependency.

@@ -188,7 +188,7 @@ nixos-DMS/
   - `hermes-agent`（固定 commit `1cdb8ce361e91c79cfbd6bee550ee6c09d290261`，nixpkgs 也固定 `624af66`）
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
-  - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `big-sur`）
+  - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `nixos`）
   - `daeuniverse`（固定 commit `42ece300b6360bab592f13c64ce1987df20475d5`，nixpkgs 固定 `b12141ef`，**不 follows**）
 - **nixpkgs pin 说明**：
   - ⚠️ **niri 已不使用 niri-flake**（2026-08-30 改）：改用 nixpkgs 自带 `pkgs.niri`（跟随 nixpkgs unstable，26.04，支持 `include` 语法），配置改为手写 KDL（`home/niri/conf/*.kdl`）。曾因 niri-flake 的 nixpkgs pin（`624af66`，libdisplay-info 0.2.0）而锁定 stable 25.08，现已废弃该方案。
@@ -274,7 +274,7 @@ nixos-DMS/
 **内容**：
 - `boot.loader.timeout = 5`：菜单 5 秒倒计时，超时进入最新 NixOS generation（默认项）
 - `boot.loader.grub`：`enable = true`、`efiSupport = true`、`device = "nodev"`（EFI 安装到 `/boot/efi`）
-- `boot.loader.grub.theme`：macOS Big Sur 风格主题（`inputs.nixos-grub-themes.packages.${pkgs.system}.big-sur`，flake input `nixos-grub-themes`）
+- `boot.loader.grub.theme`：NixOS 官方 logo 风格主题（`inputs.nixos-grub-themes.packages.${pkgs.system}.nixos`，flake input `nixos-grub-themes`）
 - `boot.loader.grub.extraEntries`：手写 `Windows 11` menuentry —— `search --file /EFI/Microsoft/Boot/bootmgfw.efi --set=root` + `chainloader`，GRUB 每次开机跨磁盘找 p1 的引导文件（**不依赖 os-prober**，Windows 更新后无需手动同步）
 - `extraEntriesBeforeNixOS = false`：Windows 排在 NixOS 之后，保持默认项为 NixOS
 - `boot.loader.efi.efiSysMountPoint = "/boot/efi"`

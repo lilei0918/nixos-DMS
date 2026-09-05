@@ -56,6 +56,7 @@ in {
     # ../../home/programs/gaming.nix
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
+    ../../home/programs/AI/codex.nix
     ../../home/programs/AI/pi.nix
     ../../home/programs/AI/hermes.nix
     ../../home/terminal/alacritty.nix
