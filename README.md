@@ -43,7 +43,7 @@ nh os switch .#legion
 | `nvme0n1p3` | 148.5 GB | ntfs | Win11 | Windows 11 系统盘 (C:) | `68D4EDC8D4ED9918` | `e68b0315-6182-4c7f-b465-ae6b74480f0e` |
 | `nvme0n1p4` | 860 MB | ntfs | — | Windows 恢复分区 (WinRE) | `B01E9F761E9F33F6` | `c9a86558-9295-4e88-8553-3061acf3c73e` |
 | `nvme0n1p5` | 571 MB | ntfs | — | Windows 恢复分区 (WinRE) | `6016A3AC16A381A0` | `29f912b6-a781-4cba-8913-41767db0879e` |
-| `nvme0n1p6` | 1 GB | vfat | — | **Arch/NixOS 共用 EFI**（systemd-boot，挂载 `/boot/efi`） | `9B06-514F` | `ab0a2471-a034-417b-9c18-8867261314b6` |
+| `nvme0n1p6` | 2 GB | vfat | — | **NixOS EFI**（GRUB 主引导，挂载 `/boot/efi`；2026-09-05 复验） | `AC09-EF5B` | `cc17ada6-9af8-4df3-b926-33770fe489cb` |
 | `nvme0n1p7` | 325.9 GB | btrfs | myArch | **Arch Linux 根分区** | `9dccd22a-c64e-494b-ab1a-e226b843516e` | `5db57926-a703-4680-ae4a-9da3465bd86e` |
 
 - nvme0n1p7 的 Btrfs 顶层（`subvol=/`）下子卷：`@`、`@cache`、`@home`、`@log`、`@snapshots`、`@tmp`（Arch 侧）
@@ -61,7 +61,7 @@ nh os switch .#legion
 - `nvme1n1p3` 即 LUKS 加密盘，对应 `vault.nix` 中的 LUKS UUID `86c742fc-...`；解锁后为 ext4，挂载 `/mnt/vault`
 - **DATATB 自动挂载**：已在 `hosts/legion/configuration.nix` 的 `fileSystems."/run/media/lilei/DATATB"` 中配置（`ntfs3` + `x-systemd.automount`，`nofail`，uid=1000/gid=100/umask=022），挂载点与 udisks2 路径保持一致
 
-- **多系统引导**：Arch Linux 的 GRUB 作为主引导，管理三个系统（Arch、Win11、NixOS）。NixOS 自身使用 **systemd-boot** 作为次引导，用于选择 NixOS 的 generations。
+- **多系统引导（2026-09-05 实测）**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI，挂 `/boot/efi`）是**两个独立 ESP**。主引导为 p6 上的 **NixOS GRUB**，开机直接进 GRUB 菜单（最新 NixOS 默认 + `Windows 11`，5 秒倒计时），NixOS 的 generations 也在同一菜单内选择；Windows 原生 EFI 留在 p1 不动。⚠️ 盘 A 上 `p7`（Arch Linux 根分区）为**旧版布局残留**：2026-09-05 实测已不存在（约 325 GB 未分配），若 `vaultwarden-backup.nix` 仍指向旧 Arch 子卷 UUID `9dccd22a-…` 需一并核对。引导细节与 NVRAM 说明见「四.6 `system/boot.nix`」与「九」的『特别注意（多系统引导）』。
 - **主机名**：`nixos`（`system/network.nix` 中设置；flake 配置名才是 `legion`）
 - **NixOS 用户**：仅 **`lilei`**（普通用户，加入 `wheel`、`networkmanager`、`video`、`input`、`hermes` 组）。
 - **配置仓库**：`git@github.com:lilei0918/nixos-DMS.git`（本地路径 `/home/lilei/nixos-DMS`），已备份。
@@ -116,7 +116,7 @@ nixos-DMS/
 ├── system/                  # 系统级配置（影响所有用户）
 │   ├── nix.nix              # Nix 自身设置（flakes、镜像源、GC 3d、NUR overlay）
 │   ├── cleanup.nix          # journal 日志上限 50M + 用户缓存 tmpfiles 3d 清理
-│   ├── boot.nix             # 启动引导（systemd-boot）
+│   ├── boot.nix             # 启动引导（GRUB 主引导，双 ESP 双系统菜单）
 │   ├── hardware.nix         # 硬件：GPU 图形、蓝牙、fstrim、btrfs scrub
 │   ├── network.nix          # 网络（NetworkManager、NTP）——防火墙配置已下放到 proxy/*.nix
 │   ├── services.nix         # 系统服务（DMS、PipeWire）
@@ -157,7 +157,7 @@ nixos-DMS/
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
-│       ├── fastfetch.nix    # 系统信息（logo 用 assets/icons/logo.png，自适应终端宽度）
+│       ├── fastfetch.nix    # 系统信息（FastCat Simple 主题，无 logo）
 │       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置；⚠️ 当前未导入 home.nix，保留备用）
 │       ├── git.nix          # git + delta
 │       ├── rime.nix         # Rime 输入法（rime-ice 方案 + fcitx 环境变量）
@@ -165,8 +165,7 @@ nixos-DMS/
 │       ├── thunar.nix       # 文件管理器（xfconf 依赖）
 │       ├── vscode/          # VSCodium 配置（vscode.nix）
 │       └── walker.nix       # 应用启动器（+ elephant 剪贴板依赖）
-└── assets/                  # 静态资源
-    └── icons/               # 图标（仅 logo.png，fastfetch 使用）
+└── assets/                  # 静态资源（icons/logo.png 已随 fastfetch 换主题删除）
 ```
 
 > 生成/忽略文件（不在 git 内）：`niri-colors.generated.kdl`（dms 动态主题生成）、`.pre-commit-config.yaml`（git-hooks.nix 生成）、`result/`、`.direnv/`。`.typos.toml` 是 typos 拼写检查配置（已提交）。
@@ -189,6 +188,7 @@ nixos-DMS/
   - `hermes-agent`（固定 commit `1cdb8ce361e91c79cfbd6bee550ee6c09d290261`，nixpkgs 也固定 `624af66`）
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
+  - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `big-sur`）
   - `daeuniverse`（固定 commit `42ece300b6360bab592f13c64ce1987df20475d5`，nixpkgs 固定 `b12141ef`，**不 follows**）
 - **nixpkgs pin 说明**：
   - ⚠️ **niri 已不使用 niri-flake**（2026-08-30 改）：改用 nixpkgs 自带 `pkgs.niri`（跟随 nixpkgs unstable，26.04，支持 `include` 语法），配置改为手写 KDL（`home/niri/conf/*.kdl`）。曾因 niri-flake 的 nixpkgs pin（`624af66`，libdisplay-info 0.2.0）而锁定 stable 25.08，现已废弃该方案。
@@ -267,12 +267,18 @@ nixos-DMS/
 
 ### 6. `system/boot.nix`
 
+**作用**：主引导配置（2026-09-05 起为 GRUB）。
+
+**背景**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI）是两个独立 ESP，systemd-boot 只会扫描自身所在 ESP，看不到 p1 的 Windows → 改用 GRUB 主引导。
+
 **内容**：
-- `boot.loader.grub.enable = false`
-- `boot.loader.systemd-boot`：`enable = true`，`configurationLimit = 5`
+- `boot.loader.timeout = 5`：菜单 5 秒倒计时，超时进入最新 NixOS generation（默认项）
+- `boot.loader.grub`：`enable = true`、`efiSupport = true`、`device = "nodev"`（EFI 安装到 `/boot/efi`）
+- `boot.loader.grub.theme`：macOS Big Sur 风格主题（`inputs.nixos-grub-themes.packages.${pkgs.system}.big-sur`，flake input `nixos-grub-themes`）
+- `boot.loader.grub.extraEntries`：手写 `Windows 11` menuentry —— `search --file /EFI/Microsoft/Boot/bootmgfw.efi --set=root` + `chainloader`，GRUB 每次开机跨磁盘找 p1 的引导文件（**不依赖 os-prober**，Windows 更新后无需手动同步）
+- `extraEntriesBeforeNixOS = false`：Windows 排在 NixOS 之后，保持默认项为 NixOS
 - `boot.loader.efi.efiSysMountPoint = "/boot/efi"`
-- `boot.loader.efi.canTouchEfiVariables = false`
-- `boot.tmp.cleanOnBoot = true`
+- `boot.loader.efi.canTouchEfiVariables = true`：NixOS 自管 NVRAM 引导项（rebuild 自动注册/自愈）
 - `boot.kernelPackages = pkgs.linuxPackages_latest`
 - `boot.kernelParams = [ "amd_pstate=passive" "nowatchdog" ]`
 
@@ -702,7 +708,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `walker.nix` | walker + elephant（剪贴板依赖，systemd user service，graphical-session.target 后启动）；**walker 本体由 niri spawn-at-startup 以 `--gapplication-service` 常驻**，super+d 秒开 |
 | `vscode/vscode.nix` | **VSCodium**：nix-ide、gitlens、material-icon、markdown-all-in-one、yaml、code-spell-checker（Nix LSP 统一用 nixd）。主题 **Catppuccin Mocha**。⚙️ Nix 格式化走 nixd：`nix.serverSettings.nixd.formatting.command = ["alejandra"]`。`redhat.telemetry.enabled=false` |
 | `btop.nix` | presets、TTY 配色、desktop entry（ghostty -e btop） |
-| `fastfetch.nix` | 自定义 logo（`assets/icons/logo.png`，type=auto、height 20、不设 width 自动缩放）+ 分组模块布局（Hardware/Software/Compositor） |
+| `fastfetch.nix` | FastCat `Small-Themes/Simple` 主题（无 logo、图标+RGB 配色、` ⌲ ` 分隔，来源见文件头） |
 | `rime.nix` | rime-ice（锁定 commit `8a3d9470`，声明式 home.file 管理）+ librime/librime-lua；**fcitx 环境变量（GTK/QT/XMODIFIERS/SDL_IM_MODULE）统一在此管理**。⚠️ **rebuild/重启后若雾凇未出现，手动运行 `fcitx5-remote -r` 触发部署**（详见文件头注释） |
 
 ---
@@ -748,7 +754,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 ### 回滚
 - 回滚到上一个 generation：`sudo nixos-rebuild switch --rollback`
-- 或在启动时从 systemd-boot 菜单选择旧 generation。
+- 或在启动时从 GRUB 菜单选择旧 generation。
 
 ### 垃圾清理
 - 删除所有旧 generation：`sudo nix-collect-garbage -d`
@@ -756,7 +762,11 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - fish/zsh 别名：`cleanup`（保留 14 天）；系统 GC 自动每日清理 3 天前 generation
 
 ### 特别注意（多系统引导）
-由于主引导由 Arch GRUB 负责，更新 NixOS 的 `boot.nix` 配置时，需确保 `/boot/efi` 内的 `systemd-boot` 文件正确生成。若修改了 EFI 分区挂载选项或路径，可能需要同步更新 GRUB 配置（通常无需手动干预，因为 NixOS 的 `systemd-boot` 独立工作）。
+主引导是 p6 上的 NixOS GRUB，Windows（p1 独立 ESP）经 GRUB 菜单进入。**NVRAM 引导项编号（`0004`/`0007`…）由固件动态分配，禁止在配置或脚本里硬编码**，一切以 `efibootmgr -v` 实测为准。
+- 正常状态（2026-09-05 实测）BootOrder ≈ `0007 NixOS-boot-efi`（GRUB）→ `0004 Windows Boot Manager` → 硬驱/USB/网络回退项。
+- 调整顺序用 efibootmgr（本机未常驻安装，临时调用）：`sudo nix run nixpkgs#efibootmgr -- -o <grub编号>,<windows编号>,…`。
+- 切换历史：从 systemd-boot 迁到 GRUB 时，曾删除指向旧 systemd-boot 的 `Linux Boot Manager`/`Fallback Linux Boot Manager` NVRAM 项并清理 p6 上的 `EFI/systemd`、`EFI/nixos`、`loader/` 目录；`EFI/BOOT/BOOTX64.EFI` 现为 GRUB 副本（固件回退路径，NVRAM 丢失也能起）。
+- 若固件把 NixOS 项挪后或删掉：`canTouchEfiVariables = true` 会在下次 rebuild 自愈，必要时用 efibootmgr 把 `NixOS-boot-efi` 排回最前。
 
 ---
 
@@ -815,9 +825,9 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
      # nix run github:nix-community/disko -- --mode create,format,mount hosts/legion/disko-fs.nix
      # ⚠️ 不要用 --mode destroy（会销毁整块盘）
 
-     # 挂载 Arch 共用 EFI（nvme0n1p6，UUID 9B06-514F；全新硬件需自行创建 EFI 分区并调整）
+     # 挂载 NixOS EFI（nvme0n1p6，UUID AC09-EF5B；全新硬件需自行创建 EFI 分区并调整）
      mkdir -p /mnt/boot/efi
-     mount /dev/disk/by-uuid/9B06-514F /mnt/boot/efi
+     mount /dev/disk/by-uuid/AC09-EF5B /mnt/boot/efi
      ```
    - **手动分区**：参照 `hosts/legion/hardware-configuration.nix`（Btrfs 子卷 `@/@home/@nix/@log`、`/tmp` tmpfs、EFI）
 2. **放置 age 私钥**（在安装前写入目标系统，供激活阶段解密密码 hash）：
@@ -851,7 +861,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 ## 十二、关键注意事项
 
-1. **多系统引导**：NixOS 的 `systemd-boot` 仅用于内部版本选择，主引导由 Arch 的 GRUB 管理。
+1. **多系统引导**：主引导为 NixOS GRUB（`system/boot.nix`），与 Windows 11（p1 独立 ESP）组成双系统菜单，NixOS generations 也在 GRUB 内选择；`bootmgfw.efi` 由 GRUB 每次开机动态搜索，Windows 更新后无需手动同步。
 2. **Btrfs 子卷**：系统使用 Btrfs 子卷布局（`@`, `@home`, `@nix`, `@log`），快照和回滚可基于此进行（当前未配置自动快照，但有 btrfs autoScrub）。
 3. **无交换分区**：内存充足（32GB），因此未配置 swap。
 4. **显卡驱动**：默认使用 AMD 核显（amdgpu），NVIDIA RTX 3060 被屏蔽省电（`nvidia-block.nix`）；`vars/default.nix` 的 `enableNvidia = true` 切换到 `nvidia.nix`（PRIME offload + RTD3，独显空闲自动断电）。系统为纯 Wayland，未启用 `services.xserver`（X 应用走 `xwayland-satellite`），启用独显时会自动开启。
@@ -896,8 +906,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 ## 十三、常见问题排查
 
-- **启动后进入 GRUB 救援模式**：可能是 EFI 引导项丢失，需从 Arch 修复 GRUB 并重新生成配置，或手动添加 NixOS 的 EFI 文件。
-- **NixOS 重建后无法引导新 generation**：检查 `/boot/efi/loader/entries/` 是否有新文件，以及 `systemd-boot` 配置是否正确。
+- **开机直接进 Windows / 没有 GRUB 菜单**：固件 BootOrder 把 Windows 排到了最前。`sudo nix run nixpkgs#efibootmgr -v` 查看项编号，用 `sudo nix run nixpkgs#efibootmgr -- -o <NixOS-boot-efi编号>,<Windows编号>,…` 把 GRUB 排回最前（`canTouchEfiVariables = true` 会在下次 rebuild 自愈 NVRAM 项）。
+- **NixOS 重建后无法引导新 generation**：确认 rebuild 成功且 `/boot/efi/EFI/NixOS-boot-efi/grubx64.efi` 存在；GRUB 配置写入 `/boot/grub/grub.cfg`（引用 `/nix/store` 内核路径）。GRUB 菜单里选旧 generation 可回滚，或 `sudo nixos-rebuild switch --rollback`。
 - **Hermes 服务启动失败**：检查 API Key 是否解密（`cat /run/secrets/hermes-env`）、`/var/lib/hermes/.hermes/auth.json` 属主是否为 `hermes:hermes`（否则 `sudo systemctl restart hermes-agent` 后看日志）、模型名称是否正确、网络是否通畅。
 - **`hermes: command not found`**：检查 `home/programs/AI/hermes-service.nix` 中 `addToSystemPackages = true` 是否设置，并确保已重建系统。
 - **桌面没有 Hermes 图标**：检查 `home/programs/AI/hermes.nix` 是否被 `home.nix` 正确导入，且已重建。
@@ -931,6 +941,6 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 ---
 
-**文档版本**：5.1
-**最后更新**：2026-08-16
+**文档版本**：5.2
+**最后更新**：2026-09-05
 **维护者**：lilei（AI 助手协助整理，基于仓库实际文件通读核实）

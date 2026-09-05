@@ -29,6 +29,10 @@ extend-ignore-re = [
   "typos",
   "lilei",
   "WhiteSur",
+  # bigsur/big-sur: macOS Big Sur GRUB theme 包名
+  "big-sur",
+  "bigsur",
+  "BigSur",
   # daA: 股票看板程序名 (~/Documents/daA), 防止被当作 data 的错字
   "daa",
 ]

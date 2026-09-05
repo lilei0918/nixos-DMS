@@ -68,6 +68,16 @@
     };
 
     # =============================
+    # GRUB Theme
+    # =============================
+
+    nixos-grub-themes = {
+      url = "github:jeslie0/nixos-grub-themes";
+
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # =============================
     # Proxy: dae / daed
     # =============================
     # 注意：不用 inputs.nixpkgs.follows，且把 daeuniverse 自己的 nixpkgs 固定到它

@@ -7,7 +7,7 @@
 - `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（包本体 + 启动参数 commandLineArgs + 环境变量均在此）
 - `dconf.nix`      GNOME dconf 主题设置
 - `dev.nix`        全局开发工具链（uv / python / nodejs / pnpm / just / gh / yq）
-- `fastfetch.nix`  系统信息（logo 用 `assets/icons/logo.png`）
+- `fastfetch.nix`  系统信息（FastCat Simple 主题，无 logo）
 - `git.nix`        git + delta（user 走 `myvars`）
 - `rime.nix`       rime-ice 方案 + fcitx 环境变量（rebuild 后需 `fcitx5-remote -r` 部署）
 - `theme.nix`      GTK3 WhiteSur / Qt gtk3 / macOS-White 光标（GTK4 走系统默认）

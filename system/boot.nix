@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  inputs,
+  ...
+}: {
   boot = {
     loader = {
       # Dual boot: Windows lives on a separate ESP (nvme0n1p1),
@@ -11,6 +15,9 @@
         efiSupport = true;
 
         device = "nodev";
+
+        # GRUB theme: nixos-grub-themes 'bigsur' (macOS look)
+        theme = inputs.nixos-grub-themes.packages.${pkgs.system}.big-sur;
 
         # Deterministically add Windows: GRUB scans all disks at boot for
         # bootmgfw.efi (across the separate ESP), no os-prober dependency.
