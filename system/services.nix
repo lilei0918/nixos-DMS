@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+_: {
   ############################################
   # DankMaterialShell
   ############################################
@@ -28,13 +28,7 @@
   ############################################
 
   services = {
-    dbus = {
-      enable = true;
-
-      packages = with pkgs; [
-        bluez
-      ];
-    };
+    dbus.enable = true;
 
     # 电源调度: tuned (参照 ryan4yin/nix-config desktop/power.nix)
     # 替代 power-profiles-daemon —— 全系统功耗策略, ppdSupport 提供兼容 API

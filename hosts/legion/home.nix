@@ -107,7 +107,7 @@ in {
     [Groups/0]
     Name=Default
     Default Layout=us
-    DefaultIM=rime
+    DefaultIM=keyboard-us
 
     [Groups/0/Items/0]
     Name=rime
