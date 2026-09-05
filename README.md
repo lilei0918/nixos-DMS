@@ -640,12 +640,13 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `super+q` | 关闭窗口 |
 | `super+f` / `super+shift+f` | 全屏 / 最大化列 |
 | `super+t` | 切换浮动 |
-| `super+c` | 居中当前列 |
+| `super+h` | 居中当前列 |
+| `super+c` / `super+v` | 未绑定（保留给终端内复制 / 粘贴，见下方 alacritty / ghostty） |
 | `super+tab` | 切换到上一个工作区 |
 | `super+1..4` | 列宽 25/50/75/100% |
 | `super+return` | alacritty |
 | `super+shift+return` | ghostty |
-| `super+d` | walker（启动器） |
+| `super+d` | walker（启动器，spawn-at-startup 已常驻，唤出秒开） |
 | `super+e` | thunar |
 | `super+b` | google-chrome |
 | `Print` | **niri 内置截图**（保存当前工作区到 `~/Pictures/Screenshots/`） |
@@ -671,6 +672,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - `polkit-gnome-authentication-agent-1`（权限代理）
 - `fcitx5 -d`（输入法）
 - `blueman-applet`（蓝牙托盘）
+- `walker --gapplication-service`（**walker 常驻服务**：GTK4 冷启动 2-3s，service 常驻后 super+d 唤出仅 ~0.1s）
 - `sleep 10 && exec qq`（延迟启动 QQ）
 - ⚠️ XWayland：niri 25.08 起内置集成（自动 spawn xwayland-satellite），无需手动
 
@@ -685,8 +687,8 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `AI/pi.nix` | Pi coding agent（nixpkgs `pi-coding-agent`）：**只装工具**，认证用 `/login`（自动写入 `~/.pi/agent/auth.json`），自定义 provider 才需 `~/.pi/agent/models.json` |
 | `AI/hermes.nix` | Hermes Desktop（home-manager）：桌面入口 + CLI/GUI 安装；provider/model 设置见 `AI/hermes-service.nix` |
 | `AI/hermes-service.nix` | Hermes Agent 系统服务（**NixOS 模块**，经 `configuration.nix` 导入）：systemd 网关、model/provider、sops 模板（详见「五、Hermes Agent 专节」） |
-| `alacritty.nix` | JetBrainsMono Nerd Font 12、Monokai Pro 配色、shell=fish、Ctrl+Shift+C/V、WINIT_UNIX_BACKEND=wayland |
-| `ghostty.nix` | monokai-pro 主题（自定义 palette）、JetBrainsMono 12、无装饰、GTK tabs bottom |
+| `alacritty.nix` | JetBrainsMono Nerd Font 12、Monokai Pro 配色、shell=fish、**Super+C/V 复制粘贴**、WINIT_UNIX_BACKEND=wayland |
+| `ghostty.nix` | monokai-pro 主题（自定义 palette）、JetBrainsMono 12、无装饰、GTK tabs bottom、**Super+C/V 复制粘贴（ignore 掉默认 ctrl+shift+c/v）** |
 | `fish.nix` | Nix 别名用**绝对路径**（`rebuild`/`nix-test`/`boot`/`rollback`/`cleanup`/`check`/`update`/`fmt`，任意目录可用）、g* git 别名、ls=eza 等、starship/direnv/zoxide/fzf、fzf-fish 插件、目录快捷 alias |
 | `zsh.nix` | oh-my-zsh（git/sudo/colored-man-pages/extract）、syntaxHighlighting、历史 10 万、同名 Nix 别名（`rebuild`/`test`/`boot`/`rollback`/`cleanup`/`check`/`update`/`fmt`，绝对路径）、cd=z |
 | `starship.nix` | 极简 format（user/host/dir/git/cmd_duration/❯） |
@@ -697,7 +699,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `theme.nix` | GTK3 WhiteSur-Dark + WhiteSur 图标 + macOS-White 光标（含 `home.pointerCursor`）；**GTK4 用系统默认（`gtk4.theme = null`）**；Qt 走 gtk3；sessionVariables：`GTK_APPLICATION_PREFER_DARK_THEME=1`、XCURSOR_THEME/SIZE、`QT_QPA_PLATFORMTHEME=gtk3`（已删掉破坏 GTK4 的 `GTK_THEME`） |
 | `dconf.nix` | gnome 桌面 WhiteSur 主题、Nerd Font 10 等宽字体 |
 | `thunar.nix` | thunar + **xfconf**（必需）+ volman/archive/media-tags 插件、默认文件管理器（xdg.mimeApps）。默认显示隐藏文件、按名称升序且文件夹在前（`misc-folders-first`）、`force = true`（xfconf 改写文件破坏符号链接）。生效后需重启 Thunar（`killall Thunar`） |
-| `walker.nix` | walker + elephant（剪贴板依赖，systemd user service，graphical-session.target 后启动） |
+| `walker.nix` | walker + elephant（剪贴板依赖，systemd user service，graphical-session.target 后启动）；**walker 本体由 niri spawn-at-startup 以 `--gapplication-service` 常驻**，super+d 秒开 |
 | `vscode/vscode.nix` | **VSCodium**：nix-ide、gitlens、material-icon、markdown-all-in-one、yaml、code-spell-checker（Nix LSP 统一用 nixd）。主题 **Catppuccin Mocha**。⚙️ Nix 格式化走 nixd：`nix.serverSettings.nixd.formatting.command = ["alejandra"]`。`redhat.telemetry.enabled=false` |
 | `btop.nix` | presets、TTY 配色、desktop entry（ghostty -e btop） |
 | `fastfetch.nix` | 自定义 logo（`assets/icons/logo.png`，type=auto、height 20、不设 width 自动缩放）+ 分组模块布局（Hardware/Software/Compositor） |

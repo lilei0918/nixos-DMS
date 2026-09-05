@@ -1,11 +1,12 @@
 // 快捷键（binds）
+// ⚠️ super+c / super+v 故意不绑：统一留给终端内复制/粘贴（见 home/terminal/）。
 binds {
     // 🪟 窗口管理
     super+q { close-window; }
     super+f { fullscreen-window; }
     super+shift+f { maximize-column; }
     super+t { toggle-window-floating; }
-    super+c { center-column; }
+    super+h { center-column; }
 
     // 🔄 工作区切换
     super+tab { focus-workspace-previous; }
@@ -19,7 +20,7 @@ binds {
     // 🖥️ 启动程序
     super+shift+return { spawn "ghostty"; }
     super+return { spawn "alacritty"; }
-    super+d { spawn "walker"; }
+    super+d { spawn "walker"; } // walker 已在 spawn-at-startup 常驻，此处只是唤出
     super+e { spawn "thunar"; }
     super+b { spawn "google-chrome-stable"; }
 

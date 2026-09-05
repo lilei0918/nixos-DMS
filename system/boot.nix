@@ -1,16 +1,34 @@
 {pkgs, ...}: {
   boot = {
     loader = {
-      systemd-boot = {
+      # Dual boot: Windows lives on a separate ESP (nvme0n1p1),
+      # GRUB is installed on the NixOS ESP (/boot/efi = nvme0n1p6).
+      timeout = 5;
+
+      grub = {
         enable = true;
 
-        configurationLimit = 5;
+        efiSupport = true;
+
+        device = "nodev";
+
+        # Deterministically add Windows: GRUB scans all disks at boot for
+        # bootmgfw.efi (across the separate ESP), no os-prober dependency.
+        extraEntries = ''
+          menuentry "Windows 11" {
+            search --file /EFI/Microsoft/Boot/bootmgfw.efi --set=root
+            chainloader /EFI/Microsoft/Boot/bootmgfw.efi
+          }
+        '';
+
+        # Keep NixOS first and the default entry.
+        extraEntriesBeforeNixOS = false;
       };
 
       efi = {
         efiSysMountPoint = "/boot/efi";
 
-        canTouchEfiVariables = false;
+        canTouchEfiVariables = true;
       };
     };
 

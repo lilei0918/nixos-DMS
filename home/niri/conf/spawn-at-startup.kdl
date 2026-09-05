@@ -7,6 +7,9 @@ spawn-at-startup "polkit-gnome-authentication-agent-1"
 // ⌨️ 输入法（fcitx5 守护进程，-d 后台运行）
 spawn-at-startup "fcitx5" "-d"
 
+// 🚀 walker 常驻服务（GTK4 冷启动 ~2-3s；--gapplication-service 常驻后 super+d 唤出仅 ~0.1s）
+spawn-at-startup "walker" "--gapplication-service"
+
 // 🔵 蓝牙托盘程序
 spawn-at-startup "blueman-applet"
 

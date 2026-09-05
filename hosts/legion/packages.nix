@@ -51,6 +51,7 @@ with pkgs; [
   xz
   localsend # 局域网文件传输工具（类似 AirDrop）
   duf
+  baobab
 
   # ─────────────────────────────
   # 🔊 音频 / 视频

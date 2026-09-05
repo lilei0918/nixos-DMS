@@ -138,13 +138,13 @@
       keyboard.bindings = [
         {
           key = "C";
-          mods = "Control|Shift";
+          mods = "Super";
           action = "Copy";
         }
 
         {
           key = "V";
-          mods = "Control|Shift";
+          mods = "Super";
           action = "Paste";
         }
       ];

@@ -63,6 +63,14 @@ _: {
       # Behavior
       # =============================
 
+      keybind = [
+        "super+c=copy_to_clipboard"
+        "super+v=paste_from_clipboard"
+        # 摘掉 ghostty 默认的 ctrl+shift+c/v，统一走 Super
+        "ctrl+shift+c=ignore"
+        "ctrl+shift+v=ignore"
+      ];
+
       resize-overlay = "never";
 
       copy-on-select = false;

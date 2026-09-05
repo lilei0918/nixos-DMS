@@ -6,9 +6,9 @@ Niri 窗口管理器配置（**手写 KDL**，参照 ryan4yin/nix-config 风格�
 
 - `kdl.nix`    Home Manager 模块：把 `conf/` 下的 KDL 文件链接到 `~/.config/niri/`
 - `conf/config.kdl`            主配置：input / 输出 / layout / environment / 命名工作区，顶部 `include` 分片
-- `conf/keybindings.kdl`       快捷键（`super+return` alacritty、`super+d` walker、niri 内置截图 `Print` 等）
+- `conf/keybindings.kdl`       快捷键（`super+return` alacritty、`super+d` walker、niri 内置截图 `Print` 等）；⚠️ `super+c`/`super+v` 故意不绑，留给终端内 Super+C/V 复制粘贴
 - `conf/windowrules.kdl`       窗口规则：圆角 10/10/5/5、工作区分派、浮动类（QQ / telegram / hermes...）、SiYuan 独占 note 列
-- `conf/spawn-at-startup.kdl`  自启动：polkit、fcitx5、blueman-applet、延迟 QQ
+- `conf/spawn-at-startup.kdl`  自启动：polkit、fcitx5、blueman-applet、**walker 常驻服务（`--gapplication-service`，super+d 秒开）**、延迟 QQ
 
 ## 动态配色（DMS）
 
