@@ -78,6 +78,19 @@
     };
 
     # =============================
+    # Zen Browser（Firefox 系，家庭模块基于 home-manager mkFirefoxModule）
+    # =============================
+
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
+
+    # =============================
     # Proxy: dae / daed
     # =============================
     # 注意：不用 inputs.nixpkgs.follows，且把 daeuniverse 自己的 nixpkgs 固定到它
@@ -105,7 +118,7 @@
       inherit lib;
     };
 
-    # Eval 测试：nix eval .#evalTests
+    # Eval 测试：内部绑定，仅供下方 evalTestsCheck 强制求值，不作为顶层输出暴露
     evalTests = let
       tests = import ./tests {
         inherit lib myvars;
@@ -181,9 +194,6 @@
         sops-nix.nixosModules.sops
       ];
     };
-
-    # Eval 测试
-    inherit evalTests;
 
     # Checks（供 nix flake check 使用）
     checks.x86_64-linux = {

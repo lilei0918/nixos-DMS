@@ -26,8 +26,8 @@
 
         pkief.material-icon-theme
 
-        # Catppuccin 主题（nixpkgs 自带）
-        catppuccin.catppuccin-vsc
+        # Gruvbox 主题（jdinhlife，nixpkgs 自带，与整机 Gruvbox 统一）
+        jdinhlife.gruvbox
 
         # =========================
         # Markdown / Docs
@@ -97,7 +97,7 @@
         # Theme
         # -------------------------
 
-        "workbench.colorTheme" = "Catppuccin Mocha";
+        "workbench.colorTheme" = "Gruvbox Dark Medium";
 
         "workbench.iconTheme" = "material-icon-theme";
 

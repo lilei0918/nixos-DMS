@@ -17,7 +17,7 @@
         device = "nodev";
 
         # GRUB theme: nixos-grub-themes 'nixos' (NixOS default look)
-        theme = inputs.nixos-grub-themes.packages.${pkgs.system}.nixos;
+        theme = inputs.nixos-grub-themes.packages.${pkgs.stdenv.hostPlatform.system}.nixos;
 
         # Deterministically add Windows: locate the separate Windows ESP (p1)
         # by filesystem UUID instead of scanning all disks for bootmgfw.efi,

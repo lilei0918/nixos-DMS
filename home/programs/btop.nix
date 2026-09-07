@@ -3,7 +3,7 @@ _: {
     enable = true;
     settings = {
       presets = "cpu:0:default,net:0:tty,proc:1:default";
-      color_theme = "TTY";
+      color_theme = "gruvbox_dark";
       theme_background = false;
       update_ms = 500;
       rounded_corners = false;

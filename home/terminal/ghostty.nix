@@ -11,7 +11,7 @@ _: {
       # Theme
       # =============================
 
-      theme = "monokai-pro";
+      theme = "gruvbox-dark-medium";
 
       # =============================
       # Font
@@ -90,49 +90,50 @@ _: {
       gtk-tabs-location = "bottom";
     };
 
-    themes.monokai-pro = {
-      background = "2d2a2e";
+    themes.gruvbox-dark-medium = {
+      # Gruvbox Dark Medium（与 Zed 内置 Gruvbox Dark / Alacritty 同源配色）
+      background = "282828";
 
-      foreground = "fcfcfa";
+      foreground = "ebdbb2";
 
-      cursor-color = "c1c0c0";
+      cursor-color = "ebdbb2";
 
-      selection-background = "5b595c";
+      selection-background = "504945";
 
-      selection-foreground = "fcfcfa";
+      selection-foreground = "ebdbb2";
 
       palette = [
-        "0=#2d2a2e"
+        "0=#282828"
 
-        "1=#ff6188"
+        "1=#cc241d"
 
-        "2=#a9dc76"
+        "2=#98971a"
 
-        "3=#ffd866"
+        "3=#d79921"
 
-        "4=#fc9867"
+        "4=#458588"
 
-        "5=#ab9df2"
+        "5=#b16286"
 
-        "6=#78dce8"
+        "6=#689d6a"
 
-        "7=#fcfcfa"
+        "7=#a89984"
 
-        "8=#727072"
+        "8=#928374"
 
-        "9=#ff6188"
+        "9=#fb4934"
 
-        "10=#a9dc76"
+        "10=#b8bb26"
 
-        "11=#ffd866"
+        "11=#fabd2f"
 
-        "12=#fc9867"
+        "12=#83a598"
 
-        "13=#ab9df2"
+        "13=#d3869b"
 
-        "14=#78dce8"
+        "14=#8ec07c"
 
-        "15=#fcfcfa"
+        "15=#fbf1c7"
       ];
     };
   };

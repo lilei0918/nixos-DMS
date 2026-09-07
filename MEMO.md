@@ -85,10 +85,15 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 
 **⚠️ 本仓库特有的注意**：
 - **被 pin 的 input 不会随 `nix flake update` 更新**，需手动改 `flake.nix`：
-  - `hermes-agent`：nixpkgs pin 在 `624af66`（npm 依赖命中旧缓存，别轻易升）
-  - `daeuniverse`：nixpkgs pin 在 `b12141ef`（pnpm 10.x）
+  - `hermes-agent`：源码 pin `1cdb8ce`、nixpkgs pin `624af66`（npm 依赖命中旧缓存，别轻易升）
+  - `daeuniverse`：源码 pin `42ece300`、nixpkgs pin `b12141ef`（pnpm 10.x）
   - 升级它们前先确认上游已兼容（pnpm 11 等），并验证能构建
   - ⚠️ `niri` 已不再 pin（2026-08-30 改）：改用 nixpkgs `pkgs.niri`，配置为手写 KDL（`home/niri/conf/*.kdl`）
+- **pin 语义（2026-09-07 核实）**：两上游 flake.nix 虽声明 `nixos-unstable`，实际 nixpkgs 由各自 flake.lock 决定（flake 间接依赖规则），上游并未自设保护：
+  - `daeuniverse`：上游自己的锁就钉 `b12141ef`，本地 pin 与其一致——是**镜像上游已验证状态**（pnpm 10），非额外保守；待上游把锁移到 pnpm 11 兼容版本后再跟进
+  - `hermes-agent`：上游锁随开发滚动（2026-09 约 `0954f7e`），本地 `624af66` 是**有意滞后**换 npm 缓存命中/下载速度
+  - ⚠️ 原则：**源码 + nixpkgs pin 必须成对升级**（各自内部自洽，勿只动一端），升完完整构建验证
+  - 查上游最新：`git ls-remote https://github.com/NousResearch/hermes-agent.git HEAD`（dae 换 `daeuniverse/flake.nix.git`）
 - 大升级后建议重启，确认新 generation 能被引导（NixOS GRUB 主引导，GRUB 菜单里可选旧 generation 回滚）
 
 **坏了的回滚**：

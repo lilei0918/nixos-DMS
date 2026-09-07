@@ -84,44 +84,44 @@
       };
 
       # =========================
-      # Monokai Pro
+      # Gruvbox Dark Medium
       # =========================
 
       colors = {
         primary = {
-          background = "0x2d2a2e";
-          foreground = "0xfcfcfa";
+          background = "0x282828";
+          foreground = "0xebdbb2";
         };
 
         cursor = {
-          cursor = "0xc1c0c0";
+          cursor = "0xebdbb2";
         };
 
         selection = {
-          background = "0x5b595c";
-          text = "0xfcfcfa";
+          background = "0x504945";
+          text = "0xebdbb2";
         };
 
         normal = {
-          black = "0x2d2a2e";
-          red = "0xff6188";
-          green = "0xa9dc76";
-          yellow = "0xffd866";
-          blue = "0xfc9867";
-          magenta = "0xab9df2";
-          cyan = "0x78dce8";
-          white = "0xfcfcfa";
+          black = "0x282828";
+          red = "0xcc241d";
+          green = "0x98971a";
+          yellow = "0xd79921";
+          blue = "0x458588";
+          magenta = "0xb16286";
+          cyan = "0x689d6a";
+          white = "0xa89984";
         };
 
         bright = {
-          black = "0x727072";
-          red = "0xff6188";
-          green = "0xa9dc76";
-          yellow = "0xffd866";
-          blue = "0xfc9867";
-          magenta = "0xab9df2";
-          cyan = "0x78dce8";
-          white = "0xfcfcfa";
+          black = "0x928374";
+          red = "0xfb4934";
+          green = "0xb8bb26";
+          yellow = "0xfabd2f";
+          blue = "0x83a598";
+          magenta = "0xd3869b";
+          cyan = "0x8ec07c";
+          white = "0xfbf1c7";
         };
       };
 

@@ -1,103 +1,334 @@
 {pkgs, ...}: {
-  # Zed 编辑器（HM 官方模块 programs.zed-editor，二进制名 zeditor）
-  # 原则：设置/插件清单/主题全部声明式；API key/登录走 Zed keychain（不进 Nix）
-  # nixd（Nix LSP）统一在 vscode.nix 的 home.packages 安装（同一 profile，PATH 共享）
+  # ============================================================================
+  # Zed + 开发工具
+  # ============================================================================
 
-  # LSP 二进制经 Nix 进 PATH，避免 Zed 弹窗自动下载到 ~/.local/share/zed（非声明式）
   home.packages = with pkgs; [
-    gopls
+    # --------------------------------------------------------------------------
+    # Python
+    # --------------------------------------------------------------------------
     ruff
-    rust-analyzer
     ty
+
+    # --------------------------------------------------------------------------
+    # Rust
+    # --------------------------------------------------------------------------
+    rust-analyzer
+
+    # --------------------------------------------------------------------------
+    # Go
+    # --------------------------------------------------------------------------
+    gopls
+
+    # --------------------------------------------------------------------------
+    # Nix
+    # --------------------------------------------------------------------------
+    nixfmt
   ];
+
+  # ============================================================================
+  # Zed
+  # ============================================================================
 
   programs.zed-editor = {
     enable = true;
 
-    # false = 完全声明式：Zed UI 里改 settings 会在下次 switch 被覆盖
-    # （想保留 UI 临时改动可改为 true，Nix 配置仍作为基线）
+    # 完全由 Nix 管理 Zed 配置
     mutableUserSettings = false;
     mutableUserKeymaps = false;
 
     userSettings = {
-      # =========================
+      # ========================================================================
+      # 基础编辑器
+      # ========================================================================
+
+      # 不使用 Vim 模式
+      vim_mode = false;
+
+      # VS Code 风格快捷键
+      base_keymap = "VSCode";
+
+      # UI 字体
+      ui_font_family = "Inter";
+      ui_font_size = 16;
+
+      # 中文回退：霞鹜文楷 屏幕阅读版（lxgw-wenkai-screen，见 system/fonts.nix）
+      ui_font_fallbacks = ["LXGW WenKai Screen"];
+
+      # 编辑器字体
+      buffer_font_family = "JetBrainsMono Nerd Font";
+      buffer_font_size = 14;
+
+      # 中文回退：霞鹜文楷 屏幕阅读版（与 UI 同）
+      buffer_font_fallbacks = ["LXGW WenKai Screen"];
+
+      # Agent UI
+      agent_ui_font_family = "Inter";
+      agent_ui_font_size = 16;
+
+      # Agent 输入区
+      agent_buffer_font_family = "JetBrainsMono Nerd Font";
+      agent_buffer_font_size = 15;
+
+      # ========================================================================
       # Theme
-      # =========================
-      # macOS Classic 主题（来自 macos-classic 插件，extensions 自动安装）
-      # 官方推荐配置：跟随系统亮/暗模式自动切换
-      # （参考 https://github.com/huacnlee/zed-theme-macos-classic README Usage 部分）
+      # ========================================================================
+
+      # Gruvbox 对长时间编码比较友好
+      #
+      # Zed 内置 "Gruvbox Dark" 即 Medium 对比（编辑器底色 #282828，
+      # 比 Dark Hard 的 #1d2021 柔和）。整机统一固定 Dark，不跟随系统。
       theme = {
-        mode = "system";
-        light = "macOS Classic Light";
-        dark = "macOS Classic Dark";
+        mode = "dark";
+        light = "Gruvbox Light";
+        dark = "Gruvbox Dark";
       };
 
-      # =========================
+      # ========================================================================
+      # Icon Theme
+      # ========================================================================
+
+      icon_theme = {
+        mode = "system";
+        light = "Zed (Default)";
+        dark = "Zed (Default)";
+      };
+
+      # ========================================================================
+      # Layout
+      #
+      # VSCodium 风格：
+      #
+      # LEFT   = Project
+      # CENTER = Editor
+      # RIGHT  = AI Agent
+      # BOTTOM = Terminal
+      # ========================================================================
+
+      # ------------------------------------------------------------------------
+      # Project Explorer
+      # ------------------------------------------------------------------------
+
+      project_panel = {
+        # 左侧
+        dock = "left";
+
+        # 宽度
+        default_width = 280;
+
+        # 更适合长期使用
+        entry_spacing = "comfortable";
+
+        # Git 文件状态
+        git_status = true;
+
+        # 打开项目时自动显示
+        starts_open = true;
+
+        # 编辑文件时自动定位到 Explorer
+        auto_reveal_entries = true;
+
+        # 自动折叠只有一个子目录的目录链
+        auto_fold_dirs = true;
+
+        # 显示项目根目录
+        hide_root = false;
+
+        # 显示隐藏文件
+        hide_hidden = false;
+
+        # 粘性目录
+        sticky_scroll = true;
+
+        # 显示诊断信息
+        show_diagnostics = "all";
+
+        # 缩进线
+        indent_guides = {
+          show = "always";
+        };
+
+        # 目录优先
+        sort_mode = "directories_first";
+
+        # 滚动条
+        scrollbar = {
+          show = null;
+          horizontal_scroll = true;
+        };
+      };
+
+      # ------------------------------------------------------------------------
+      # AI Agent
+      # ------------------------------------------------------------------------
+
+      agent = {
+        # 启用 Agent
+        enabled = true;
+
+        # 显示 Agent 按钮
+        button = true;
+
+        # 右侧
+        dock = "right";
+
+        # 右侧宽度
+        #
+        # 420 对 16:9 / 2.5K 屏幕比较合适。
+        # 如果你觉得 AI 区域太宽，可以改成 380。
+        default_width = 420;
+
+        # 如果 Agent 被放到底部时使用
+        default_height = 600;
+      };
+
+      # ------------------------------------------------------------------------
+      # Terminal
+      # ------------------------------------------------------------------------
+
+      terminal = {
+        # 底部
+        dock = "bottom";
+
+        # 默认高度
+        default_height = 320;
+
+        # 不启动 Zed 就自动打开 Terminal
+        starts_open = false;
+
+        # Fish
+        shell = {
+          program = "fish";
+        };
+      };
+
+      # ------------------------------------------------------------------------
+      # Dock resize
+      #
+      # 允许同时调整：
+      # left / right / bottom
+      # ------------------------------------------------------------------------
+
+      resize_all_panels_in_dock = [
+        "left"
+        "right"
+        "bottom"
+      ];
+
+      # 底部 Panel 使用 contained 布局
+      bottom_dock_layout = "contained";
+
+      # ========================================================================
       # Editor
-      # =========================
-      vim_mode = true;
+      # ========================================================================
+
+      # 自动保存
+      autosave = "on_focus_change";
+
+      # 自动显示函数签名
+      auto_signature_help = true;
+
+      # LSP 请求超时
+      completions = {
+        lsp_fetch_timeout_ms = 2000;
+      };
+
+      # ------------------------------------------------------------------------
+      # Minimap
+      # ------------------------------------------------------------------------
+
       minimap = {
-        # Zed 的 minimap.show 是字符串枚举，不是 boolean！
-        # 合法值："never" / "always" / "auto"（false 会报类型错误）
         show = "auto";
       };
 
-      # 编辑器行为（参考 ryan4yin/nix-config zed-editor.nix）
-      auto_signature_help = true;
-      autosave = "on_focus_change";
-      code_lens = "on";
-      completions.lsp_fetch_timeout_ms = 2000;
-      diagnostics.inline.enabled = true;
-      inlay_hints.enabled = true;
-      relative_line_numbers = "enabled";
+      # ------------------------------------------------------------------------
+      # Inlay Hints
+      # ------------------------------------------------------------------------
+
+      inlay_hints = {
+        enabled = true;
+      };
+
+      # ------------------------------------------------------------------------
+      # Line numbers
+      #
+      # 不使用 Vim 后，相对行号意义没那么大。
+      # 使用普通行号更接近 VS Code / VSCodium。
+      # ------------------------------------------------------------------------
+
+      relative_line_numbers = "disabled";
+
+      # ------------------------------------------------------------------------
+      # Scroll
+      # ------------------------------------------------------------------------
+
+      vertical_scroll_margin = 5;
+
+      # 编辑器软换行
       soft_wrap = "editor_width";
-      vertical_scroll_margin = 5.0;
-      which_key.enabled = true;
+
+      # ------------------------------------------------------------------------
+      # Indent
+      # ------------------------------------------------------------------------
+
       indent_guides = {
-        background_coloring = "indent_aware";
+        enabled = true;
         coloring = "indent_aware";
       };
 
-      # =========================
+      # ========================================================================
       # Search
-      # =========================
-      search.regex = true;
-      use_smartcase_search = true;
+      # ========================================================================
 
-      # =========================
-      # UI chrome / Git
-      # =========================
-      tabs.git_status = true;
-      title_bar.show_branch_status_icon = true;
-      git.inline_blame.show_commit_summary = true;
+      # 正则搜索
+      search = {
+        regex = true;
+        case_sensitive = false;
+        whole_word = false;
+      };
 
-      # =========================
-      # 隐私（关闭遥测与数据收集）
-      # =========================
-      edit_predictions.allow_data_collection = "no";
+      # 智能大小写
+      search_wrap = true;
+
+      # ========================================================================
+      # Git
+      # ========================================================================
+
+      git = {
+        inline_blame = {
+          enabled = true;
+        };
+      };
+
+      # Tab 显示 Git 状态
+      tabs = {
+        git_status = true;
+      };
+
+      # ========================================================================
+      # Telemetry / Privacy
+      # ========================================================================
+
       telemetry = {
         diagnostics = false;
         metrics = false;
       };
 
-      # =========================
-      # Fonts
-      # =========================
-      # 用系统已装字体：等宽 JetBrainsMono Nerd Font，UI 走 Inter
-      ui_font_family = "Inter";
-      ui_font_size = 16.0;
-      buffer_font_family = "JetBrainsMono Nerd Font";
-      buffer_font_size = 14.0;
-      agent_ui_font_size = 16.0;
-      agent_buffer_font_size = 15.0;
+      # 编辑预测数据
+      edit_predictions = {
+        mode = "subtle";
+      };
 
-      # =========================
-      # Language-specific LSP / formatter
-      # =========================
-      # `!xxx` 表示禁用对应 LSP；formatter 走 language_server
+      # ========================================================================
+      # Python
+      # ========================================================================
+
       languages = {
+        # ----------------------------------------------------------------------
+        # Python
+        # ----------------------------------------------------------------------
+
         Python = {
-          formatter.language_server.name = "ruff";
           language_servers = [
             "ty"
             "ruff"
@@ -106,65 +337,146 @@
             "!pyright"
             "!pylsp"
           ];
-        };
-        Rust = {
+
+          formatter = {
+            language_server = {
+              name = "ruff";
+            };
+          };
+
+          format_on_save = "on";
+
+          # Python 缩进
+          tab_size = 4;
           hard_tabs = false;
-          formatter.language_server.name = "rust-analyzer";
+        };
+
+        # ----------------------------------------------------------------------
+        # Rust
+        # ----------------------------------------------------------------------
+
+        Rust = {
           language_servers = [
             "rust-analyzer"
             "!rustc"
           ];
+
+          formatter = {
+            language_server = {
+              name = "rust-analyzer";
+            };
+          };
+
+          format_on_save = "on";
         };
+
+        # ----------------------------------------------------------------------
+        # Go
+        # ----------------------------------------------------------------------
+
         Go = {
-          formatter.language_server.name = "gopls";
           language_servers = [
             "gopls"
             "!goimports"
           ];
+
+          formatter = {
+            language_server = {
+              name = "gopls";
+            };
+          };
+
+          format_on_save = "on";
+        };
+
+        # ----------------------------------------------------------------------
+        # Nix
+        # ----------------------------------------------------------------------
+
+        Nix = {
+          language_servers = [
+            "nil"
+          ];
+
+          formatter = {
+            external = {
+              command = "nixfmt";
+              arguments = [
+                "--filename"
+                "{buffer_path}"
+              ];
+            };
+          };
+
+          format_on_save = "on";
         };
       };
 
-      # =========================
-      # Terminal
-      # =========================
-      terminal = {
-        # 合法格式：对象（program / with_arguments）或 "system"
-        # 不能用裸字符串 "fish"（会导致 settings 解析报错）
-        shell = {
-          program = "fish";
-        };
-      };
+      # ========================================================================
+      # External AI Agents / ACP
+      #
+      # API Key / 登录信息不要写进 Nix。
+      # 由各个 Agent 自己管理认证。
+      # ========================================================================
 
-      # =========================
-      # ACP agent 服务器（External Agents）
-      # =========================
-      # opencode 支持 ACP（`opencode acp` 是标准 ACP server，stdio 协议）。
-      # ⚠️ 不要用 `opencode serve`（那是 HTTP 服务器，Zed 连不上会一直 loading）！
-      # 官方格式（zed.dev/docs/ai/external-agents）：
-      #   { "agent_servers": { "<id>": { "type": "custom", "command": ..., "args": [...], "env": {} } } }
       agent_servers = {
+        # ----------------------------------------------------------------------
+        # OpenCode
+        # ----------------------------------------------------------------------
+
         opencode = {
           type = "custom";
+
           command = "opencode";
+
           args = [
             "acp"
           ];
+
           env = {};
         };
-        # registry 方式一键启用（Zed 自动解析启动命令）
-        cursor.type = "registry";
-        codex-acp.type = "registry";
-        claude-acp.type = "registry";
+
+        # ----------------------------------------------------------------------
+        # Cursor
+        # ----------------------------------------------------------------------
+
+        cursor = {
+          type = "registry";
+        };
+
+        # ----------------------------------------------------------------------
+        # Codex
+        # ----------------------------------------------------------------------
+
+        codex-acp = {
+          type = "registry";
+        };
+
+        # ----------------------------------------------------------------------
+        # Claude
+        # ----------------------------------------------------------------------
+
+        claude-acp = {
+          type = "registry";
+        };
       };
     };
 
-    # 插件自动安装清单（模块管理，等价于手写 auto_install_extensions）
-    # 新增插件：在 Zed 里安装后，把插件名加到这里即可声明式管理
+    # ========================================================================
+    # Zed Extensions
+    # ========================================================================
+
     extensions = [
+      # 文件图标
       "catppuccin-icons"
+
+      # Git
       "git-firefly"
+
+      # HTML
       "html"
-      "macos-classic"
+
+      # Nix
       "nix"
     ];
   };

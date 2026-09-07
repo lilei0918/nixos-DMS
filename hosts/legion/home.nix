@@ -44,6 +44,7 @@ in {
     ../../home/programs/vscode/vscode.nix
     # ../../home/programs/firefox.nix
     ../../home/programs/chrome.nix
+    ../../home/programs/zen.nix
     ../../home/programs/dev.nix
     ../../home/programs/walker.nix
     ../../home/programs/thunar.nix

@@ -202,13 +202,16 @@ nixos-DMS/
   - ⚠️ **niri 已不使用 niri-flake**（2026-08-30 改）：改用 nixpkgs 自带 `pkgs.niri`（跟随 nixpkgs unstable，26.04，支持 `include` 语法），配置改为手写 KDL（`home/niri/conf/*.kdl`）。曾因 niri-flake 的 nixpkgs pin（`624af66`，libdisplay-info 0.2.0）而锁定 stable 25.08，现已废弃该方案。
   - `hermes-agent` 的 nixpkgs pin 到 `624af66`：其 npm 依赖从 registry.npmjs.org 抓取（本机直连慢），pin 旧 nixpkgs 可命中旧缓存、避免每次升级重下 npm 依赖。
   - `daeuniverse` 不 follows、pin 到 `b12141ef`（pnpm 10.x）。跟随最新 nixpkgs（pnpm 11+）会导致 daed 的 `fetchPnpmDeps(fetcherVersion=3)` 构建失败。
+  - **pin 语义（2026-09-07 核实）**：两上游 flake.nix 虽声明 `nixos-unstable`，实际 nixpkgs 由各自 flake.lock 决定（flake 间接依赖规则），上游并未自设保护，故本仓库的 pin 即「冻结各自当时已验证的 (源码, nixpkgs) 组合」：
+    - `daeuniverse`：上游自己的锁就钉 `b12141ef`，本地与其一致——镜像上游已验证状态（pnpm 10）；
+    - `hermes-agent`：上游锁随开发滚动（2026-09 约 `0954f7e`），本地 `624af66` 为有意滞后（npm 命中旧缓存，免直连 registry.npmjs.org 慢下载）；
+    - ⚠️ 升级时**源码与 nixpkgs pin 必须成对推进**并完整构建验证，勿只升一端（源码大跳而 nixpkgs 滞后会缺依赖，反之则重下 npm 依赖）。
 - `outputs`：
   - `nixosConfigurations.legion`：`nixosSystem`（system = `x86_64-linux`），`specialArgs = { inherit self inputs myvars; }`（`myvars` 来自 `./vars`），模块：
     - `./hosts/legion/configuration.nix`
     - `home-manager.nixosModules.default`
     - `hermes-agent.nixosModules.default`
     - `sops-nix.nixosModules.sops`
-  - `evalTests`：import `./tests`，全部断言通过才为 true（求值失败即抛错）
   - `checks.x86_64-linux`：`evalTestsCheck`（包装 eval 测试）+ `preCommitCheck`（alejandra `--check` + typos），供 `nix flake check` 使用
   - `devShells.x86_64-linux.default`：`nix develop` 进入开发环境（含 alejandra/typos，自动装 git pre-commit 钩子）
   - `formatter.x86_64-linux`：`alejandra`

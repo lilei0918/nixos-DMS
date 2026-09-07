@@ -19,6 +19,7 @@ window-rule {
 window-rule {
     match app-id="google-chrome"
     match app-id="firefox"
+    match app-id="zen"
     open-maximized true
 }
 
@@ -115,6 +116,7 @@ window-rule {
 window-rule {
     match app-id="google-chrome"
     match app-id="firefox"
+    match app-id="zen"
     open-on-workspace "browser"
 }
 

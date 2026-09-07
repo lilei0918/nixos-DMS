@@ -19,9 +19,13 @@ _: {
   enableNvidia = true;
 
   # 主题（GTK/Qt/光标统一从这里取值，见 home/programs/theme.nix、dconf.nix）
+  #
+  # GTK 用 Gruvbox Dark Medium（gruvbox-dark-gtk，jmattheis，目录名 gruvbox-dark）；
+  # 图标用 WhiteSur-dark（whitesur-icon-theme）——其 Inherits=hicolor，能回退到各应用
+  # 自带的品牌图标（google-chrome / zed 等），不会像 gruvbox 图标包那样缺图标。
   theme = {
-    gtk = "WhiteSur-Dark";
-    icon = "WhiteSur";
+    gtk = "gruvbox-dark";
+    icon = "WhiteSur-dark";
     cursor = "macOS-White";
     cursorSize = 24;
   };
