@@ -91,6 +91,16 @@
     };
 
     # =============================
+    # Piri（Niri 扩展：scratchpad / singleton / window_rule 等）
+    # =============================
+
+    piri = {
+      url = "github:Asthestarsfalll/piri";
+
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # =============================
     # Proxy: dae / daed
     # =============================
     # 注意：不用 inputs.nixpkgs.follows，且把 daeuniverse 自己的 nixpkgs 固定到它

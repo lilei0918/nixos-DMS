@@ -41,6 +41,7 @@
     ../../system/xdg.nix
 
     ../../system/niri.nix
+    ../../system/piri.nix
 
     ################################
     # programs
@@ -59,12 +60,13 @@
     # ../../system/gaming.nix
 
     ################################
-    # proxy (daed 主用，mihomo 备用)
+    # proxy（clash-verge 主用；daed/mihomo 备用，三选一互斥）
     ################################
 
-    ../../system/proxy/daed.nix
+    ../../system/proxy/clash-verge.nix
 
-    # 备用：切回 mihomo 时注释上面这行，取消下面这行注释
+    # 备用：daed 修复后或要切回时，注释上面这行，改引下面之一
+    # ../../system/proxy/daed.nix
     # ../../system/proxy/mihomo.nix
 
     ../../system/packages.nix

@@ -1,0 +1,37 @@
+# Piri 配置（三件套：scratchpads + window_rule + singleton）
+# 热重载：改此文件后无需重启 daemon
+# 完整参考见上游 config.example.toml
+
+[piri.plugins]
+scratchpads = true
+window_rule = true
+singleton = true
+# empty / mark / sticky / window_order / swallow / workspace_rule 默认关闭，按需开启
+
+[piri.scratchpad]
+default_size = "50% 60%"
+default_margin = 20
+
+# 下拉终端：super+t 唤出/收起（默认终端 Alacritty，独立 class 便于匹配）
+[scratchpads.term]
+direction = "fromTop"
+command = "alacritty --class scratch.term"
+app_id = "scratch.term"
+size = "80% 60%"
+margin = 10
+
+# window_rule：开发窗口归位到 code 工作区
+# （browser / note 等已由 niri windowrules.kdl 处理，这里只补 niri 未覆盖的）
+[[window_rule]]
+app_id = ["dev.zed.Zed", "codium"]
+open_on_workspace = "code"
+
+# singleton：已存在即聚焦，否则启动
+# super+b = 切换 chrome（见 keybindings.kdl）
+[singleton.chrome]
+command = "google-chrome-stable"
+app_id = "google-chrome"
+
+[singleton.zed]
+command = "zeditor"
+app_id = "dev.zed.Zed"

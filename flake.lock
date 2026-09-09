@@ -317,6 +317,26 @@
         "type": "github"
       }
     },
+    "piri": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787823289,
+        "narHash": "sha256-pEZYmm4iYpS+LEBrstUNfIgAZm1VlI2S+7W41BLhoGk=",
+        "owner": "Asthestarsfalll",
+        "repo": "piri",
+        "rev": "fdfa170eee55af03e21d3626901ad7f45c3a8197",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Asthestarsfalll",
+        "repo": "piri",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -397,6 +417,7 @@
         "nixos-grub-themes": "nixos-grub-themes",
         "nixpkgs": "nixpkgs_3",
         "nur": "nur",
+        "piri": "piri",
         "pre-commit-hooks": "pre-commit-hooks",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"

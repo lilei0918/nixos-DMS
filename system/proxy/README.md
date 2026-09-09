@@ -1,14 +1,14 @@
 # system/proxy
 
-代理方案。**daed 与 mihomo 二选一，不可同时开启**。
+代理方案。**clash-verge / daed / mihomo 三选一，不可同时开启**。
 
-- `daed.nix`   【当前启用】daed = dae eBPF 透明代理 + Web 面板（`http://127.0.0.1:2023`）
-- `mihomo.nix` 【备用】mihomo TUN 模式；切回时注释 daed 的 import 并改引本文件
+- `clash-verge.nix` 【当前启用】Clash Verge Rev（nixpkgs 官方模块 `programs.clash-verge`）：serviceMode + tunMode + autoStart；GUI 加订阅并开 Tun
+- `daed.nix`     【备用】daed = dae eBPF 透明代理 + Web 面板（`http://127.0.0.1:2023`）
+- `mihomo.nix`   【备用】mihomo TUN 模式；切回时注释 clash-verge 的 import 并改引相应文件
 
 注意：
-- daed 面板初始化 tproxy_port 填 **12345**（仅本机透明代理用；`openFirewall.enable=false`，不对外放行）
-- 规则库用 `v2ray-rules-dat`（含 gfw 分类），默认 community 版会报 `code gfw not found`
-- garnix 二进制缓存已注释禁用（常 503）；`daeuniverse` input 的 nixpkgs pin 到 `b12141ef`（pnpm 10.x）
-- 防火墙规则随各自模块内联（daed 仅 `checkReversePath=loose`，不开放 tproxy 端口；mihomo 含 `Meta` 放行 + 端口）
-
-详见 `README.md`「四」第 16 / 17 节。
+- 切换点：`hosts/legion/configuration.nix` 的 `proxy` import 区块（已注释互斥项）
+- clash-verge：TUN 所需 capabilities 由官方模块经 `security.wrappers` 授予；`checkReversePath` 已默认/显式 `loose`（`network.nix`）
+- daed 面板初始化 tproxy_port 填 **12345**；规则库用 `v2ray-rules-dat`（含 gfw）；garnix 缓存注释禁用
+- daeuniverse `flake.nix` input 仅 daed 备用需要，可暂留
+- 防火墙规则随各自模块内联，未盲目放行端口
