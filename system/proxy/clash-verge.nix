@@ -6,10 +6,11 @@
 #   2. 「订阅 → 新建 → 粘贴订阅 URL → 更新」，选中一个 profile
 #   3. 打开「系统代理」或 Tun 模式即可全局代理
 #
-# 实例模型：只随 GUI 运行一个 clash（autoStart 开机拉起 GUI，核心由 GUI 管理）。
-# ⚠️ 不要把 serviceMode 与 autoStart 同时开 true：否则开机 = GUI 一个核心
-#    + clash-verge-service 又一个核心，变成两个 clash。若想要无头常驻
-#    （不开 GUI、开机即按上次 profile 代理），再改 serviceMode=true + autoStart=false。
+# 实例模型：serviceMode + autoStart 同时开启。
+#   - clash-verge-service 由 systemd 开机常驻（TUN 所需的特权核心）
+#   - GUI（autoStart）开机自启，需在 GUI 里开启「服务模式」以复用 service 核心
+#   - 若 GUI 未开「服务模式」，它会再起一个自己的核心 → 出现"两个 clash"。
+#     因此务必在 GUI：设置 → 开启「服务模式」+「Tun 模式」。
 #
 # 模块行为（见本仓库锁定的 nixpkgs nixos/modules/programs/clash-verge.nix）：
 #   - tunMode：生成 security.wrappers.clash-verge，授予
@@ -27,8 +28,8 @@ _: {
   programs.clash-verge = {
     enable = true;
 
-    # 只随 GUI 单实例运行（见上方"实例模型"说明）
-    serviceMode = false;
+    # 特权服务常驻（TUN 依赖；GUI 需开启「服务模式」复用此核心）
+    serviceMode = true;
 
     # 授予 TUN / DNS 所需 capabilities，并把 reverse-path 检查放松为 loose
     tunMode = true;

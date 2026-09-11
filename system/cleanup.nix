@@ -4,10 +4,10 @@
   # 默认无上限会一直涨到占满 /var/log；压到 50M，超过自动轮转删除
   ############################################
 
-  services.journald.extraConfig = ''
-    SystemMaxUse=50M
-    SystemKeepFree=1G
-  '';
+  services.journald.settings.Journal = {
+    SystemMaxUse = "50M";
+    SystemKeepFree = "1G";
+  };
 
   ############################################
   # 用户缓存自动清理
