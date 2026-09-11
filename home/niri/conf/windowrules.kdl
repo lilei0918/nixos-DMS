@@ -15,6 +15,12 @@ window-rule {
     default-column-width { fixed 800; }
 }
 
+// 2.1 Piri scratchpad 终端：直接浮动创建（避免先平铺成大窗口再缩小的闪烁）
+window-rule {
+    match app-id="scratch.term"
+    open-floating true
+}
+
 // 3. 浏览器类（全屏启动）
 window-rule {
     match app-id="google-chrome"

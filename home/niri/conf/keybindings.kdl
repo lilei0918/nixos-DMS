@@ -23,7 +23,7 @@ binds {
     super+return { spawn "alacritty"; }
     super+d { spawn "walker"; } // walker 已在 spawn-at-startup 常驻，此处只是唤出
     super+e { spawn "thunar"; }
-    // Piri scratchpad：下拉 Alacritty 终端（super+t）
+    // Piri scratchpad：Alacritty 左侧载入载出终端（super+t）
     super+t { spawn "piri" "scratchpads" "term" "toggle"; }
     // Piri singleton：chrome 已存在则聚焦，否则启动
     super+b { spawn "piri" "singleton" "chrome" "toggle"; }
