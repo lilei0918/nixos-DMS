@@ -24,6 +24,15 @@
     # Nix
     # --------------------------------------------------------------------------
     nixfmt
+
+    # --------------------------------------------------------------------------
+    # JavaScript / TypeScript
+    # --------------------------------------------------------------------------
+    # vtsls 与 typescript-language-server 二选一；用后者（自带 tsserver 依赖）
+    typescript-language-server
+
+    # 统一格式化（TS/JS/JSON/Markdown 等，见 languages.*.formatter.external）
+    prettier
   ];
 
   # ============================================================================
@@ -86,13 +95,12 @@
 
       # ========================================================================
       # Icon Theme
+      #
+      # 扩展 `icons-modern-material` 提供（Material 风格）；
+      # Zed 的 icon_theme 是字符串（不是 theme 那样的 mode/light/dark 对象）。
       # ========================================================================
 
-      icon_theme = {
-        mode = "system";
-        light = "Zed (Default)";
-        dark = "Zed (Default)";
-      };
+      icon_theme = "Icons modern material (Dark)";
 
       # ========================================================================
       # Layout
@@ -406,6 +414,92 @@
 
           format_on_save = "on";
         };
+
+        # ----------------------------------------------------------------------
+        # TypeScript / JavaScript
+        # LSP = typescript-language-server；格式化交给 prettier（LSP 不负责格式化）
+        # ----------------------------------------------------------------------
+
+        TypeScript = {
+          language_servers = [
+            "typescript-language-server"
+          ];
+
+          formatter = {
+            external = {
+              command = "prettier";
+              arguments = [
+                "--stdin-filepath"
+                "{buffer_path}"
+              ];
+            };
+          };
+
+          format_on_save = "on";
+
+          tab_size = 2;
+          hard_tabs = false;
+        };
+
+        JavaScript = {
+          language_servers = [
+            "typescript-language-server"
+          ];
+
+          formatter = {
+            external = {
+              command = "prettier";
+              arguments = [
+                "--stdin-filepath"
+                "{buffer_path}"
+              ];
+            };
+          };
+
+          format_on_save = "on";
+
+          tab_size = 2;
+          hard_tabs = false;
+        };
+
+        # ----------------------------------------------------------------------
+        # JSON / Markdown：prettier
+        # ----------------------------------------------------------------------
+
+        JSON = {
+          formatter = {
+            external = {
+              command = "prettier";
+              arguments = [
+                "--stdin-filepath"
+                "{buffer_path}"
+              ];
+            };
+          };
+
+          format_on_save = "on";
+
+          tab_size = 2;
+          hard_tabs = false;
+        };
+
+        Markdown = {
+          formatter = {
+            external = {
+              command = "prettier";
+              arguments = [
+                "--stdin-filepath"
+                "{buffer_path}"
+              ];
+            };
+          };
+
+          format_on_save = "on";
+
+          soft_wrap = "editor_width";
+          tab_size = 2;
+          hard_tabs = false;
+        };
       };
 
       # ========================================================================
@@ -463,8 +557,8 @@
     # ========================================================================
 
     extensions = [
-      # 文件图标
-      "catppuccin-icons"
+      # Material 风格文件/文件夹图标（icon_theme 见上）
+      "icons-modern-material"
 
       # Git
       "git-firefly"
@@ -474,6 +568,57 @@
 
       # Nix
       "nix"
+
+      # TOML（taplo LSP）
+      "toml"
+
+      # Dockerfile
+      "dockerfile"
+
+      # SQL
+      "sql"
+    ];
+
+    # ========================================================================
+    # 快捷键（VS Code 风格补充；base_keymap = "VSCode" 已覆盖大部分）
+    # ========================================================================
+
+    userKeymaps = [
+      {
+        bindings = {
+          "ctrl-p" = "file_finder::Toggle";
+        };
+      }
+
+      {
+        bindings = {
+          "ctrl-shift-f" = "pane::DeploySearch";
+        };
+      }
+
+      {
+        bindings = {
+          "ctrl-b" = "project_panel::ToggleFocus";
+        };
+      }
+
+      {
+        bindings = {
+          "ctrl-shift-e" = "project_panel::ToggleFocus";
+        };
+      }
+
+      {
+        bindings = {
+          "ctrl-shift-g" = "git_panel::ToggleFocus";
+        };
+      }
+
+      {
+        bindings = {
+          "ctrl-j" = "terminal_panel::ToggleFocus";
+        };
+      }
     ];
   };
 }

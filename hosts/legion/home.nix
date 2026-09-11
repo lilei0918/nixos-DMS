@@ -33,7 +33,7 @@ in {
     # ../../home/programs/firefox.nix
 
     # -- 开发工具 --
-    ../../home/programs/vscode/vscode.nix
+    ../../home/programs/AI/vscode.nix
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
     ../../home/programs/AI/codex.nix

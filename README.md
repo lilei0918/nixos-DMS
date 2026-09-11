@@ -162,7 +162,7 @@ nixos-DMS/
 │   │   ├── starship.nix     # prompt
 │   │   └── tmux.nix
 │   └── programs/            # 用户软件包及配置
-│       ├── AI/              # AI 工具（zed / opencode / pi）
+│       ├── AI/              # AI 工具（zed / vscode / opencode / codex / pi）
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
@@ -172,7 +172,6 @@ nixos-DMS/
 │       ├── rime.nix         # Rime 输入法（rime-ice 方案 + fcitx 环境变量）
 │       ├── theme.nix        # GTK/Qt 主题（WhiteSur）
 │       ├── thunar.nix       # 文件管理器（xfconf 依赖）
-│       ├── vscode/          # VSCodium 配置（vscode.nix）
 │       └── walker.nix       # 应用启动器（+ elephant 剪贴板依赖）
 └── assets/                  # 静态资源（icons/logo.png 已随 fastfetch 换主题删除）
 ```
@@ -478,7 +477,7 @@ nixos-DMS/
 - `imports` 列表包含：
   - `inputs.dms.homeModules.dank-material-shell`
   - `../../home/niri/kdl.nix`（niri 手写 KDL 配置链接）
-  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
+  - `../../home/programs/rime.nix`、`AI/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
 - **niri**：⚠️ 已放弃 niri-flake（2026-08-30 改）。niri 用 nixpkgs 自带 `programs.niri`（`system/niri.nix`，`pkgs.niri` 26.04，支持 include）；配置为**手写 KDL**（`home/niri/conf/*.kdl`，经 `home/niri/kdl.nix` 链接到 `~/.config/niri/`）。主 `config.kdl` 用 `include` 引入 DMS 生成的 `dms/*.kdl`，实现焦点环随壁纸动态变色。
@@ -624,7 +623,7 @@ nixos-DMS/
 
 | 文件 | 内容要点 |
 |------|---------|
-| `AI/zed.nix` | Zed 编辑器（nixpkgs `zed-editor`，二进制 zeditor）+ **`nixd`**（Nix LSP，Zed 的 Nix 扩展需要）：**全声明式**——macOS Classic 主题（`theme.mode=system` 亮/暗自动切换）、5 个插件 auto_install_extensions（catppuccin-icons/git-firefly/html/macos-classic/nix）、vim 模式、minimap="never"、shell=fish（对象格式）、**ACP 链接 opencode**（`opencode acp`，⚠️ 不是 serve——serve 是 HTTP 服务器，Zed 连不上会一直 loading）。API key/登录走 Zed keychain（不进 Nix） |
+| `AI/zed.nix` | Zed 编辑器（nixpkgs `zed-editor`，二进制 `zeditor`）+ `nil`（Nix LSP）+ `nixfmt`：主题 **Gruvbox Dark**、图标扩展 `icons-modern-material`（Material 风格）；TS/JS 用 `typescript-language-server` + 外部 `prettier`；三栏布局（左 Project / 中 Editor / 右 Agent）+ `userKeymaps`；**ACP 链接 opencode**（`opencode acp`，⚠️ 不是 serve）。API key/登录走 Zed keychain（不进 Nix） |
 | `AI/opencode.nix` | OpenCode AI agent（nixpkgs `opencode`）：**只装工具**，凭据用 `opencode auth login`（切换 provider 无需改 Nix） |
 | `AI/pi.nix` | Pi coding agent（nixpkgs `pi-coding-agent`）：**只装工具**，认证用 `/login`（自动写入 `~/.pi/agent/auth.json`），自定义 provider 才需 `~/.pi/agent/models.json` |
 | `alacritty.nix` | JetBrainsMono Nerd Font 12、Monokai Pro 配色、shell=fish、**Super+C/V 复制粘贴**、WINIT_UNIX_BACKEND=wayland |
@@ -640,7 +639,7 @@ nixos-DMS/
 | `dconf.nix` | gnome 桌面 WhiteSur 主题、Nerd Font 10 等宽字体 |
 | `thunar.nix` | thunar + **xfconf**（必需）+ volman/archive/media-tags 插件、默认文件管理器（xdg.mimeApps）。默认显示隐藏文件、按名称升序且文件夹在前（`misc-folders-first`）、`force = true`（xfconf 改写文件破坏符号链接）。生效后需重启 Thunar（`killall Thunar`） |
 | `walker.nix` | walker + elephant（剪贴板依赖，systemd user service，graphical-session.target 后启动）；**walker 本体由 niri spawn-at-startup 以 `--gapplication-service` 常驻**，super+d 秒开 |
-| `vscode/vscode.nix` | **VSCodium**：nix-ide、gitlens、material-icon、markdown-all-in-one、yaml、code-spell-checker（Nix LSP 统一用 nixd）。主题 **Catppuccin Mocha**。⚙️ Nix 格式化走 nixd：`nix.serverSettings.nixd.formatting.command = ["alejandra"]`。`redhat.telemetry.enabled=false` |
+| `AI/vscode.nix` | **VSCodium**：nix-ide、gitlens、material-icon、markdown-all-in-one、yaml、code-spell-checker（Nix LSP 统一用 nixd）。主题 **Gruvbox Dark Medium**。⚙️ Nix 格式化走 nixd：`nix.serverSettings.nixd.formatting.command = ["alejandra"]`。`redhat.telemetry.enabled=false` |
 | `btop.nix` | presets、TTY 配色、desktop entry（ghostty -e btop） |
 | `fastfetch.nix` | FastCat `Small-Themes/Simple` 主题（无 logo、图标+RGB 配色、` ⌲ ` 分隔，来源见文件头） |
 | `rime.nix` | rime-ice（锁定 commit `8a3d9470`，声明式 home.file 管理）+ librime/librime-lua；**fcitx 环境变量（GTK/QT/XMODIFIERS/SDL_IM_MODULE）统一在此管理**。⚠️ **rebuild/重启后若雾凇未出现，手动运行 `fcitx5-remote -r` 触发部署**（详见文件头注释） |
