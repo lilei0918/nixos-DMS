@@ -8,6 +8,5 @@ in {
     "niri/keybindings.kdl".source = mkSymlink "${confDir}/keybindings.kdl";
     "niri/windowrules.kdl".source = mkSymlink "${confDir}/windowrules.kdl";
     "niri/spawn-at-startup.kdl".source = mkSymlink "${confDir}/spawn-at-startup.kdl";
-    "niri/piri.toml".source = mkSymlink "${confDir}/piri.toml";
   };
 }

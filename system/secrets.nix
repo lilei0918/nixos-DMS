@@ -7,8 +7,6 @@
     };
 
     secrets = {
-      deepseek_api_key = {};
-
       vaultwarden_admin_token = {};
 
       # 用户密码 hash（neededForUsers：activation 阶段解密，先于用户创建）

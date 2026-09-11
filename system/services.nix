@@ -62,7 +62,6 @@ _: {
 
     gnome."gnome-keyring".enable = true;
 
-    # Hermes Agent（hermes-agent 服务）已移至 home/programs/AI/hermes-service.nix
     upower.enable = true;
 
     pulseaudio.enable = false;

@@ -1,6 +1,6 @@
 # AGENTS.md — 本仓库 AI 助手行为规则
 
-本文件是 `nixos-DMS`（NixOS 配置仓库）对 AI agent（opencode / hermes 等）的行为基线。
+本文件是 `nixos-DMS`（NixOS 配置仓库）对 AI agent（opencode 等）的行为基线。
 领域知识（硬件、目录结构、各模块详解、维护流程、排障）见仓库根目录 `README.md` 及各子目录 `README.md`。
 
 ## 1. 指令优先级

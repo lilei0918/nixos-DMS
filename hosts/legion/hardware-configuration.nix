@@ -55,11 +55,7 @@
     options = ["subvol=@log" "compress=zstd" "noatime" "discard=async"];
   };
 
-  fileSystems."/tmp" = {
-    device = "tmpfs";
-    fsType = "tmpfs";
-    options = ["mode=1777" "nosuid" "nodev" "size=4G"];
-  };
+  # 注：/tmp 与 ~/.cache 的 tmpfs 定义在 system/tmpfs.nix（本文件只保留硬件事实）
 
   fileSystems."/boot/efi" = {
     device = "/dev/disk/by-uuid/AC09-EF5B";

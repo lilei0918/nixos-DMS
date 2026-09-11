@@ -5,8 +5,7 @@ binds {
     super+q { close-window; }
     super+f { fullscreen-window; }
     super+shift+f { maximize-column; }
-    // super+t 让给 Piri scratchpad（下拉终端）；浮动切换移到 shift
-    super+shift+t { toggle-window-floating; }
+    super+t { toggle-window-floating; }
     super+h { center-column; }
 
     // 🔄 工作区切换
@@ -23,10 +22,7 @@ binds {
     super+return { spawn "alacritty"; }
     super+d { spawn "walker"; } // walker 已在 spawn-at-startup 常驻，此处只是唤出
     super+e { spawn "thunar"; }
-    // Piri scratchpad：Alacritty 左侧载入载出终端（super+t）
-    super+t { spawn "piri" "scratchpads" "term" "toggle"; }
-    // Piri singleton：chrome 已存在则聚焦，否则启动
-    super+b { spawn "piri" "singleton" "chrome" "toggle"; }
+    super+b { spawn "google-chrome-stable"; }
 
     // 📸 截图（niri 内置，Enter/Space 保存，Ctrl+Enter 复制到剪贴板）
     Print { screenshot; }

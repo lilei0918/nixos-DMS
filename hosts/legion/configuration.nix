@@ -27,6 +27,9 @@
     # ZRAM 内存压缩交换
     ../../system/zram.nix
 
+    # 易失文件系统：/tmp + ~/.cache（tmpfs）
+    ../../system/tmpfs.nix
+
     # FHS 兼容环境 (通用 fhs + daa-fhs)
     ../../system/fhs.nix
 
@@ -41,7 +44,6 @@
     ../../system/xdg.nix
 
     ../../system/niri.nix
-    ../../system/piri.nix
 
     ################################
     # programs
@@ -60,13 +62,12 @@
     # ../../system/gaming.nix
 
     ################################
-    # proxy（clash-verge 主用；daed/mihomo 备用，三选一互斥）
+    # proxy（clash-verge 主用；mihomo 备用，二选一互斥）
     ################################
 
     ../../system/proxy/clash-verge.nix
 
-    # 备用：daed 修复后或要切回时，注释上面这行，改引下面之一
-    # ../../system/proxy/daed.nix
+    # 备用：切回 mihomo 时注释上面这行，改引下面
     # ../../system/proxy/mihomo.nix
 
     ../../system/packages.nix
@@ -78,12 +79,6 @@
     ../../system/vault/vaultwarden-backup.nix
 
     ../../system/vault/vault.nix
-
-    ################################
-    # AI（hermes-agent 系统服务）
-    ################################
-
-    ../../home/programs/AI/hermes-service.nix
 
     ################################
     # greeter
@@ -121,8 +116,6 @@
       "video"
 
       "input"
-
-      "hermes"
     ];
 
     # 密码 hash 不提交明文仓库：sops 加密存在 secrets/secrets.yaml

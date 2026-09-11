@@ -20,8 +20,8 @@
 #   - autoStart：生成 XDG autostart 条目（本会话经 xdg-autostart-generator 生效）
 #
 # 注意：
-#   - 与 daed（system/proxy/daed.nix）、mihomo（system/proxy/mihomo.nix）
-#     互斥，切换方法见 hosts/legion/configuration.nix 的 proxy import 注释。
+#   - 与 mihomo（system/proxy/mihomo.nix）互斥，切换方法见
+#     hosts/legion/configuration.nix 的 proxy import 注释。
 #   - Wayland 下若 GUI 渲染异常属 Clash Verge Rev 已知问题，核心不受影响。
 # =============================================================================
 _: {

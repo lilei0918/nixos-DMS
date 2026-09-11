@@ -1,6 +1,6 @@
 # nixos-DMS — NixOS 配置参考手册（README）
 
-本仓库是 Lei 的 NixOS 配置（flake 化），目标主机 Lenovo Legion R7000P 2021。本文档既是仓库 README，也是面向 **AI 助手（Hermes / opencode 等）与本人备查**的完整参考手册：覆盖硬件、目录结构、各模块详解、维护流程与排障。
+本仓库是 Lei 的 NixOS 配置（flake 化），目标主机 Lenovo Legion R7000P 2021。本文档既是仓库 README，也是面向 **AI 助手（opencode 等）与本人备查**的完整参考手册：覆盖硬件、目录结构、各模块详解、维护流程与排障。
 
 **技术栈**：NixOS（nixos-unstable）+ niri（滚动式 Wayland compositor）+ DankMaterialShell + greetd/tuigreet + Home Manager + sops-nix（age 加密）。主机配置名 `legion`，主机名 `nixos`。
 
@@ -12,7 +12,7 @@ git add -A && git commit -m "before switch"
 nh os switch .#legion
 
 
-> **目标**：让 AI 助手（Hermes 等）理解这套 NixOS 配置的完整结构、硬件背景和日常维护流程，以便提供精准的操作建议。
+> **目标**：让 AI 助手（opencode 等）理解这套 NixOS 配置的完整结构、硬件背景和日常维护流程，以便提供精准的操作建议。
 > **本文档为静态知识库**：只维护长期不变的事实（硬件拓扑、模块结构、维护流程）。系统版本、generation、内核、服务状态等动态值**一律不写入文档**，需要时按「二、当前系统状态」的获取命令实时查询。涉及硬件事实的测量日期在对应表格处标注。
 
 ---
@@ -23,7 +23,7 @@ nh os switch .#legion
 - **CPU**：AMD Ryzen 5 5600H（12 线程，基础频率 3.3GHz，最高 4.28 GHz）
 - **GPU**：
   - 集成显卡：AMD Radeon Vega Series（当前驱动 `amdgpu`）
-  - 独立显卡：NVIDIA RTX 3060（默认通过 `nvidia-block.nix` 屏蔽、仅用核显省电；`vars/default.nix` 的 `enableNvidia = true` 可切换启用 `nvidia.nix` 的 PRIME offload + RTD3 省电方案）
+  - 独立显卡：NVIDIA RTX 3050 Ti Mobile（`vars/default.nix` 的 `enableNvidia = true`，启用 `nvidia.nix` 的 PRIME offload + RTD3 省电方案；置 false 则由 `nvidia-block.nix` 屏蔽、仅用核显省电）
 - **内存**：32GB
 - **存储**（⚠️ NVMe 设备名 `nvme0n1`/`nvme1n1` 会随 BIOS 枚举顺序变化，**一切以 UUID 为准**，详见下方分区详表）：
   - **nvme0n1 — SKHynix 512GB**（型号 SKHynix_HFS512GDE9X084N）：Windows 11 系统盘 + **NixOS EFI 分区**（`nvme0n1p6`，NixOS GRUB 引导所在）
@@ -61,7 +61,7 @@ nh os switch .#legion
 
 - **多系统引导（2026-09-05 实测）**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI，挂 `/boot/efi`）是**两个独立 ESP**。主引导为 p6 上的 **NixOS GRUB**，开机直接进 GRUB 菜单（最新 NixOS 默认 + `Windows 11`，5 秒倒计时），NixOS 的 generations 也在同一菜单内选择；Windows 原生 EFI 留在 p1 不动。引导细节与 NVRAM 说明见「四.6 `system/boot.nix`」与「九」的『特别注意（多系统引导）』。
 - **主机名**：`nixos`（`system/network.nix` 中设置；flake 配置名才是 `legion`）
-- **NixOS 用户**：仅 **`lilei`**（普通用户，加入 `wheel`、`networkmanager`、`video`、`input`、`hermes` 组）。
+- **NixOS 用户**：仅 **`lilei`**（普通用户，加入 `wheel`、`networkmanager`、`video`、`input` 组）。
 - **配置仓库**：`git@github.com:lilei0918/nixos-DMS.git`（本地路径 `/home/lilei/nixos-DMS`），已备份。
 
 ---
@@ -87,7 +87,7 @@ nh os switch .#legion
 | nixpkgs unstable commit | `nix flake metadata`（或直接看 `flake.lock`） |
 | 当前 / 历史 generation | `sudo nixos-rebuild list-generations` |
 | 系统安装天数 | `echo $(( ($(date +%s) - $(stat -c %W /)) / 86400 ))` |
-| 各服务状态 | `systemctl is-active greetd daed vaultwarden.service hermes-agent` |
+| 各服务状态 | `systemctl is-active greetd vaultwarden.service` |
 | 磁盘 / 分区（UUID 权威） | `lsblk -f`、`sudo blkid` |
 | 快速总览 | `fastfetch` |
 
@@ -118,12 +118,13 @@ nixos-DMS/
 │       ├── home.nix            # Home Manager 入口（niri KDL 配置、fcitx5 覆盖等）
 │       └── packages.nix        # 用户级软件包列表
 ├── scripts/                # 运维辅助脚本
-│   ├── backup-credentials.sh # 信任根/凭据备份（sops age key / ssh / opencode / mihomo / pi / hermes auth）
+│   ├── backup-credentials.sh # 信任根/凭据备份（sops age key / ssh / opencode / mihomo / pi）
 │   ├── git-hooks/          # 自愈式 git pre-commit 钩子（nix develop 自动安装）
 │   └── README.md           # 脚本用法与故障排查
 ├── system/                  # 系统级配置（影响所有用户）
-│   ├── nix.nix              # Nix 自身设置（flakes、镜像源、GC 3d、NUR overlay）
-│   ├── cleanup.nix          # journal 日志上限 50M + 用户缓存 tmpfiles 3d 清理
+│   ├── nix.nix              # Nix 自身设置（flakes、镜像源、GC 7d、NUR overlay）
+│   ├── cleanup.nix          # journal 日志上限 200M（services.journald.settings.Journal）
+│   ├── tmpfs.nix            # 易失文件系统：/tmp（4G）+ ~/.cache（6G）tmpfs
 │   ├── boot.nix             # 启动引导（GRUB 主引导，双 ESP 双系统菜单）
 │   ├── hardware.nix         # 硬件：GPU 图形、蓝牙、fstrim、btrfs scrub
 │   ├── network.nix          # 网络（NetworkManager、NTP）——防火墙配置已下放到 proxy/*.nix
@@ -135,12 +136,12 @@ nixos-DMS/
 │   ├── greetd.nix           # 登录管理器（greetd + tuigreet）
 │   ├── nix-ld.nix           # nix-ld 动态链接器（非 Nix 二进制运行所需系统库 + jpeg-8 旧 ABI）
 │   ├── packages.nix         # 系统级软件包列表
-│   ├── proxy/               # 代理（daed 主用，mihomo 备用）
-│   │   ├── daed.nix             # 【启用】daed（dae eBPF 透明代理 + Web 面板）
+│   ├── proxy/               # 代理（clash-verge 主用，mihomo 备用）
+│   │   ├── clash-verge.nix      # 【启用】Clash Verge Rev（programs.clash-verge，serviceMode + tunMode + autoStart）
 │   │   └── mihomo.nix           # 【备用】mihomo（TUN 模式，切回方法见文件头注释）
 │   ├── nvidia/              # NVIDIA 显卡模块（myvars.enableNvidia 二选一）
-│   │   ├── nvidia-block.nix     # 【默认】屏蔽 NVIDIA 独显（省电，纯核显）
-│   │   └── nvidia.nix           # 启用时加载：PRIME offload + RTD3 空闲断电
+│   │   ├── nvidia.nix           # 【当前启用，enableNvidia = true】PRIME offload + RTD3 空闲断电
+│   │   └── nvidia-block.nix     # 【备选】屏蔽 NVIDIA 独显（省电，纯核显）
 │   └── vault/               # 加密数据盘 + Vaultwarden 密码管理器
 │       ├── vault.nix            # LUKS 加密盘（vault-open / vault-close，手动解锁）
 │       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
@@ -161,7 +162,7 @@ nixos-DMS/
 │   │   ├── starship.nix     # prompt
 │   │   └── tmux.nix
 │   └── programs/            # 用户软件包及配置
-│       ├── AI/              # AI 工具（zed / opencode / pi / hermes，含 hermes-agent 系统服务）
+│       ├── AI/              # AI 工具（zed / opencode / pi）
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
@@ -193,24 +194,15 @@ nixos-DMS/
   - `home-manager`（follows nixpkgs）
   - `nur`（NUR 仓库）
   - `dms`（DankMaterialShell，`github:AvengeMedia/DankMaterialShell/stable`，follows nixpkgs）
-  - `hermes-agent`（固定 commit `1cdb8ce361e91c79cfbd6bee550ee6c09d290261`，nixpkgs 也固定 `624af66`）
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
   - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `nixos`）
-  - `daeuniverse`（固定 commit `42ece300b6360bab592f13c64ce1987df20475d5`，nixpkgs 固定 `b12141ef`，**不 follows**）
-- **nixpkgs pin 说明**：
+- **输入源说明**：
   - ⚠️ **niri 已不使用 niri-flake**（2026-08-30 改）：改用 nixpkgs 自带 `pkgs.niri`（跟随 nixpkgs unstable，26.04，支持 `include` 语法），配置改为手写 KDL（`home/niri/conf/*.kdl`）。曾因 niri-flake 的 nixpkgs pin（`624af66`，libdisplay-info 0.2.0）而锁定 stable 25.08，现已废弃该方案。
-  - `hermes-agent` 的 nixpkgs pin 到 `624af66`：其 npm 依赖从 registry.npmjs.org 抓取（本机直连慢），pin 旧 nixpkgs 可命中旧缓存、避免每次升级重下 npm 依赖。
-  - `daeuniverse` 不 follows、pin 到 `b12141ef`（pnpm 10.x）。跟随最新 nixpkgs（pnpm 11+）会导致 daed 的 `fetchPnpmDeps(fetcherVersion=3)` 构建失败。
-  - **pin 语义（2026-09-07 核实）**：两上游 flake.nix 虽声明 `nixos-unstable`，实际 nixpkgs 由各自 flake.lock 决定（flake 间接依赖规则），上游并未自设保护，故本仓库的 pin 即「冻结各自当时已验证的 (源码, nixpkgs) 组合」：
-    - `daeuniverse`：上游自己的锁就钉 `b12141ef`，本地与其一致——镜像上游已验证状态（pnpm 10）；
-    - `hermes-agent`：上游锁随开发滚动（2026-09 约 `0954f7e`），本地 `624af66` 为有意滞后（npm 命中旧缓存，免直连 registry.npmjs.org 慢下载）；
-    - ⚠️ 升级时**源码与 nixpkgs pin 必须成对推进**并完整构建验证，勿只升一端（源码大跳而 nixpkgs 滞后会缺依赖，反之则重下 npm 依赖）。
 - `outputs`：
   - `nixosConfigurations.legion`：`nixosSystem`（system = `x86_64-linux`），`specialArgs = { inherit self inputs myvars; }`（`myvars` 来自 `./vars`），模块：
     - `./hosts/legion/configuration.nix`
     - `home-manager.nixosModules.default`
-    - `hermes-agent.nixosModules.default`
     - `sops-nix.nixosModules.sops`
   - `checks.x86_64-linux`：`evalTestsCheck`（包装 eval 测试）+ `preCommitCheck`（alejandra `--check` + typos），供 `nix flake check` 使用
   - `devShells.x86_64-linux.default`：`nix develop` 进入开发环境（含 alejandra/typos，自动装 git pre-commit 钩子）
@@ -225,11 +217,11 @@ nixos-DMS/
   - 硬件：`./hardware-configuration.nix`
   - system 模块：`../../system/nix.nix`、`cleanup.nix`、`boot.nix`、`hardware.nix`、`network.nix`、`services.nix`
   - desktop：`fonts.nix`、`input.nix`、`xdg.nix`
-  - programs：`../../system/nvidia/nvidia-block.nix`（启用 block 不是 nvidia）、`../../system/proxy/daed.nix`（主用）、`packages.nix`、`nix-ld.nix`
+  - programs：`../../system/nvidia/`（由 `myvars.enableNvidia` 在 `nvidia.nix` / `nvidia-block.nix` 间二选一，当前 `true` 启用 `nvidia.nix`）、`../../system/proxy/clash-verge.nix`（主用）、`packages.nix`、`nix-ld.nix`
   - vault：`../../system/vault/vaultwarden.nix`、`vaultwarden-backup.nix`、`vault.nix`
   - greeter：`greetd.nix`
   - secrets：`secrets.nix`
-- 用户 `lilei`（经 `myvars.username`）：`isNormalUser = true`，`shell = pkgs.zsh`，`extraGroups = [ "wheel" "networkmanager" "video" "input" "hermes" ]`。密码 hash 不落仓库：`hashedPasswordFile = config.sops.secrets.password_hash.path`。
+- 用户 `lilei`（经 `myvars.username`）：`isNormalUser = true`，`shell = pkgs.zsh`，`extraGroups = [ "wheel" "networkmanager" "video" "input" ]`。密码 hash 不落仓库：`hashedPasswordFile = config.sops.secrets.password_hash.path`。
 - **DATATB 自动挂载**：`fileSystems."/run/media/lilei/DATATB"` = ntfs3（`/dev/disk/by-label/DATATB`，`uid=1000 gid=100 umask=022 nofail x-systemd.automount`）。
 - `environment.localBinInPath = true`：把 `~/.local/bin` 加进 PATH（自定义脚本：futu 等）。
 - Home Manager：`useGlobalPkgs = true`、`useUserPackages = true`、`extraSpecialArgs = { inherit inputs myvars; }`、`users.${myvars.username} = import ./home.nix`、备份扩展名 `backup`。
@@ -246,8 +238,8 @@ nixos-DMS/
 - 文件系统挂载（Btrfs 子卷，UUID `6c9764ff-c293-4be8-801c-982bdb6ed30a`）：
   - `/` → 子卷 `@`，`compress=zstd,noatime,discard=async`
   - `/home` → 子卷 `@home`、`/nix` → 子卷 `@nix`、`/var/log` → 子卷 `@log`
-  - `/tmp` → tmpfs（`mode=1777,nosuid,nodev,size=4G`）
   - `/boot/efi` → VFAT，UUID `AC09-EF5B`（nvme0n1p6，NixOS 独立 ESP；权威值以本文件为准），`fmask=0022,dmask=0022`
+- `/tmp`（4G）与 `~/.cache`（6G）为 tmpfs，声明在 `system/tmpfs.nix`（本文件只保留硬件事实）；`~/.cache` 为易失数据，每次开机按需重建
 - `swapDevices = []`（无交换）
 - `networking.useDHCP = lib.mkDefault true`
 - `nixpkgs.hostPlatform = "x86_64-linux"`
@@ -263,18 +255,16 @@ nixos-DMS/
 - `auto-optimise-store = true`
 - `substituters`：Tuna（priority 1）、USTC（priority 2）、cache.nixos.org（priority 20）
 - `trusted-public-keys`：cache.nixos.org 的 key
-- `nix.gc`：自动，`dates = "daily"`，`options = "--delete-older-than 3d"`（内置 nix-gc.timer 带 Persistent=true，关机错过会在开机补跑）
+- `nix.gc`：自动，`dates = "daily"`，`options = "--delete-older-than 7d"`（内置 nix-gc.timer 带 Persistent=true，关机错过会在开机补跑）
 - `nixpkgs.config.allowUnfree = true`
 
 ### 5. `system/cleanup.nix`（新增）
 
-**作用**：系统日志与用户缓存自动清理。
+**作用**：系统日志上限（journal）。
 
 **内容**：
-- `services.journald.extraConfig`：`SystemMaxUse=50M`、`SystemKeepFree=1G`（journal 不会涨满 /var/log）
-- `systemd.tmpfiles.rules`（由 systemd-tmpfiles-clean.timer 每日执行，只删超龄条目）：
-  - `~/.cache/uv`、`~/.cache/pip`、`~/.cache/nix`、`~/.cache/elephant` → 3d
-  - 浏览器缓存默认不清（注释中给出 7d 方案）
+- `services.journald.settings.Journal`：`SystemMaxUse = "200M"`、`SystemKeepFree = "1G"`（journal 不会涨满 /var/log）
+- 用户缓存 `~/.cache` 已是 tmpfs（见 `system/tmpfs.nix`），重启即空，无需再用 tmpfiles 年龄规则清理
 
 ### 6. `system/boot.nix`
 
@@ -309,7 +299,7 @@ nixos-DMS/
 - `networking.hostName = "nixos"`（⚠️ 与 flake 名 legion 不同）
 - `networking.networkmanager.enable = true`，`wifi.backend = "wpa_supplicant"`，`wifi.powersave = false`
 - `services.timesyncd.enable = true`，`networking.timeServers = [ "ntp.aliyun.com" "ntp.tencent.com" ]`
-- ⚠️ **防火墙已从本文件下放**：`daed.nix` 设 `checkReversePath = "loose"`；`mihomo.nix` 设 `trustedInterfaces = [ "Meta" ]` + 放行端口。不要在 network.nix 重复配置。
+- ⚠️ **防火墙已从本文件下放**：`clash-verge.nix` 经 `tunMode` 把 `checkReversePath` 默认设为 `"loose"`（`network.nix` 已是 loose）；`mihomo.nix` 设 `trustedInterfaces = [ "Meta" ]` + 放行端口。不要在 network.nix 重复配置。
 
 ### 9. `system/services.nix`
 
@@ -326,7 +316,6 @@ nixos-DMS/
 - `security.rtkit.enable = true`
 - `security.pam.services.greetd.enableGnomeKeyring = true`，`services.gnome.gnome-keyring.enable = true`
 - `services.upower.enable = true`，`services.pulseaudio.enable = false`，`services.blueman.enable = true`
-- ⚠️ Hermes Agent 服务已从本文件移出，见 `home/programs/AI/hermes-service.nix`（NixOS 模块）
 
 ### 10. `system/secrets.nix`
 
@@ -383,38 +372,33 @@ nixos-DMS/
 - ⚠️ 自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）：nixpkgs 的 libjpeg(turbo) 只提供 `.62`，libmpv 等旧库需要 `.8`，用 fetchurl 从 ijg.org 编译 `jpegsrc.v8d` 提供
 - 缺库报错时往 `libraries` 里按需补充
 
-### 16. `system/proxy/daed.nix`（主用）
+### 16. `system/proxy/clash-verge.nix`（主用）
 
-**作用**：daed = dae（eBPF 高性能透明代理）+ Web 管理面板。eBPF 内核态分流，直连/分流性能优于用户态代理。
+**作用**：Clash Verge Rev（nixpkgs 官方模块 `programs.clash-verge`），GUI 客户端 + TUN/系统代理。
 
 **关键内容**：
-- `imports = [ inputs.daeuniverse.nixosModules.daed ]`
-- `services.daed.enable = true`，面板监听 `127.0.0.1:2023`，tproxy 端口 12345（**仅本机透明代理用**）
-- `openFirewall.enable = false`：不对外放行 tproxy 端口（上游模块默认 true 会把 TCP/UDP 12345 开给局域网，属多余暴露面；仅当确要当局域网代理网关时才改回 true）
-- `assetsPaths` 使用 **Loyalsoldier 增强版规则库**（`v2ray-rules-dat`，含 `geosite:gfw` 等分类）；默认的 `v2ray-domain-list-community` 无 gfw 分类会报 `code gfw not found`
-- `networking.firewall.checkReversePath = "loose"`（dae 用 TPROXY 分流，回程流量需放行）
-- ⚠️ **garnix 二进制缓存已注释禁用**：`cache.garnix.io` 时常 503 挂掉拖慢每次 rebuild；需要更新 daed/dae 时再临时启用，或本地编译
-
-**flake 注意**：`daeuniverse` input **不能** `inputs.nixpkgs.follows`，且 nixpkgs 固定到 `b12141ef`（pnpm 10.x，daeuniverse 自测版本）；跟随最新 nixpkgs（pnpm 11+）会构建失败。本 input 固定 commit `42ece300`。
+- `programs.clash-verge.enable = true`
+- `serviceMode = true`：`clash-verge-service` 由 systemd 开机常驻（TUN 所需的特权核心）
+- `tunMode = true`：生成 `security.wrappers.clash-verge`，授予 `cap_net_bind_service` / `cap_net_raw` / `cap_net_admin`（TUN + DNS 所需），并把 `firewall.checkReversePath` 默认设为 `"loose"`
+- `autoStart = true`：生成 XDG autostart 条目，桌面登录自动启动 GUI
+- ⚠️ **单实例**：GUI 必须在 设置 → 开启「服务模式」+「Tun 模式」以复用 service 核心；若未开「服务模式」，GUI 会另起一个核心（出现"两个 clash"）
 
 **日常使用**：
-1. 访问 `http://127.0.0.1:2023` 打开面板（初始密码看 `systemctl status daed` 日志）
-2. 初始化配置：tproxy_port 填 **12345**（仅本机透明代理用，防火墙不放行此端口）
-3. 添加订阅 URL → 自动导入节点 → 配置 group / routing → 运行
-4. 面板可网页内更新订阅、切换节点，无需改 nix 配置
-5. 若报 `code xxx not found in geosite.dat`：确认 `/etc/daed/geosite.dat` 软链指向 `v2ray-rules-dat`（`ls -l /etc/daed/`），必要时 `systemctl restart daed`
+1. `super+d` / 应用菜单打开 clash-verge
+2. 「订阅 → 新建 → 粘贴订阅 URL → 更新」，选中一个 profile
+3. 打开「系统代理」或 Tun 模式即可全局代理
 
-**切换回 mihomo**：见 `mihomo.nix` 顶部注释（注释 daed import、取消 mihomo import）。
+**切换回 mihomo**：见 `mihomo.nix` 顶部注释（注释 clash-verge import、取消 mihomo import）。
 
 ### 17. `system/proxy/mihomo.nix`（备用）
 
-**作用**：mihomo（Clash Meta，TUN 模式），原主用方案，现为备用。
+**作用**：mihomo（Clash Meta，TUN 模式），备用方案。
 
 - `services.mihomo.enable = true`，`configFile = "${myvars.homeDirectory}/.config/mihomo/config.yaml"`（用户目录下，不在仓库内）
 - `tunMode = true`，`webui = pkgs.metacubexd`
 - `systemd.services.mihomo.path = [ pkgs.mihomo ]`（恢复系统默认高权限沙箱以完美支持 TUN）
 - `networking.firewall`：`checkReversePath = "loose"`、`trustedInterfaces = [ "Meta" ]`、放行 TCP 9090/7890/7891
-- 已自包含防火墙规则，启用时需同步在 `configuration.nix` 移除 dae import（反之亦然）
+- 已自包含防火墙规则，启用时需同步在 `configuration.nix` 移除 clash-verge import（反之亦然）
 
 **订阅链接管理**（若启用）：
 - 订阅链接在 `~/.config/mihomo/config.yaml` 的 `proxy-providers.mysub.url`（含 token，属敏感信息，不进 git）
@@ -444,22 +428,22 @@ nixos-DMS/
 - **系统控制**：`playerctl`, `brightnessctl`, `libnotify`
 - **编辑器**：`vim`, `gnome-text-editor`
 
-### 19. `system/nvidia/nvidia-block.nix`（默认启用，屏蔽独显）
+### 19. `system/nvidia/nvidia-block.nix`（`enableNvidia = false` 时启用，屏蔽独显）
 
 **作用**：屏蔽 NVIDIA 独显以省电（仅用 AMD iGPU）。
 - `boot.extraModprobeConfig`：blacklist nouveau
 - `services.udev.extraRules`：移除 NVIDIA USB/音频/VGA 设备（power control）
 - `boot.blacklistedKernelModules = [ "nouveau" "nvidia" "nvidia_drm" "nvidia_modeset" ]`
 
-### 20. `system/nvidia/nvidia.nix`（`enableNvidia = true` 时启用）
+### 20. `system/nvidia/nvidia.nix`（当前启用：`enableNvidia = true`）
 
-**作用**：启用 NVIDIA RTX 3060 独显（PRIME offload 省电方案，闲置自动断电）。
+**作用**：启用 NVIDIA RTX 3050 Ti Mobile 独显（PRIME offload 省电方案，闲置自动断电）。
 - `hardware.graphics.enable = true`
 - 内核模块 `nvidia_modeset`/`nvidia_drm`/`nvidia`，blacklist nouveau
 - `services.xserver = { enable = true; videoDrivers = [ "nvidia" ] }`（XWayland 也走此驱动）
 - `hardware.nvidia`：modesetting、`powerManagement.enable = true`（suspend 保存 VRAM，防唤醒花屏）、`powerManagement.finegrained = true`（RTD3 空闲进入 D3cold 断电）、`open = true`（开源内核模块，595 驱动已稳定）、`nvidiaSettings = true`、`package = linuxPackages_latest.nvidiaPackages.stable`
 - `hardware.nvidia.prime.offload.enable = true`（按需渲染），`amdgpuBusId = "PCI:6:0:0"`，`nvidiaBusId = "PCI:1:0:0"`
-- ⚠️ **启用方法**：改 `vars/default.nix` 的 `enableNvidia = true` 后 `nh os switch .#legion`（与 nvidia-block.nix 由该开关自动二选一，无需改 imports）
+- ⚠️ **启用方法**：`vars/default.nix` 的 `enableNvidia` 为 `true` 即启用本模块（当前值）；改为 `false` 则由 nvidia-block.nix 接管，两者由该开关自动二选一，无需改 imports
 
 ### 21. `vars/default.nix`（新增）
 
@@ -470,7 +454,7 @@ nixos-DMS/
 - `homeDirectory = "/home/lilei"`
 - `repoDir = "/home/lilei/nixos-DMS"`
 - `flakeName = "legion"`
-- `enableNvidia = false`：独显开关（false 屏蔽独显走核显省电；true 启用 NVIDIA offload + RTD3）
+- `enableNvidia = true`：独显开关（true 启用 NVIDIA offload + RTD3，当前值；false 屏蔽独显走核显省电）
 - `theme`：GTK/Qt/光标主题统一取值（`gtk`/`icon`/`cursor`/`cursorSize`），见 theme.nix、dconf.nix、niri settings.nix
 
 > 任何需要硬编码用户名/路径的地方，优先用 `myvars.xxx` 而不是写死字符串（fish/zsh 别名、mihomo configFile、thunar、firefox profile 等已改用）。
@@ -481,7 +465,7 @@ nixos-DMS/
 
 **结构**：每个测试子目录 `tests/<name>/` 下有 `expr.nix` + `expected.nix`，`tests/default.nix` 自动发现并断言二者相等。
 
-**现有测试**：`home-directory`（home.homeDirectory == /home/lilei）、`state-version`、`timezone`（Asia/Shanghai）、`user-is-normal`、`proxy-mutex`（daed 开 / mihomo 关）、`firefox-disabled`、`hm-state-version`。
+**现有测试**：`home-directory`（home.homeDirectory == /home/lilei）、`state-version`、`timezone`（Asia/Shanghai）、`user-is-normal`、`proxy-mutex`（clash-verge 开 / mihomo 关）、`firefox-disabled`、`hm-state-version`。
 
 **新增测试**：在 `tests/` 建目录，`expr.nix` 引用 `outputs.nixosConfigurations.legion.config...`，`expected.nix` 给出期望值。
 
@@ -494,7 +478,7 @@ nixos-DMS/
 - `imports` 列表包含：
   - `inputs.dms.homeModules.dank-material-shell`
   - `../../home/niri/kdl.nix`（niri 手写 KDL 配置链接）
-  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`、`AI/hermes.nix`
+  - `../../home/programs/rime.nix`、`vscode/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
 - **niri**：⚠️ 已放弃 niri-flake（2026-08-30 改）。niri 用 nixpkgs 自带 `programs.niri`（`system/niri.nix`，`pkgs.niri` 26.04，支持 include）；配置为**手写 KDL**（`home/niri/conf/*.kdl`，经 `home/niri/kdl.nix` 链接到 `~/.config/niri/`）。主 `config.kdl` 用 `include` 引入 DMS 生成的 `dms/*.kdl`，实现焦点环随壁纸动态变色。
@@ -521,20 +505,6 @@ nixos-DMS/
 - **音乐**：`spicetify-cli`（已注释，未启用）
 - **笔记**：`siyuan`
 - **图片**：`imagemagick`（已注释，未启用）
-
-### 25. `home/programs/AI/hermes.nix` + `home/programs/AI/hermes-service.nix`
-
-**作用**：Hermes AI 助手配置（集中到 AI 目录）。
-
-- `hermes.nix`（home-manager）：安装 Hermes Desktop（CLI + GUI）。
-  ```nix
-  { pkgs, inputs, ... }: {
-    home.packages = [ inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.desktop ];
-    xdg.desktopEntries."hermes-desktop" = { ... }; # 声明桌面项，让 Hermes Desktop 出现在 walker / 应用菜单
-  }
-  ```
-  `desktop` 输出同时提供 CLI（hermes/hermes-agent/hermes-acp）和 `hermes-desktop` 启动器，复用 `/var/lib/hermes/.hermes/` 状态（经 `HERMES_HOME`）。
-- `hermes-service.nix`（**NixOS 模块**，经 `hosts/legion/configuration.nix` 导入）：`services.hermes-agent` 系统服务（systemd 网关）、model/provider 设置、`sops.templates."hermes-env"`、tmpfiles 属主修复、`TimeoutStopSec = 30`。详见「五、Hermes Agent 专节」。
 
 ### 26. `system/vault/vault.nix`（加密数据盘）
 
@@ -589,52 +559,6 @@ nixos-DMS/
 
 ---
 
-## 五、Hermes Agent 专节
-
-### 配置位置（已集中到 `home/programs/AI/`）
-- **桌面入口/安装**：`home/programs/AI/hermes.nix`（home-manager）
-- **系统服务**：`home/programs/AI/hermes-service.nix`（**NixOS 模块**，经 `hosts/legion/configuration.nix` 导入）中 `services.hermes-agent`
-- **机密**：`system/secrets.nix` 声明 `deepseek_api_key`，实际值由 sops 加密存储在 `secrets/secrets.yaml`
-
-### 服务配置详情（home/programs/AI/hermes-service.nix）
-```nix
-services.hermes-agent = {
-  enable = true;
-  settings = {
-    model.default = "deepseek-v4-flash";
-    toolsets = [ "all" ];
-    terminal = {
-      backend = "local";
-      timeout = 180;
-    };
-  };
-  environmentFiles = [ config.sops.templates."hermes-env".path ];
-  addToSystemPackages = true;
-};
-
-# 修复：auth.json 若属主是交互用户（lilei）则服务（hermes 用户）无法读取。
-systemd.tmpfiles.rules = [
-  "f /var/lib/hermes/.hermes/auth.json 0600 hermes hermes - -"
-];
-
-# 修复：网关排空（drain）需要更长停止超时（默认 10s 会在排空时 SIGKILL）。
-systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
-
-# sops.templates."hermes-env"：由 sops 解密生成含 DEEPSEEK_API_KEY 的环境文件
-```
-
-### 使用方式
-- **CLI**：`hermes` 或 `hermes-agent`（系统级命令，通过 `addToSystemPackages` 添加）
-- **GUI**：应用菜单中 "Hermes Desktop"，或 `hermes-desktop`（由 Home Manager 安装，desktop entry 在 `home/programs/AI/hermes.nix`）
-- **临时切换模型**：`hermes --model deepseek-v4-pro`
-
-### 密钥管理
-- 编辑机密：`sops secrets/secrets.yaml`，添加 `deepseek_api_key: sk-你的真实密钥`（明文，保存后自动加密）
-- 解密后的环境变量文件路径：`sudo cat $(readlink -f /run/secrets/hermes-env)`
-- ⚠️ age 私钥 `/etc/sops/age/keys.txt`（信任根）已备份到 Win11 数据盘和 QQ 邮箱，**绝不可提交到 git**；备份/重装恢复步骤见「十二、关键注意事项」第 6 条
-
----
-
 ## 六、Niri 配置详解（home/niri/）
 
 > ⚠️ **架构（2026-08-30 改）**：放弃 niri-flake 属性集，改用**手写 KDL**（参照 ryan4yin/nix-config 风格）。
@@ -678,7 +602,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - 浏览器类（google-chrome/firefox）`open-maximized`，分配到 `browser` 工作区
 - 开发工具（Zed `dev.zed.Zed` / `codium`）占满列宽，分配到 `code` 工作区
 - 办公/编辑器（libreoffice/zettlr/gnome-text-editor）占满列宽
-- 浮动类：FileRoller、pavucontrol、Blanket、LocalSend、dconf-editor、waypaper、nwg-look、qt6ct、Loupe、zathura、Foliate、Hermes（app-id `hermes`）、**telegram**
+- 浮动类：FileRoller、pavucontrol、Blanket、LocalSend、dconf-editor、waypaper、nwg-look、qt6ct、Loupe、zathura、Foliate、**telegram**
 - **QQ**（app-id `QQ`）浮动 + 固定列宽 800（独立规则 6.1）
 - 终端类（Alacritty/Ghostty）与 mpv 均浮动、不分配工作区
 - 弹窗类居中浮动（Open File/Save File）
@@ -703,8 +627,6 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | `AI/zed.nix` | Zed 编辑器（nixpkgs `zed-editor`，二进制 zeditor）+ **`nixd`**（Nix LSP，Zed 的 Nix 扩展需要）：**全声明式**——macOS Classic 主题（`theme.mode=system` 亮/暗自动切换）、5 个插件 auto_install_extensions（catppuccin-icons/git-firefly/html/macos-classic/nix）、vim 模式、minimap="never"、shell=fish（对象格式）、**ACP 链接 opencode**（`opencode acp`，⚠️ 不是 serve——serve 是 HTTP 服务器，Zed 连不上会一直 loading）。API key/登录走 Zed keychain（不进 Nix） |
 | `AI/opencode.nix` | OpenCode AI agent（nixpkgs `opencode`）：**只装工具**，凭据用 `opencode auth login`（切换 provider 无需改 Nix） |
 | `AI/pi.nix` | Pi coding agent（nixpkgs `pi-coding-agent`）：**只装工具**，认证用 `/login`（自动写入 `~/.pi/agent/auth.json`），自定义 provider 才需 `~/.pi/agent/models.json` |
-| `AI/hermes.nix` | Hermes Desktop（home-manager）：桌面入口 + CLI/GUI 安装；provider/model 设置见 `AI/hermes-service.nix` |
-| `AI/hermes-service.nix` | Hermes Agent 系统服务（**NixOS 模块**，经 `configuration.nix` 导入）：systemd 网关、model/provider、sops 模板（详见「五、Hermes Agent 专节」） |
 | `alacritty.nix` | JetBrainsMono Nerd Font 12、Monokai Pro 配色、shell=fish、**Super+C/V 复制粘贴**、WINIT_UNIX_BACKEND=wayland |
 | `ghostty.nix` | monokai-pro 主题（自定义 palette）、JetBrainsMono 12、无装饰、GTK tabs bottom、**Super+C/V 复制粘贴（ignore 掉默认 ctrl+shift+c/v）** |
 | `fish.nix` | Nix 别名用**绝对路径**（`rebuild`/`nix-test`/`boot`/`rollback`/`cleanup`/`check`/`update`/`fmt`，任意目录可用）、g* git 别名、ls=eza 等、starship/direnv/zoxide/fzf、fzf-fish 插件、目录快捷 alias |
@@ -758,7 +680,6 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 ### 日常更新流程
 1. 保存当前状态：`git add . && git commit -m "before update"`
 2. 更新 flake 锁：`nix flake update`（或只更新某个 input：`nix flake lock --update-input <name>`）
-   - ⚠️ `niri` / `hermes-agent` / `daeuniverse` 的 nixpkgs 是 pin 死的，`nix flake update` 不会动它们；要升级它们需手动改 flake.nix 里的 commit/url。
 3. 测试构建（不切换）：`sudo nixos-rebuild test --flake .#legion`（或 `nh os test .#legion`）
 4. 校验：`nix flake check`（跑 eval 测试 + pre-commit 的 alejandra/typos 检查）
 5. 若测试通过，正式切换：`sudo nixos-rebuild switch --flake .#legion`（或 `nh os switch .#legion`）
@@ -771,7 +692,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 ### 垃圾清理
 - 删除所有旧 generation：`sudo nix-collect-garbage -d`
 - 查看占用：`nix store gc --dry-run`
-- fish/zsh 别名：`cleanup`（保留 14 天）；系统 GC 自动每日清理 3 天前 generation
+- fish/zsh 别名：`cleanup`（保留 14 天）；系统 GC 自动每日清理 7 天前 generation
 
 ### 特别注意（多系统引导）
 主引导是 p6 上的 NixOS GRUB，Windows（p1 独立 ESP）经 GRUB 菜单进入。**NVRAM 引导项编号（`0004`/`0007`…）由固件动态分配，禁止在配置或脚本里硬编码**，一切以 `efibootmgr -v` 实测为准。
@@ -784,7 +705,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 ## 十、常用命令速查
 
-> 日常备查的完整备忘录见 [`MEMO.md`](./MEMO.md)（按主题分 Nix / 加密盘 / Vaultwarden / sops / 代理 / Hermes / 备份重装 / 排障）。
+> 日常备查的完整备忘录见 [`MEMO.md`](./MEMO.md)（按主题分 Nix / 加密盘 / Vaultwarden / sops / 代理 / 备份重装 / 排障）。
 
 | 操作 | 命令 |
 |------|------|
@@ -804,10 +725,6 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 | 清理垃圾 | `sudo nix-collect-garbage -d` 或 `cleanup`（保留 14 天） |
 | 格式化配置 | `alejandra .` 或 `fmt` |
 | 编辑机密 | `sops secrets/secrets.yaml` |
-| 查看 Hermes 服务状态 | `systemctl status hermes-agent` |
-| 查看 Hermes 日志 | `journalctl -u hermes-agent -f` |
-| 检查 API Key 解密 | `cat $(readlink -f /run/secrets/hermes-env)` |
-| 临时使用 Hermes CLI | `hermes "你好"` 或 `hermes --model deepseek-v4-pro` |
 | 截图 | `Print` / `Alt+Print` / `Ctrl+Print`（niri 内置，保存到 `~/Pictures/Screenshots/`） |
 | Git 推送 | `git push` |
 | 查看系统状态 | `fastfetch` |
@@ -825,7 +742,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 ## 十一、备忘
 
 ### 重装流程（恢复新机器）
-0. **迁移前**：在旧机上解锁加密盘后备份信任根/凭据：`sudo bash scripts/backup-credentials.sh`（备份 sops age key ×2、`~/.ssh/`、opencode/pi/mihomo/hermes 凭据，完整源清单见 scripts/README.md）
+0. **迁移前**：在旧机上解锁加密盘后备份信任根/凭据：`sudo bash scripts/backup-credentials.sh`（备份 sops age key ×2、`~/.ssh/`、opencode/pi/mihomo 凭据，完整源清单见 scripts/README.md）
 1. **分区（二选一）**：
    - **disko 一键分区**（推荐）：在 NixOS 官方 ISO 中执行，只重建 `nvme1n1p2`（btrfs 根分区），**保留 DATATB 数据盘与加密盘**：
      ```bash
@@ -857,16 +774,15 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 5. `sudo nixos-rebuild switch --flake .#legion`（或 `rebuild`）——密码 hash、Vaultwarden TLS 证书全部由 sops 自动解密生成，无需手动配置
 
 ### 未启用模块（保留但不导入）
-- `system/nvidia/nvidia.nix`：独显启用配置（PRIME offload + RTD3 空闲断电），`vars/default.nix` 的 `enableNvidia = true` 时自动切换导入（与 nvidia-block.nix 二选一）。启用后会自动开启 `services.xserver`。
-- `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 daed.nix 的 import（二选一，不可同时开启）。
+- `system/nvidia/nvidia-block.nix`：屏蔽独显配置（仅用核显省电），`vars/default.nix` 的 `enableNvidia = false` 时自动切换导入（与 nvidia.nix 二选一）。当前 `enableNvidia = true`，故本模块未启用。
+- `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 clash-verge.nix 的 import（二选一，不可同时开启）。
 - `home/programs/firefox.nix`：Firefox 配置（home.nix 中 import 被注释），需要时取消注释启用。
 - `hosts/legion/packages.nix` 中 `thunderbird` / `tradingview` / `spicetify-cli` / `imagemagick`（注释中）。
-- `system/nix-ld.nix` 的 garnix 缓存（注释中，需要更新 daed/dae 时临时启用）。
 
 ### 设计说明
 - 主机名 `nixos` ≠ flake 配置名 `legion`：所有 rebuild 命令用 `.#legion`；`hostname` 显示 `nixos` 属正常。
 - niri 工作区：`settings.nix` 用数字前缀 key（`1-browser`/`2-note`/`3-code`）+ `name` 声明三个命名工作区（rules.nix 的 `open-on-workspace` 需要它们），其余工作区按需动态创建。
-- mihomo 配置文件 `~/.config/mihomo/config.yaml` 在用户目录（非仓库内），由 `backup-credentials.sh` 一并备份；daed 配置由面板管理（`/etc/daed/`），面板数据建议定期在面板内导出备份。
+- mihomo 配置文件 `~/.config/mihomo/config.yaml` 在用户目录（非仓库内），由 `backup-credentials.sh` 一并备份。
 - 自定义脚本放 `~/.local/bin`（`environment.localBinInPath = true` 已加入 PATH），如 futu。
 
 ---
@@ -876,7 +792,7 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 1. **多系统引导**：主引导为 NixOS GRUB（`system/boot.nix`），与 Windows 11（p1 独立 ESP）组成双系统菜单，NixOS generations 也在 GRUB 内选择；`bootmgfw.efi` 由 GRUB 每次开机动态搜索，Windows 更新后无需手动同步。
 2. **Btrfs 子卷**：系统使用 Btrfs 子卷布局（`@`, `@home`, `@nix`, `@log`），快照和回滚可基于此进行（当前未配置自动快照，但有 btrfs autoScrub）。
 3. **无交换分区**：内存充足（32GB），因此未配置 swap。
-4. **显卡驱动**：默认使用 AMD 核显（amdgpu），NVIDIA RTX 3060 被屏蔽省电（`nvidia-block.nix`）；`vars/default.nix` 的 `enableNvidia = true` 切换到 `nvidia.nix`（PRIME offload + RTD3，独显空闲自动断电）。系统为纯 Wayland，未启用 `services.xserver`（X 应用走 `xwayland-satellite`），启用独显时会自动开启。
+4. **显卡驱动**：NVIDIA RTX 3050 Ti Mobile 独显已启用（`vars/default.nix` 的 `enableNvidia = true`，`nvidia.nix`：PRIME offload + RTD3，独显空闲自动断电），核显 `amdgpu` 负责输出；置 `enableNvidia = false` 则由 `nvidia-block.nix` 屏蔽独显、仅用核显省电。系统为纯 Wayland，未启用 `services.xserver`（X 应用走 `xwayland-satellite`），启用独显时会自动开启。
 5. **密码哈希**：存于 `secrets/secrets.yaml` 的 `password_hash`（sops 加密，不落仓库明文）。修改：用 `openssl passwd -6`（或 `mkpasswd -m sha-512`）生成新 hash → `sops secrets/secrets.yaml` 更新该值 → rebuild。
 6. **sops 私钥（信任根）**：`/etc/sops/age/keys.txt`（对应公钥 `age14hwqm9aumaek4k6gn2zn8269ztzemgyvt8kqu4aq4lpxqtpl8uys5q42qn`）必须备份，丢了它 `secrets/secrets.yaml` 永远解不开。已备份到 win11 数据盘和 qqmail。用户级解密还依赖 `~/.config/sops/age/keys.txt`（跑 `sops secrets/secrets.yaml` 用），同样要备份。**推荐直接用备份脚本**（含上述两把 key + `~/.ssh/` + opencode `auth.json`）：
    ```bash
@@ -895,9 +811,9 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
    sudo chmod 600 /etc/sops/age/keys.txt
    ```
    恢复后路径必须是 `/etc/sops/age/keys.txt`（`sops.age.keyFile` 指向它），之后 rebuild 即全自动：密码 hash、Vaultwarden TLS 证书全部由 sops 解密生成，无需其它手动步骤。
-7. **镜像源**：已配置 Tuna/USTC 镜像，更新速度较快。daeuniverse 的 garnix 缓存已禁用（常 503）。
+7. **镜像源**：已配置 Tuna/USTC 镜像，更新速度较快。
 8. **NixOS 版本**：实际使用 nixpkgs **unstable**（具体版本 / commit 以 `flake.lock` 为准，`nixos-version` / `nix flake metadata` 可查），但 `system.stateVersion` 保留为 25.05 以确保兼容性。
-9. **用户组**：`lilei` 已加入 `hermes` 组，这是使用 Hermes 服务的前提。
+9. **用户组**：`lilei` 加入 `wheel` / `networkmanager` / `video` / `input` 组。
 10. **机密文件**：`secrets/secrets.yaml` 已加密，可以提交到 GitHub，但 age 私钥绝不可提交（已在 `.gitignore` 中忽略）。
 11. **Rime 部署**：rebuild/重启后若雾凇输入法未出现，手动运行 `fcitx5-remote -r` 触发部署（rime 目录由 home.file 声明式管理，部署懒触发）。详见 `home/programs/rime.nix` 头部注释。
 12. **Vaultwarden 仅本机**：服务只监听 `127.0.0.1:8080`，firewall 无需放行；访问必须用 **`https://localhost:8080`**（Bitwarden 客户端拒绝 http）。
@@ -908,9 +824,9 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
 18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；镜像副本另有 DATATB `/run/media/lilei/DATATB/vaultwarden-backup/`（随本地 7 天滚动）。本地 / DATATB / 加密盘同属一块物理盘（nvme1n1），建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
-20. **nixpkgs pin**：`hermes-agent`（624af66：npm 依赖命中旧缓存）、`daeuniverse`（b12141ef：pnpm 10.x）的 nixpkgs 是固定的，升级 nixpkgs 不会自动带上它们；要升级需手动改 flake.nix 并验证构建。⚠️ `niri` 已不 pin（改用 nixpkgs `pkgs.niri`，见「六」）。
+20. **nixpkgs**：所有 input 均 follows 统一 nixpkgs（`nix flake update` 可整体升级），无额外 pin。⚠️ `niri` 使用 nixpkgs 自带 `pkgs.niri`（见「六」）。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。
-22. **清理策略**：journal 上限 50M；`~/.cache/{uv,pip,nix,elephant}` 3 天自动清理（`system/cleanup.nix`）；系统 GC 每日自动删 3 天前 generation。
+22. **清理策略**：journal 上限 200M（`services.journald.settings.Journal`）；`/tmp`（4G）与 `~/.cache`（6G）为 tmpfs（`system/tmpfs.nix`），重启即空；系统 GC 每日自动删 7 天前 generation。
 23. **截图**：已用 niri 内置截图（Print/Alt+Print/Ctrl+Print），保存到 `~/Pictures/Screenshots/`；grim/slurp/wl-clip-persist 已移除，旧文档中的 grim 命令不再适用。
 24. **提交前检查**：`nix flake check` 会跑 eval 测试（`tests/`）和 pre-commit（alejandra --check + typos）。`git commit` 前确保 `.nix` 文件已 `alejandra .` 格式化，避免 typos 误报可改 `.typos.toml`。
 
@@ -920,9 +836,6 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 
 - **开机直接进 Windows / 没有 GRUB 菜单**：固件 BootOrder 把 Windows 排到了最前。`sudo nix run nixpkgs#efibootmgr -v` 查看项编号，用 `sudo nix run nixpkgs#efibootmgr -- -o <NixOS-boot-efi编号>,<Windows编号>,…` 把 GRUB 排回最前（`canTouchEfiVariables = true` 会在下次 rebuild 自愈 NVRAM 项）。
 - **NixOS 重建后无法引导新 generation**：确认 rebuild 成功且 `/boot/efi/EFI/NixOS-boot-efi/grubx64.efi` 存在；GRUB 配置写入 `/boot/grub/grub.cfg`（引用 `/nix/store` 内核路径）。GRUB 菜单里选旧 generation 可回滚，或 `sudo nixos-rebuild switch --rollback`。
-- **Hermes 服务启动失败**：检查 API Key 是否解密（`cat /run/secrets/hermes-env`）、`/var/lib/hermes/.hermes/auth.json` 属主是否为 `hermes:hermes`（否则 `sudo systemctl restart hermes-agent` 后看日志）、模型名称是否正确、网络是否通畅。
-- **`hermes: command not found`**：检查 `home/programs/AI/hermes-service.nix` 中 `addToSystemPackages = true` 是否设置，并确保已重建系统。
-- **桌面没有 Hermes 图标**：检查 `home/programs/AI/hermes.nix` 是否被 `home.nix` 正确导入，且已重建。
 - **软件包未安装**：确认添加到了正确的层级（系统 vs 用户），并检查是否在正确的 `packages.nix` 中。
 - **Git 冲突**：若从另一台机器修改并推送，拉取后需手动解决冲突，然后重建。
 - **构建失败（磁盘空间不足）**：运行 `sudo nix-collect-garbage -d` 清理旧 generation。
@@ -933,14 +846,12 @@ systemd.services.hermes-agent.serviceConfig.TimeoutStopSec = 30;
 - **`vault-close` 报 target is busy**：有程序正占用 `/mnt/vault`（通常是 Thunar/终端 cwd 在该目录），关掉窗口或 `cd` 离开后重试。可先 `lsof +D /mnt/vault` 查看占用进程。
 - **加密盘解锁提示 wrong passphrase / 无法打开**：确认密码无误，且设备确实是对应分区（`sudo cryptsetup luksUUID /dev/nvme1n1p3` 应等于 `86c742fc-8de5-4c59-9a30-196484a35695`）。密码是唯一钥匙，无法找回。
 - **非 Nix 二进制缺 .so 库**：把缺失的库包（如 `libxcb-*`、`qt6`）加进 `system/nix-ld.nix` 的 `libraries` 后 rebuild。libjpeg.so.8 由自定义 `jpeg-8` 提供。
-- **daed 面板报 `code xxx not found in geosite.dat`**：确认 `/etc/daed/geosite.dat` 软链指向 `v2ray-rules-dat`（`ls -l /etc/daed/`），必要时 `systemctl restart daed`。
-- **rebuild 时 daed 构建失败 / garnix 下载慢**：garnix 缓存已禁用，属正常；更新 daed/dae 时可临时启用 flake.nix 里注释的 garnix substituter，或本地编译。
 
 ---
 
 ## 十四、给 AI 助手的特别说明
 
-- 此文档为静态知识库，AI 助手（Hermes / opencode 等）应以当前信息为基础回答用户问题。
+- 此文档为静态知识库，AI 助手（opencode 等）应以当前信息为基础回答用户问题。
 - 当用户询问系统状态时，可参考"当前系统状态（快照）"部分，但动态值（如 uptime、generation 数）可能已变化，建议用户执行相应命令获取实时值。
 - 所有操作建议需考虑多系统环境和硬件限制。
 - 若用户要求添加/删除软件，应指明修改哪个文件，并提醒重建。

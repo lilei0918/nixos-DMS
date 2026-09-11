@@ -80,20 +80,12 @@ reboot
 ```bash
 fastfetch                          # 版本/内核
 uname -r                           # 新内核
-systemctl is-active hermes-agent vaultwarden.service daed greetd
+systemctl is-active vaultwarden.service greetd
 ```
 
 **⚠️ 本仓库特有的注意**：
-- **被 pin 的 input 不会随 `nix flake update` 更新**，需手动改 `flake.nix`：
-  - `hermes-agent`：源码 pin `1cdb8ce`、nixpkgs pin `624af66`（npm 依赖命中旧缓存，别轻易升）
-  - `daeuniverse`：源码 pin `42ece300`、nixpkgs pin `b12141ef`（pnpm 10.x）
-  - 升级它们前先确认上游已兼容（pnpm 11 等），并验证能构建
-  - ⚠️ `niri` 已不再 pin（2026-08-30 改）：改用 nixpkgs `pkgs.niri`，配置为手写 KDL（`home/niri/conf/*.kdl`）
-- **pin 语义（2026-09-07 核实）**：两上游 flake.nix 虽声明 `nixos-unstable`，实际 nixpkgs 由各自 flake.lock 决定（flake 间接依赖规则），上游并未自设保护：
-  - `daeuniverse`：上游自己的锁就钉 `b12141ef`，本地 pin 与其一致——是**镜像上游已验证状态**（pnpm 10），非额外保守；待上游把锁移到 pnpm 11 兼容版本后再跟进
-  - `hermes-agent`：上游锁随开发滚动（2026-09 约 `0954f7e`），本地 `624af66` 是**有意滞后**换 npm 缓存命中/下载速度
-  - ⚠️ 原则：**源码 + nixpkgs pin 必须成对升级**（各自内部自洽，勿只动一端），升完完整构建验证
-  - 查上游最新：`git ls-remote https://github.com/NousResearch/hermes-agent.git HEAD`（dae 换 `daeuniverse/flake.nix.git`）
+- `niri` 使用 nixpkgs 自带 `pkgs.niri`（2026-08-30 改，不再用 niri-flake），配置为手写 KDL（`home/niri/conf/*.kdl`），随 nixpkgs unstable 滚动更新
+- 所有 flake input 均 follows 统一 nixpkgs，`nix flake update` 可整体升级
 - 大升级后建议重启，确认新 generation 能被引导（NixOS GRUB 主引导，GRUB 菜单里可选旧 generation 回滚）
 
 **坏了的回滚**：
@@ -102,9 +94,7 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 **常见升级踩坑**：
 | 现象 | 处理 |
 |------|------|
-| daed/daeuniverse 构建失败 | nixpkgs 升级可能动了 pnpm 版本；确认 `daeuniverse` 的 pin 没被破坏，必要时临时启用 garnix 缓存或本地编译 |
 | niri 配置解析失败 | 用 `niri validate` 校验 `~/.config/niri/config.kdl`；niri 随 nixpkgs 升级，KDL 语法若有破坏性变更需同步改 `home/niri/conf/` |
-| hermes 构建变慢/重新下 npm 依赖 | 它的 nixpkgs pin 在 624af66（命中旧缓存）；别轻易升级该 pin，否则全量重下 |
 | 新 generation 无法引导 | GRUB 选旧 generation 回滚，修复后再切 |
 
 ---
@@ -145,7 +135,6 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 |------|------|
 | 编辑机密（明文输入，自动加密） | `sops secrets/secrets.yaml` |
 | 改用户密码 | `openssl passwd -6` 生成 hash → sops 更新 `password_hash` → rebuild |
-| 检查 Hermes API key 是否解密 | `cat $(readlink -f /run/secrets/hermes-env)` |
 
 - 信任根 `/etc/sops/age/keys.txt` + 用户级 `~/.config/sops/age/keys.txt`，绝不可提交 git，用备份脚本定期备份。
 
@@ -153,25 +142,16 @@ systemctl is-active hermes-agent vaultwarden.service daed greetd
 
 ## 七、代理
 
-**daed（主用）**
-- 面板：`http://127.0.0.1:2023`（初始密码看 `systemctl status daed` 日志）
-- 重启：`systemctl restart daed`
-- 规则库检查：`ls -l /etc/daed/`（软链应指向 v2ray-rules-dat）
+**clash-verge（主用）**——Clash Verge Rev（nixpkgs `programs.clash-verge`）
+- 打开 GUI：`super+d` / 应用菜单搜索 clash-verge
+- 首次：订阅 → 新建 → 粘贴订阅 URL → 更新，选中一个 profile
+- 开代理：打开「系统代理」或 Tun 模式
+- ⚠️ 单实例：GUI 设置里开启「服务模式」+「Tun 模式」，复用 systemd 常驻的 `clash-verge-service` 核心
+- 服务状态：`systemctl status clash-verge-service`
 
 **mihomo（备用）**——配置在 `~/.config/mihomo/config.yaml`（含订阅 token）
 - 重启：`systemctl restart mihomo`
 - 只刷订阅：`curl -X PUT "http://127.0.0.1:9090/providers/proxies/mysub"`
-
----
-
-## 八、Hermes
-
-| 操作 | 命令 |
-|------|------|
-| CLI | `hermes "你好"` |
-| 临时切换模型 | `hermes --model deepseek-v4-pro` |
-| 服务状态 | `systemctl status hermes-agent` |
-| 日志 | `journalctl -u hermes-agent -f` |
 
 ---
 
@@ -242,10 +222,8 @@ nix flake init -t ~/nixos-DMS#node             # Node.js
 | 现象 | 处理 |
 |------|------|
 | `vault-close` 报 target is busy | 有程序占用 `/mnt/vault`，`lsof +D /mnt/vault` 找进程，关闭或 `cd` 离开后重试 |
-| `hermes: command not found` | 检查 `addToSystemPackages = true` 且已重建 |
 | 输入法不出雾凇 | `fcitx5-remote -r`，再等 5-10 秒 |
 | Vaultwarden 打不开/证书错 | 用 `https://localhost:8080`；`systemctl restart vaultwarden.service` |
-| daed 报 `code xxx not found` | 确认 `/etc/daed/geosite.dat` 软链，`systemctl restart daed` |
 | 构建失败（空间不足） | `sudo nix-collect-garbage -d` |
 | 模块报 input 不存在 | 先在 `flake.nix` 添加对应 input |
 | 非 Nix 二进制缺库 | 往 `system/nix-ld.nix` 的 `libraries` 补库后 rebuild |

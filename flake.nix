@@ -35,18 +35,6 @@
     };
 
     # =============================
-    # Hermes Agent
-    # =============================
-
-    hermes-agent = {
-      url = "github:NousResearch/hermes-agent/1cdb8ce361e91c79cfbd6bee550ee6c09d290261";
-
-      # 与 niri/daeuniverse 同理：hermes 源码固定 commit，其 npm 依赖从 registry.npmjs.org
-      # 抓取（本机直连该源仅 ~25-200KB/s），pin 到旧 nixpkgs（624af66）可使 hermes
-      # 构建完全命中旧缓存，避免每次 nixpkgs 升级都重新下载全部 npm 依赖。
-      inputs.nixpkgs.url = "github:NixOS/nixpkgs/624af665418d3c65d544145b4d34ad696439570e";
-    };
-
     # =============================
     # Secrets
     # =============================
@@ -89,36 +77,12 @@
         home-manager.follows = "home-manager";
       };
     };
-
-    # =============================
-    # Piri（Niri 扩展：scratchpad / singleton / window_rule 等）
-    # =============================
-
-    piri = {
-      url = "github:Asthestarsfalll/piri";
-
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # =============================
-    # Proxy: dae / daed
-    # =============================
-    # 注意：不用 inputs.nixpkgs.follows，且把 daeuniverse 自己的 nixpkgs 固定到它
-    # 验证过的 commit（b12141ef，pnpm 10.x）。跟随最新 nixpkgs（pnpm 11+）会导致
-    # daed 的 fetchPnpmDeps(fetcherVersion=3) 断言失败、无法构建。
-
-    daeuniverse = {
-      url = "github:daeuniverse/flake.nix/42ece300b6360bab592f13c64ce1987df20475d5";
-
-      inputs.nixpkgs.url = "github:NixOS/nixpkgs/b12141ef619e0a9c1c84dc8c684040326f27cdcc";
-    };
   };
 
   outputs = {
     self,
     nixpkgs,
     home-manager,
-    hermes-agent,
     sops-nix,
     pre-commit-hooks,
     ...
@@ -194,10 +158,6 @@
         # Home Manager
 
         home-manager.nixosModules.default
-
-        # Hermes
-
-        hermes-agent.nixosModules.default
 
         # Secrets
 

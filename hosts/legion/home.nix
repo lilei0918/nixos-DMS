@@ -38,7 +38,6 @@ in {
     ../../home/programs/AI/opencode.nix
     ../../home/programs/AI/codex.nix
     ../../home/programs/AI/pi.nix
-    ../../home/programs/AI/hermes.nix
     ../../home/programs/git.nix
     ../../home/programs/dev.nix
 

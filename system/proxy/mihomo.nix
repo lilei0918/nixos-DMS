@@ -1,13 +1,13 @@
 # =============================================================================
 # 备用方案：mihomo (Clash Meta)
 # =============================================================================
-# 当前主用方案是 daed（见 system/proxy/daed.nix）。
+# 当前主用方案是 clash-verge（见 system/proxy/clash-verge.nix）。
 # 若要切回 mihomo：
-#   1. 在 hosts/legion/configuration.nix 中注释 daed.nix 的 import，改 import 本文件
+#   1. 在 hosts/legion/configuration.nix 中注释 clash-verge.nix 的 import，改 import 本文件
 #   2. sudo nixos-rebuild switch
 #   3. 订阅链接在 /home/lilei/.config/mihomo/config.yaml 第 17 行 url 修改
 #
-# daed 与 mihomo 不能同时开启（都会抢 TUN/TPROXY 和防火墙规则）。
+# clash-verge 与 mihomo 不能同时开启（都会抢 TUN 和防火墙规则）。
 # =============================================================================
 {
   pkgs,

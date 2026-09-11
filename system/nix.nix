@@ -28,9 +28,9 @@
 
     dates = "daily";
 
-    # 保留最近 3 天的旧 generation（含 store 路径），超出自动删除。
+    # 保留最近 7 天的旧 generation（含 store 路径），超出自动删除。
     # NixOS 内置 nix-gc.timer 带 Persistent=true，凌晨关机错过会在下次开机后补跑。
-    options = "--delete-older-than 3d";
+    options = "--delete-older-than 7d";
   };
 
   nixpkgs.config.allowUnfree = true;
