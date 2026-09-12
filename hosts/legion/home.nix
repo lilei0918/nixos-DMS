@@ -41,6 +41,7 @@ in {
     ../../home/programs/AI/pi.nix
     ../../home/programs/git.nix
     ../../home/programs/dev.nix
+    ../../home/programs/herdr.nix
 
     # -- 输入法 / 常用工具 --
     ../../home/programs/rime.nix
