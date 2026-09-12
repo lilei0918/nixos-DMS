@@ -15,7 +15,7 @@ in {
     folo = {
       name = "Folo";
       comment = "Follow everything in one place";
-      exec = "appimage-run ${home}/Downloads/Folo-1.12.0-linux-x64.AppImage";
+      exec = "appimage-run ${home}/Downloads/Folo-1.13.0-linux-x64.AppImage";
       icon = "applications-internet";
       categories = ["Network" "News"];
       terminal = false;
@@ -28,16 +28,6 @@ in {
       exec = "appimage-run ${home}/Downloads/LocalSend-1.17.0-linux-x86-64.AppImage";
       icon = "network-transmit-receive";
       categories = ["Network" "Utility"];
-      terminal = false;
-      type = "Application";
-    };
-
-    lx-music-desktop = {
-      name = "LX Music";
-      comment = "洛雪音乐助手";
-      exec = "appimage-run ${home}/Downloads/lx-music-desktop_2.12.2_x64.AppImage";
-      icon = "multimedia-player";
-      categories = ["AudioVideo" "Audio" "Player"];
       terminal = false;
       type = "Application";
     };

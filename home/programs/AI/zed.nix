@@ -59,25 +59,25 @@
 
       # UI 字体
       ui_font_family = "Inter";
-      ui_font_size = 16;
+      ui_font_size = 18;
 
       # 中文回退：霞鹜文楷 屏幕阅读版（lxgw-wenkai-screen，见 system/fonts.nix）
       ui_font_fallbacks = ["LXGW WenKai Screen"];
 
       # 编辑器字体
       buffer_font_family = "JetBrainsMono Nerd Font";
-      buffer_font_size = 14;
+      buffer_font_size = 16;
 
       # 中文回退：霞鹜文楷 屏幕阅读版（与 UI 同）
       buffer_font_fallbacks = ["LXGW WenKai Screen"];
 
       # Agent UI
       agent_ui_font_family = "Inter";
-      agent_ui_font_size = 16;
+      agent_ui_font_size = 18;
 
       # Agent 输入区
       agent_buffer_font_family = "JetBrainsMono Nerd Font";
-      agent_buffer_font_size = 15;
+      agent_buffer_font_size = 17;
 
       # ========================================================================
       # Theme
