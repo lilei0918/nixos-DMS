@@ -77,6 +77,18 @@
         home-manager.follows = "home-manager";
       };
     };
+
+    # =============================
+    # rime-ice（雾凇拼音数据源；非 flake，仅取源码树）
+    # =============================
+    # 用 input 而非 fetchFromGitHub：随 `nix flake update`（每周）自动更新，
+    # hash 由 flake.lock 管理，无需手改 rev/hash。
+
+    rime-ice = {
+      url = "github:iDvel/rime-ice";
+
+      flake = false;
+    };
   };
 
   outputs = {

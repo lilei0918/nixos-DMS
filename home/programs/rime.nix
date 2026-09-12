@@ -11,16 +11,7 @@
 # 若 -r 后 5-10 秒仍无雾凇，检查：
 #   ls ~/.local/share/fcitx5/rime/rime_ice.schema.yaml   # 应存在
 #   ls ~/.local/share/fcitx5/rime/symbols_v.yaml         # 应存在（缺失会导致 resource could not be loaded）
-{pkgs, ...}: let
-  rimeIceSrc = pkgs.fetchFromGitHub {
-    owner = "iDvel";
-    repo = "rime-ice";
-
-    rev = "8a3d9470c00add3cc93da20aac0c6d4a1ab37895";
-
-    hash = "sha256-+C/4Z44+hguaGgA8SShNLs1wKbgVYOFTLkJqGFiOqb8=";
-  };
-in {
+{inputs, ...}: {
   home = {
     # ⚠️ 全仓库唯一的输入法环境变量声明处
     # （niri settings / theme.nix 勿再重复；fcitx5 本体与 addons 在 system/input.nix）
@@ -39,12 +30,12 @@ in {
     };
 
     # rime-ice 配置（整个仓库声明式部署）
-    # ⚠️ 下面的 default.custom.yaml 会覆盖 rime-ice 自带的上游文件：
-    # 上游 default.custom.yaml 里的推荐补丁（开关/快捷键等）不会生效，
-    # 这里仅保留 schema 与候选数。如需上游默认补丁，请在此文件里合并而不是整文件替换。
+    # 数据源是 flake input `rime-ice`（见 flake.nix），随 `nix flake update` 更新。
+    # 上游 rime-ice 只带 default.yaml（无 default.custom.yaml），此文件是我们的个性化补丁：
+    # 仅启用 rime_ice 方案 + 候选数 9；如需更多上游推荐补丁可在此 patch 下合并。
     file = {
       ".local/share/fcitx5/rime" = {
-        source = rimeIceSrc;
+        source = inputs.rime-ice;
 
         recursive = true;
       };
@@ -58,11 +49,5 @@ in {
             page_size: 9
       '';
     };
-
-    packages = with pkgs; [
-      librime
-
-      librime-lua
-    ];
   };
 }
