@@ -25,6 +25,7 @@ with pkgs; [
 
   qq # 腾讯 QQ 客户端（Linux 版）
   telegram-desktop
+  wechat
 
   # ─────────────────────────────
   # 🎨 桌面配置
@@ -58,12 +59,15 @@ with pkgs; [
   mpv # 媒体播放器（命令行 + 图形，支持所有常见格式）
   gpu-screen-recorder # GPU 加速屏幕录制工具（支持 Wayland）
   blanket # 白噪音 / 背景音播放器（专注辅助）
+  fooyin
+  tauon
 
   # ─────────────────────────────
   # 🎵 音乐
   # ─────────────────────────────
 
   #spicetify-cli # Spotify 客户端主题/插件命令行工具（需配合 Spotify）
+  kdePackages.kasts
 
   # ─────────────────────────────
   # 📝 笔记
@@ -81,4 +85,6 @@ with pkgs; [
 
   gnome-sudoku
   gnome-mines
+  ryubing
+  nsz
 ]

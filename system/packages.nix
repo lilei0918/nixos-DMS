@@ -23,6 +23,7 @@
     eza
 
     yazi
+    superfile
 
     # ─────────────────────────────
     # 🖥️ Terminal

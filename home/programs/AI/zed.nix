@@ -503,6 +503,28 @@
       };
 
       # ========================================================================
+      # Nix LSP（nil）
+      #
+      # nil 需要 `nix flake archive` 拉取缺失的 flake inputs，否则每次打开
+      # 都会弹 “Some flake inputs are not available. Fetch them now?”。
+      # autoArchive = true 让它自动归档、不再询问。
+      # （配置形状来自 nil 源码：指针 /nix/flake/autoArchive，直接作为
+      #   initializationOptions 传入，无需再套 "nil" 键）
+      # ========================================================================
+
+      lsp = {
+        nil = {
+          initialization_options = {
+            nix = {
+              flake = {
+                autoArchive = true;
+              };
+            };
+          };
+        };
+      };
+
+      # ========================================================================
       # External AI Agents / ACP
       #
       # API Key / 登录信息不要写进 Nix。
