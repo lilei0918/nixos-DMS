@@ -25,7 +25,7 @@ with pkgs; [
 
   qq # 腾讯 QQ 客户端（Linux 版）
   telegram-desktop
-  wechat
+  #wechat
 
   # ─────────────────────────────
   # 🎨 桌面配置
