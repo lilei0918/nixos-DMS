@@ -12,8 +12,6 @@ _: {
       restartIfChanged = true;
     };
 
-    enableSystemMonitoring = true;
-
     enableDynamicTheming = true;
 
     enableAudioWavelength = true;
