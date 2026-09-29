@@ -11,14 +11,6 @@ _: {
 
       restartIfChanged = true;
     };
-
-    enableDynamicTheming = true;
-
-    enableAudioWavelength = true;
-
-    enableVPN = true;
-
-    enableCalendarEvents = true;
   };
 
   ############################################
