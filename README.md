@@ -142,11 +142,13 @@ nixos-DMS/
 │   ├── nvidia/              # NVIDIA 显卡模块（myvars.enableNvidia 二选一）
 │   │   ├── nvidia.nix           # 【当前启用，enableNvidia = true】PRIME offload + RTD3 空闲断电
 │   │   └── nvidia-block.nix     # 【备选】屏蔽 NVIDIA 独显（省电，纯核显）
-│   └── vault/               # 加密数据盘 + Vaultwarden 密码管理器
+│   ├── vault/               # 加密数据盘 + Vaultwarden 密码管理器
 │       ├── vault.nix            # LUKS 加密盘（vault-open / vault-close，手动解锁）
 │       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
 │       ├── vaultwarden-backup.nix  # 每日在线备份（本地 7 天 + DATATB 镜像 + 加密盘归档）
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
+│   ├── immich.nix           # Immich 照片库（独立 btrfs 分区 /srv/immich，仅本机）
+│   └── tailscale.nix        # Tailscale 尾网（远程访问，serve 出 HTTPS）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
 │   │   ├── kdl.nix          # HM 模块：链接 conf/ 到 ~/.config/niri/
@@ -556,6 +558,35 @@ nixos-DMS/
 - 手动触发一次：`sudo systemctl start vaultwarden-backup`
 - ⚠️ 本地 / DATATB / 加密盘分属 **nvme1n1 上不同分区但同块物理盘**，提供分区与文件系统级冗余，异盘容灾仍无；长期归档请定期外导（U 盘等离线介质）再保一份（习惯同 `scripts/backup-credentials.sh`）
 
+### 29. `system/immich.nix`（照片库）
+
+**作用**：自托管照片/视频管理（Immich），用 nixpkgs 原生模块 `services.immich`（自带 PostgreSQL + Redis + 机器学习，无需容器）。当前启用**局域网访问**（`host = ""` 监听所有接口 + `openFirewall = true` 放行 2283）；远程访问以后再经 Tailscale 追加。
+
+**关键内容**：
+- `services.immich`：`enable = true`、`host = ""`、`port = 2283`、`openFirewall = true`、`mediaLocation = "/srv/immich"`、`accelerationDevices = ["/dev/dri/renderD128"]`（AMD Vega 核显硬件转码）
+- 数据分布：数据库/缓存/缩略图元数据在 `/var/lib/immich`（根 btrfs）；**托管库（手机上传/Immich 管理的文件）在 `/srv/immich`**
+- **托管库必须在 Linux 文件系统**（btrfs/ext4），不能用 NTFS（属主/权限/大小写不兼容）；**NTFS 上的既有照片无需搬移**，可作「外部库」原地只读索引（见下）
+- **独立分区**：nvme0n1 上 p1..p6 之后的空闲空间（约 325G）用 **cfdisk** 新建 btrfs 分区（fs 标签 `IMMICH`），挂载用 **`by-label`**（设备名会漂移）。一次性创建命令见 `system/immich.nix` 文件头注释。**不建此分区也可先跑**（用默认 `/var/lib/immich`）。
+- 默认注册开放，首次访问 `http://<NixOS 局域网 IP>:2283` 注册管理员后可在网页端关闭注册
+- ⚠️ 照片库分属 **nvme0n1（Windows 盘）**，与系统盘 nvme1n1 物理分离，天然异盘；仍建议定期外导备份
+
+### 30. `system/tailscale.nix`（远程访问，**预留，当前未导入**）
+
+**作用**：Tailscale 尾网，实现办公室远程访问家庭 NixOS 服务。家里宽带多为 CGNAT 无公网 IPv4，Tailscale 打洞/中继，无需端口映射。当前只做局域网，需要远程时再在 `configuration.nix` 取消该 import 注释。
+
+**关键内容**：
+- `services.tailscale.enable = true`、`networking.firewall.trustedInterfaces = ["tailscale0"]`
+- 一次性初始化（交互式登录，状态写入 `/var/lib/tailscale`，重启保留）：
+  ```bash
+  sudo tailscale up
+  # Tailscale 管理后台开启 MagicDNS + HTTPS Certificates
+  sudo tailscale serve --bg --https=443 http://localhost:2283
+  ```
+- 访问：`https://<主机名>.<tailnet>.ts.net`（Tailscale 颁发有效证书，手机 Immich App 可直接用）
+- 无人值守登录：在 `secrets` 加 `tailscale_auth_key`，设 `services.tailscale.authKeyFile`（未配置则用交互式登录）
+- ⚠️ **必须配合 clash-verge 的 Tailscale 直连规则**（见「十二」注意事项），否则 TUN 会劫持尾网流量/DNS
+- 注：`host = ""` 时，远程经 `tailscale serve` 代理到 `localhost:2283` 仍可用
+
 ---
 
 ## 六、Niri 配置详解（home/niri/）
@@ -732,6 +763,11 @@ nixos-DMS/
 | 打开加密盘（解锁+挂载） | `sudo vault-open` |
 | 关闭加密盘（卸载+锁） | `sudo vault-close` |
 | 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-backup` |
+| 局域网访问 Immich | `http://<NixOS 局域网 IP>:2283`（`host=""` + 放行 2283） |
+| Immich 本机访问 | `http://localhost:2283` |
+| Tailscale 登录（首次，远程用） | `sudo tailscale up` |
+| Immich 经尾网出 HTTPS | `sudo tailscale serve --bg --https=443 http://localhost:2283` |
+| 查看尾网状态 | `tailscale status` |
 | 备份信任根/凭据 | `sudo bash scripts/backup-credentials.sh`（到加密盘，默认保留 5 份） |
 | 查看加密盘状态 | `cryptsetup status vault`、`lsblk /dev/nvme1n1p3` |
 | 运行非 Nix 二进制 | 直接运行解压后的 AppImage/.deb（nix-ld 提供系统库），或 `appimage-run xxx.AppImage` |
@@ -776,6 +812,7 @@ nixos-DMS/
 - `system/nvidia/nvidia-block.nix`：屏蔽独显配置（仅用核显省电），`vars/default.nix` 的 `enableNvidia = false` 时自动切换导入（与 nvidia.nix 二选一）。当前 `enableNvidia = true`，故本模块未启用。
 - `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 clash-verge.nix 的 import（二选一，不可同时开启）。
 - `home/programs/firefox.nix`：Firefox 配置（home.nix 中 import 被注释），需要时取消注释启用。
+- `system/tailscale.nix`：远程访问（Tailscale），当前只做局域网，`configuration.nix` 中 import 被注释；需要时取消注释并 `sudo tailscale up`。
 - `hosts/legion/packages.nix` 中 `thunderbird` / `tradingview` / `spicetify-cli` / `imagemagick`（注释中）。
 
 ### 设计说明
@@ -828,6 +865,12 @@ nixos-DMS/
 22. **清理策略**：journal 上限 200M（`services.journald.settings.Journal`）；`/tmp`（4G）与 `~/.cache`（6G）为 tmpfs（`system/tmpfs.nix`），重启即空；系统 GC 每日自动删 7 天前 generation。
 23. **截图**：已用 niri 内置截图（Print/Alt+Print/Ctrl+Print），保存到 `~/Pictures/Screenshots/`；grim/slurp/wl-clip-persist 已移除，旧文档中的 grim 命令不再适用。
 24. **提交前检查**：`nix flake check` 会跑 eval 测试（`tests/`）和 pre-commit（alejandra --check + typos）。`git commit` 前确保 `.nix` 文件已 `alejandra .` 格式化，避免 typos 误报可改 `.typos.toml`。
+25. **Immich**：`services.immich` 为 nixpkgs 原生模块，当前**局域网访问**（`host = ""` + 放行 `2283`），首次访问 `http://<NixOS 局域网 IP>:2283` 注册。托管库（手机上传/Immich 管理的文件）放独立 btrfs 分区 `/srv/immich`（nvme0n1 空闲空间新建，GPT 名 `immich`）；**NTFS 上的既有照片不必搬移**，可在 Immich 后台「外部库」填 NTFS 挂载路径原地只读索引（当前 DATATB 挂载 `umask=022` 全局可读，immich 用户可读）。数据库/缓存/缩略图元数据在 `/var/lib/immich`。升级 Immich 前建议先备份。
+26. **Tailscale + clash-verge 共存（重要）**：clash-verge 的 TUN 会劫持尾网流量与 DNS，已通过**全局扩展配置**放行，无需改订阅：
+    - `profiles/Merge.yaml`：`prepend-rules` 加 `100.64.0.0/10` 与 `*.tailscale.com`/`*.tailscale.io`/`*.ts.net` 直连，并设 `tun.route-exclude-address`、`dns.fake-ip-filter`、`nameserver-policy`（`+.ts.net` → `100.100.100.100`）。
+    - `profiles/Script.js`：同规则（脚本对配置对象二次兜底）。
+    - 这两文件在 `~/.local/share/io.github.clash-verge-rev.clash-verge-rev/profiles/`（**不在本仓库**），订阅更新不会覆盖；改动后在 GUI 重载配置或重启 clash-verge 生效。
+    - ⚠️ 若在 GUI 里改过「Tun/DNS 设置」，运行时 `clash-verge.yaml` 会重新生成；上面的 route-exclude / fake-ip-filter 语义仍由 Merge/Script 保证，如失效请在 GUI 对应项核对。
 
 ---
 

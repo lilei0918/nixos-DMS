@@ -21,5 +21,7 @@
 | `proxy/`       | clash-verge（主用）/ mihomo（备用），二选一 |
 | `nvidia/`      | nvidia.nix（当前启用：offload + RTD3）/ nvidia-block（屏蔽独显），由 `myvars.enableNvidia` 二选一 |
 | `vault/`       | LUKS 加密盘 + Vaultwarden + 每日备份 |
+| `immich.nix`   | Immich 照片库（`services.immich`，仅本机）+ 独立 btrfs 分区 `/srv/immich` |
+| `tailscale.nix`| Tailscale 尾网（远程访问；**当前预留未导入**，局域网阶段不用） |
 
 关键注意：新增系统模块后在 `configuration.nix` 的 `imports` 引用；各文件要点见 `README.md`「四」。

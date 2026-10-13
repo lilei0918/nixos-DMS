@@ -83,6 +83,8 @@ with pkgs; [
 
   #imagemagick # 命令行图像处理工具（转换、编辑、生成）
 
+  digikam
+
   gnome-sudoku
   gnome-mines
   ryubing
