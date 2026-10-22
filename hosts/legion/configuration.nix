@@ -86,6 +86,8 @@
 
     ../../system/immich.nix
 
+    ../../system/immich-backup.nix
+
     # 远程访问（Tailscale）：当前只做局域网访问，暂不导入；需要时取消注释并
     # 执行 `sudo tailscale up`（配置见 system/tailscale.nix）
     # ../../system/tailscale.nix

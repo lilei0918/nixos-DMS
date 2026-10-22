@@ -147,7 +147,8 @@ nixos-DMS/
 │       ├── vaultwarden.nix      # 密码管理器（Podman + Quadlet 容器，SQLite，TLS 走 sops）
 │       ├── vaultwarden-backup.nix  # 每日在线备份（本地 7 天 + DATATB 镜像 + 加密盘归档）
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
-│   ├── immich.nix           # Immich 照片库（独立 btrfs 分区 /srv/immich，仅本机）
+│   ├── immich.nix           # Immich 照片库（独立 btrfs 分区 /srv/immich，仅本机/局域网）
+│   ├── immich-backup.nix    # Immich 每日备份（DB 异盘 + 媒体镜像到 DATATB）
 │   └── tailscale.nix        # Tailscale 尾网（远程访问，serve 出 HTTPS）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
@@ -587,6 +588,19 @@ nixos-DMS/
 - ⚠️ **必须配合 clash-verge 的 Tailscale 直连规则**（见「十二」注意事项），否则 TUN 会劫持尾网流量/DNS
 - 注：`host = ""` 时，远程经 `tailscale serve` 代理到 `localhost:2283` 仍可用
 
+### 31. `system/immich-backup.nix`（Immich 每日备份）
+
+**作用**：新版 Immich 无内置备份，用 systemd oneshot + 每日 timer 备份**数据库 + 媒体库**，交叉落盘抗单盘损坏。
+
+**关键内容**：
+- **数据库**：`runuser -u postgres -- pg_dumpall --clean --if-exists | gzip` → `/srv/immich/backups/db/immich-db-<时间>.sql.gz`（在 nvme0n1，与 DB 所在 nvme1n1 异盘），保留 14 天
+- **媒体**：`rsync -rt --delete` 镜像 `upload/` `library/` `profile/` → `/run/media/lilei/DATATB/immich-backup/media/`（在 nvme1n1，与媒体所在 nvme0n1 异盘）；`thumbs/` `encoded-video/` **不备**（可再生成）
+- 数据库 dump 另存一份到 `DATATB/immich-backup/db/`
+- 触发：`sudo systemctl start immich-backup`；timer 每日 04:30（`Persistent` 补跑）
+- ⚠️ 备份前 `RequiresMountsFor=/srv/immich`，未挂载则跳过（防写到根盘空目录）
+- ⚠️ **升级 Immich 前先备份**（DB 迁移单向）；恢复须用相同/更新版本
+- ⚠️ 两份备份同机不同盘，整机故障仍需**定期外导**（U 盘）
+
 ---
 
 ## 六、Niri 配置详解（home/niri/）
@@ -763,6 +777,7 @@ nixos-DMS/
 | 打开加密盘（解锁+挂载） | `sudo vault-open` |
 | 关闭加密盘（卸载+锁） | `sudo vault-close` |
 | 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-backup` |
+| 手动触发 Immich 备份 | `sudo systemctl start immich-backup` |
 | 局域网访问 Immich | `http://<NixOS 局域网 IP>:2283`（`host=""` + 放行 2283） |
 | Immich 本机访问 | `http://localhost:2283` |
 | Tailscale 登录（首次，远程用） | `sudo tailscale up` |
@@ -871,6 +886,7 @@ nixos-DMS/
     - `profiles/Script.js`：同规则（脚本对配置对象二次兜底）。
     - 这两文件在 `~/.local/share/io.github.clash-verge-rev.clash-verge-rev/profiles/`（**不在本仓库**），订阅更新不会覆盖；改动后在 GUI 重载配置或重启 clash-verge 生效。
     - ⚠️ 若在 GUI 里改过「Tun/DNS 设置」，运行时 `clash-verge.yaml` 会重新生成；上面的 route-exclude / fake-ip-filter 语义仍由 Merge/Script 保证，如失效请在 GUI 对应项核对。
+27. **Immich 备份**：新版无内置备份，`system/immich-backup.nix` 每日 04:30 跑：DB `pg_dumpall` → `/srv/immich/backups/db/`（保留 14 天，nvme0n1）+ 镜像到 DATATB（nvme1n1）；`thumbs/`/`encoded-video` 不备（可重生成）。升级 Immich 前务必先手动跑一次；恢复须用相同/更新版本。手动触发：`sudo systemctl start immich-backup`。
 
 ---
 
