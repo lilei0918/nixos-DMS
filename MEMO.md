@@ -86,6 +86,7 @@ systemctl is-active vaultwarden.service greetd
 **⚠️ 本仓库特有的注意**：
 - `niri` 使用 nixpkgs 自带 `pkgs.niri`（2026-08-30 改，不再用 niri-flake），配置为手写 KDL（`home/niri/conf/*.kdl`），随 nixpkgs unstable 滚动更新
 - 所有 flake input 均 follows 统一 nixpkgs，`nix flake update` 可整体升级
+- **ElyOffice（`elyoffice` input）跟随每周升级**：input 指向 `github:ELY-Open-Source/ElyOffice` 的 `main`，`nix flake update` 会把 `flake.lock` 里的 rev 推到上游最新（上游发版后 `nix/release.json` 指向新版本 AppImage，rev 变了就等于应用升级）。⚠️ 有新版本时那次 `nh os test` 会额外下载约 960 MB AppImage（doc/show/table 各约 220 MB），构建时间明显变长，属正常现象；确认版本：`nix flake metadata | grep -A1 elyoffice`
 - 大升级后建议重启，确认新 generation 能被引导（NixOS GRUB 主引导，GRUB 菜单里可选旧 generation 回滚）
 
 **坏了的回滚**：
@@ -95,6 +96,7 @@ systemctl is-active vaultwarden.service greetd
 | 现象 | 处理 |
 |------|------|
 | niri 配置解析失败 | 用 `niri validate` 校验 `~/.config/niri/config.kdl`；niri 随 nixpkgs 升级，KDL 语法若有破坏性变更需同步改 `home/niri/conf/` |
+| ElyOffice 构建报 404 / hash mismatch | 上游 `main` 抢先指向了尚未上传的 AppImage，等上游发版完成后重跑 `nix flake update elyoffice`；急用先回退锁文件：`git checkout HEAD -- flake.lock` 再 `nh os switch .#legion` |
 | 新 generation 无法引导 | GRUB 选旧 generation 回滚，修复后再切 |
 
 ---
