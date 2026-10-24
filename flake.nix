@@ -89,6 +89,17 @@
 
       flake = false;
     };
+
+    # =============================
+    # ElyOffice（办公套件；上游 flake 只提供 packages，AppImage 经 wrapType2 包装）
+    # 用法见 home/programs/elyoffice.nix；升级 `nix flake update elyoffice`
+    # =============================
+
+    elyoffice = {
+      url = "github:ELY-Open-Source/ElyOffice";
+
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {

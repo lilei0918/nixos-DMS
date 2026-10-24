@@ -27,6 +27,7 @@ in {
     ../../home/programs/thunar.nix
     ../../home/programs/fastfetch.nix
     ../../home/programs/appimages.nix
+    ../../home/programs/elyoffice.nix
 
     # -- 浏览器 --
     ../../home/programs/chrome.nix

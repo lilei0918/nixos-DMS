@@ -39,6 +39,26 @@
         "type": "github"
       }
     },
+    "elyoffice": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792767534,
+        "narHash": "sha256-n8sv4aLo8lnql6JhhrXuh0POpdFJG81VzpILxiw7rEQ=",
+        "owner": "ELY-Open-Source",
+        "repo": "ElyOffice",
+        "rev": "d0e6e63834e6781d27436ba0d4255810bb14e443",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ELY-Open-Source",
+        "repo": "ElyOffice",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -223,6 +243,7 @@
     "root": {
       "inputs": {
         "dms": "dms",
+        "elyoffice": "elyoffice",
         "home-manager": "home-manager",
         "nixos-grub-themes": "nixos-grub-themes",
         "nixpkgs": "nixpkgs",
