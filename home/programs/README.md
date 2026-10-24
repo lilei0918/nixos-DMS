@@ -7,6 +7,7 @@
 - `chrome.nix`     Google Chrome：Wayland + VA-API 硬解（包本体 + 启动参数 commandLineArgs + 环境变量均在此）
 - `dconf.nix`      GNOME dconf 主题设置
 - `dev.nix`        全局开发工具链（uv / python / nodejs / pnpm / just / gh / yq）
+- `elyoffice.nix`  ElyOffice 办公套件（doc/table/show/pdf/mail/tree/mark，经 flake input `elyoffice` 的 AppImage 包装）
 - `fastfetch.nix`  系统信息（FastCat Simple 主题，无 logo）
 - `git.nix`        git + delta（user 走 `myvars`）
 - `rime.nix`       rime-ice 方案 + fcitx 环境变量（rebuild 后需 `fcitx5-remote -r` 部署）

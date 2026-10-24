@@ -169,6 +169,7 @@ nixos-DMS/
 │       ├── btop.nix
 │       ├── chrome.nix       # Google Chrome（Wayland + VA-API 硬解）
 │       ├── dconf.nix        # GNOME dconf 主题设置
+│       ├── elyoffice.nix    # ElyOffice 办公套件（flake input，AppImage 包装）
 │       ├── fastfetch.nix    # 系统信息（FastCat Simple 主题，无 logo）
 │       ├── firefox.nix      # Firefox（NUR 扩展、搜索配置；⚠️ 当前未导入 home.nix，保留备用）
 │       ├── git.nix          # git + delta
@@ -480,7 +481,7 @@ nixos-DMS/
 - `imports` 列表包含：
   - `inputs.dms.homeModules.dank-material-shell`
   - `../../home/niri/kdl.nix`（niri 手写 KDL 配置链接）
-  - `../../home/programs/rime.nix`、`AI/vscode.nix`、`chrome.nix`、`dev.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
+  - `../../home/programs/rime.nix`、`AI/vscode.nix`、`chrome.nix`、`dev.nix`、`elyoffice.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
 - **niri**：⚠️ 已放弃 niri-flake（2026-08-30 改）。niri 用 nixpkgs 自带 `programs.niri`（`system/niri.nix`，`pkgs.niri` 26.04，支持 include）；配置为**手写 KDL**（`home/niri/conf/*.kdl`，经 `home/niri/kdl.nix` 链接到 `~/.config/niri/`）。主 `config.kdl` 用 `include` 引入 DMS 生成的 `dms/*.kdl`，实现焦点环随壁纸动态变色。
@@ -680,6 +681,7 @@ nixos-DMS/
 | `chrome.nix` | nixpkgs wrapper 不读 `chrome-flags.conf`，包本体 + Wayland/GPU 启动参数经 `commandLineArgs` 注入（含 `--enable-wayland-ime --wayland-text-input-version=3`）+ 环境变量：LIBVA_DRIVER_NAME=radeonsi、VAAPI 相关（原在 `hosts/legion/packages.nix`） |
 | `firefox.nix` | NUR 扩展（bitwarden/darkreader/sponsorblock）、隐私设置、搜索引擎（searxng/nix-packages/nixos-wiki/ddg，默认 ddg）、`security.enterprise_roots.enabled=true`（信任系统根证书，配合 Vaultwarden 本地 CA）；⚠️ 当前未导入 home.nix，保留备用 |
 | `git.nix` | user 信息走 myvars（lilei/lilei0918@gmail.com）、lfs、delta（Catppuccin Mocha、side-by-side）、别名 st/co/br/lg |
+| `elyoffice.nix` | ElyOffice 0.1.11 七件套（doc/table/show/pdf/mail/tree/mark），包来自 flake input `elyoffice`（`github:ELY-Open-Source/ElyOffice`，`nixpkgs.follows = "nixpkgs"`）；上游用 `appimageTools.wrapType2` 包成 FHS+bwrap，**store 增量约 2.75 GiB**（doc/show/table 各约 700 MiB）；升级 `nix flake update elyoffice`；⚠️ 上游仍用已弃用的 `extractType2`（求值有 warning），nixpkgs 移除该函数后需跟进 |
 | `theme.nix` | GTK3 WhiteSur-Dark + WhiteSur 图标 + macOS-White 光标（含 `home.pointerCursor`）；**GTK4 用系统默认（`gtk4.theme = null`）**；Qt 走 gtk3；sessionVariables：`GTK_APPLICATION_PREFER_DARK_THEME=1`、XCURSOR_THEME/SIZE、`QT_QPA_PLATFORMTHEME=gtk3`（已删掉破坏 GTK4 的 `GTK_THEME`） |
 | `dconf.nix` | gnome 桌面 WhiteSur 主题、Nerd Font 10 等宽字体 |
 | `thunar.nix` | thunar + **xfconf**（必需）+ volman/archive/media-tags 插件、默认文件管理器（xdg.mimeApps）。默认显示隐藏文件、按名称升序且文件夹在前（`misc-folders-first`）、`force = true`（xfconf 改写文件破坏符号链接）。生效后需重启 Thunar（`killall Thunar`） |
