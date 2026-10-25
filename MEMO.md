@@ -320,7 +320,7 @@ sudoedit /var/lib/immich-power-tools/power-tools.env
 - env 文件：`/var/lib/immich-power-tools/power-tools.env`（含 API key 与 `JWT_SECRET`，**不要提交到仓库**）
 
 **说明（为什么这样配）**：
-- 数据库走 `DATABASE_URL=postgresql:///immich?host=/run/postgresql`，容器以 `immich` uid 运行 →
-  PostgreSQL peer 认证通过；**不需要 DB 密码、不暴露 5432**（上游默认要求 DB_PASSWORD，本方案绕开）
+- 数据库走 `DB_HOST=/run/postgresql` + `DB_USERNAME=immich`，容器以 `immich` uid 运行 →
+  PostgreSQL peer 认证通过；**不需要 DB 密码、不暴露 5432**（上游强制 DB_PASSWORD 非空，填占位值，peer 下被忽略）
 - 端口固定 `127.0.0.1:8001`（`HOSTNAME` + `PORT` 环境变量），不进防火墙、不暴露局域网
 - 想开机常驻：把 `system/immich-power-tools.nix` 里 `wantedBy = [];` 改成 `wantedBy = ["multi-user.target"];`

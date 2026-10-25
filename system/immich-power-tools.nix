@@ -13,6 +13,8 @@
   #   1. 按需启动，不随系统启动（wantedBy = []）。
   #   2. 直连 Immich 的 PostgreSQL 读数据 + 调 Immich HTTP API 写数据：
   #      - DB 走 unix socket + peer 认证（容器以 immich uid 运行），不暴露 5432、不设密码；
+  #      - 上游强制要求 DB_PASSWORD 非空，这里填占位值 peer-auth-unused：peer 认证
+  #        下服务端不会索要密码，该值被忽略；DB_USERNAME 必须给（否则 pg 不发 role）。
   #      - API 走 http://127.0.0.1:2283（--network host，仅本机）。
   #   3. 只监听 127.0.0.1:8001（HOSTNAME=127.0.0.1 + PORT=8001），不暴露局域网。
   #   4. 密钥不落仓库：运行时读取 /var/lib/immich-power-tools/power-tools.env（root 0600）。
@@ -76,7 +78,11 @@
       -e PORT=${toString port} \
       -e APP_DB_PATH=/app/data/app.db \
       -e HOME=/app/data \
-      -e DATABASE_URL="postgresql:///immich?host=/run/postgresql" \
+      -e DB_HOST=/run/postgresql \
+      -e DB_PORT=5432 \
+      -e DB_USERNAME=immich \
+      -e DB_PASSWORD=peer-auth-unused \
+      -e DB_DATABASE_NAME=immich \
       -v ${dataDir}/data:/app/data \
       -v ${dataDir}/cache:/app/.next/cache \
       -v /run/postgresql:/run/postgresql:ro \

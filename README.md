@@ -626,7 +626,7 @@ nixos-DMS/
 **关键内容**：
 - **不随系统启动**：`wantedBy = []`；`sudo systemctl start immich-power-tools` 才运行，`stop` 后容器清理，数据保留
 - **数据两条通道**：读库走 PostgreSQL unix socket（容器以 `immich` uid 运行 → peer 认证，不设密码/不开 5432）；写操作走 Immich HTTP API（`http://127.0.0.1:2283`）
-- 通过 `DATABASE_URL=postgresql:///immich?host=/run/postgresql` 绕过其「DB_PASSWORD 不能为空」的校验
+- DB 参数用显式 `DB_HOST=/run/postgresql` + `DB_USERNAME=immich`：绕过上游「DB_PASSWORD 不能为空」的校验（占位值在 peer 认证下被忽略）
 - 只监听 **127.0.0.1:8001**（`HOSTNAME=127.0.0.1` + `PORT=8001`），不暴露局域网
 - 镜像固定 `ghcr.io/immich-power-tools/immich-power-tools:0.25.0`（Immich ≥3.0 需 ≥0.22.0）
 - **密钥不落仓库**：`/var/lib/immich-power-tools/power-tools.env`（root 0600，首次启动自动生成模板 + 随机 `JWT_SECRET`）；`IMMICH_API_KEY` 需在 Immich 里创建（全权限）后填入
