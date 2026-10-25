@@ -272,3 +272,55 @@ sudo systemctl stop immich-deduper
 - UI 只发布到 `127.0.0.1:8086`，不经过防火墙、不暴露局域网
 - 镜像固定在 `razgrizhsu/immich-deduper:0.3.5`（CPU；AMD 核显不支持，上游只有 NVIDIA CUDA 变体）；升级改模块里的 `image` 标签后 `rebuild`
 - 视频/大文件的元数据合并（Metadata Merge, BETA）未启用：媒体只读挂载，写 XMP 会失败
+
+---
+
+## 十四、Immich Power Tools（批量整理，按需启动）
+
+> 模块：`system/immich-power-tools.nix`；**不常驻、不开机自启**。
+> 直连 Immich 数据库读取 + 走 Immich API 写入，**不挂载媒体目录**。
+
+```bash
+# 1) 首次：先去 Immich 网页建 API 密钥
+#    账户设置 → API 密钥 → 新建 → 勾选【全部权限】→ 复制
+#    注意：密钥只显示一次
+
+# 2) 第一次启动（会生成 env 模板，并因缺少 key 而退出）
+sudo systemctl start immich-power-tools
+
+# 3) 填入密钥（root 0600）
+sudoedit /var/lib/immich-power-tools/power-tools.env
+#   IMMICH_API_KEY=粘贴你的key
+
+# 4) 再启动
+sudo systemctl start immich-power-tools
+xdg-open http://127.0.0.1:8001        # 用 Immich 的邮箱/密码登录
+
+# 5) 日常
+sudo systemctl status immich-power-tools
+sudo journalctl -u immich-power-tools -f
+sudo systemctl stop immich-power-tools
+```
+
+**功能对应**：人物批量编辑/相似度合并、缺失位置补全、潜在相册、统计（EXIF/时间分布）、
+Smart Search（自然语言）、批量日期偏移。
+
+**可选：Smart Search 的自然语言解析**（需要 OpenAI 兼容接口；只发送查询文本，不发照片数据）
+
+```bash
+sudoedit /var/lib/immich-power-tools/power-tools.env
+#   AI_API_KEY=...
+#   AI_BASE_URL=https://api.openai.com/v1     # 或 http://127.0.0.1:11434/v1（Ollama）
+#   AI_MODEL=gpt-4o-mini
+```
+
+**数据与重置**：
+- `/var/lib/immich-power-tools/data/app.db`（它自己的 SQLite，删掉即重置界面状态）
+- `/var/lib/immich-power-tools/cache`（Next.js 图片缓存，可随意删）
+- env 文件：`/var/lib/immich-power-tools/power-tools.env`（含 API key 与 `JWT_SECRET`，**不要提交到仓库**）
+
+**说明（为什么这样配）**：
+- 数据库走 `DATABASE_URL=postgresql:///immich?host=/run/postgresql`，容器以 `immich` uid 运行 →
+  PostgreSQL peer 认证通过；**不需要 DB 密码、不暴露 5432**（上游默认要求 DB_PASSWORD，本方案绕开）
+- 端口固定 `127.0.0.1:8001`（`HOSTNAME` + `PORT` 环境变量），不进防火墙、不暴露局域网
+- 想开机常驻：把 `system/immich-power-tools.nix` 里 `wantedBy = [];` 改成 `wantedBy = ["multi-user.target"];`

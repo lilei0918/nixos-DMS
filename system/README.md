@@ -24,6 +24,7 @@
 | `immich.nix`   | Immich 照片库（`services.immich`，仅本机）+ 独立 btrfs 分区 `/srv/immich` |
 | `immich-backup.nix` | Immich 每日备份（DB `pg_dumpall` 异盘 + 媒体镜像到 DATATB） |
 | `immich-deduper.nix` | Immich 重复/相似照片清理（rootful podman；**按需 `systemctl start`，不常驻**） |
+| `immich-power-tools.nix` | Immich 批量整理 Web UI（人物/相册/位置/统计/Smart Search；**按需启动，不常驻**） |
 | `tailscale.nix`| Tailscale 尾网（远程访问；**当前预留未导入**，局域网阶段不用） |
 
 关键注意：新增系统模块后在 `configuration.nix` 的 `imports` 引用；各文件要点见 `README.md`「四」。

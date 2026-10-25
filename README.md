@@ -150,6 +150,7 @@ nixos-DMS/
 │   ├── immich.nix           # Immich 照片库（独立 btrfs 分区 /srv/immich，仅本机/局域网）
 │   ├── immich-backup.nix    # Immich 每日备份（DB 异盘 + 媒体镜像到 DATATB）
 │   ├── immich-deduper.nix   # Immich 重复/相似照片清理（按需 systemctl start，不常驻）
+│   ├── immich-power-tools.nix # Immich 批量整理 Web UI（按需 systemctl start，不常驻）
 │   └── tailscale.nix        # Tailscale 尾网（远程访问，serve 出 HTTPS）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
@@ -618,6 +619,20 @@ nixos-DMS/
 - 首次启动会拉约 2 GB 镜像，并下载 ResNet152 权重约 250 MB；`TimeoutStartSec = 0` 避免拉取超时
 - ⚠️ 40k 资产的向量化在 CPU 上可能数小时；可以先缩小范围（NameFilter/Path Filter）
 
+### 33. `system/immich-power-tools.nix`（批量整理 Web UI，按需启动）
+
+**作用**：上游 [immich-power-tools](https://github.com/immich-power-tools/immich-power-tools)（非官方客户端）提供批量人物/相册整理、缺失位置、潜在相册、统计、Smart Search、批量日期偏移。**不常驻**，需要时启停。
+
+**关键内容**：
+- **不随系统启动**：`wantedBy = []`；`sudo systemctl start immich-power-tools` 才运行，`stop` 后容器清理，数据保留
+- **数据两条通道**：读库走 PostgreSQL unix socket（容器以 `immich` uid 运行 → peer 认证，不设密码/不开 5432）；写操作走 Immich HTTP API（`http://127.0.0.1:2283`）
+- 通过 `DATABASE_URL=postgresql:///immich?host=/run/postgresql` 绕过其「DB_PASSWORD 不能为空」的校验
+- 只监听 **127.0.0.1:8001**（`HOSTNAME=127.0.0.1` + `PORT=8001`），不暴露局域网
+- 镜像固定 `ghcr.io/immich-power-tools/immich-power-tools:0.25.0`（Immich ≥3.0 需 ≥0.22.0）
+- **密钥不落仓库**：`/var/lib/immich-power-tools/power-tools.env`（root 0600，首次启动自动生成模板 + 随机 `JWT_SECRET`）；`IMMICH_API_KEY` 需在 Immich 里创建（全权限）后填入
+- 数据：`/var/lib/immich-power-tools/{data,cache}`（`data/app.db` 是它自己的 SQLite；`cache` 给 Next.js 图片缓存）
+- 可选：`AI_API_KEY`/`AI_BASE_URL`/`AI_MODEL` 写入同一 env 文件即可启用 Smart Search 的自然语言解析
+
 ---
 
 ## 六、Niri 配置详解（home/niri/）
@@ -797,6 +812,7 @@ nixos-DMS/
 | 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-backup` |
 | 手动触发 Immich 备份 | `sudo systemctl start immich-backup` |
 | 清理 Immich 重复照片（按需，不常驻） | `sudo systemctl start immich-deduper` → `http://127.0.0.1:8086`；用完 `sudo systemctl stop immich-deduper` |
+| Immich 批量整理（按需，不常驻） | `sudo systemctl start immich-power-tools` → `http://127.0.0.1:8001`；用完 `sudo systemctl stop immich-power-tools` |
 | 局域网访问 Immich | `http://<NixOS 局域网 IP>:2283`（`host=""` + 放行 2283） |
 | Immich 本机访问 | `http://localhost:2283` |
 | Tailscale 登录（首次，远程用） | `sudo tailscale up` |
