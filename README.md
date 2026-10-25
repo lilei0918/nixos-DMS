@@ -149,6 +149,7 @@ nixos-DMS/
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
 │   ├── immich.nix           # Immich 照片库（独立 btrfs 分区 /srv/immich，仅本机/局域网）
 │   ├── immich-backup.nix    # Immich 每日备份（DB 异盘 + 媒体镜像到 DATATB）
+│   ├── immich-deduper.nix   # Immich 重复/相似照片清理（按需 systemctl start，不常驻）
 │   └── tailscale.nix        # Tailscale 尾网（远程访问，serve 出 HTTPS）
 ├── home/                    # 用户级配置（仅 lilei）
 │   ├── niri/                # Niri 窗口管理器配置（手写 KDL，见「六」）
@@ -602,6 +603,21 @@ nixos-DMS/
 - ⚠️ **升级 Immich 前先备份**（DB 迁移单向）；恢复须用相同/更新版本
 - ⚠️ 两份备份同机不同盘，整机故障仍需**定期外导**（U 盘）
 
+### 32. `system/immich-deduper.nix`（重复照片清理，按需启动）
+
+**作用**：用上游 [immich-deduper](https://github.com/RazgrizHsu/immich-deduper)（ResNet152 视觉相似度）找重复照片并清理；**不常驻**，需要时手动启停。删除只把 `asset.status` 改成 `trashed`，照片进 Immich 回收站可恢复。
+
+**关键内容**：
+- **不随系统启动**：`systemd.services.immich-deduper.wantedBy = []`，只有 `sudo systemctl start immich-deduper` 才运行；`stop` 后容器与网络一起清理，数据目录保留
+- **rootful podman**：`/srv/immich` 是 `0700 immich:immich`，rootless 读不到缩略图
+- **免密码连库**：容器用 `--user <immich uid>:<gid>` 运行，PostgreSQL 的 `local all all peer` 直接认作 role `immich`；不需要给角色设密码、也不暴露 5432
+- **媒体路径同路径挂载**（`/srv/immich:/srv/immich:ro`）：podman 无 `/.dockerenv`，Deduper 判 `IS_DOCKER=false`，不会重映射成 `/immich`
+- **只监听本机**：`-p 127.0.0.1:8086:8086`，不进防火墙
+- 镜像固定 `razgrizhsu/immich-deduper:0.3.5`（CPU；AMD 核显不支持，上游只有 NVIDIA CUDA 变体）+ `qdrant/qdrant:v1.17.1`
+- 数据：`/var/lib/immich-deduper/{data,qdrant}`（`data` 属主 immich、组 users，lilei 可读日志）
+- 首次启动会拉约 2 GB 镜像，并下载 ResNet152 权重约 250 MB；`TimeoutStartSec = 0` 避免拉取超时
+- ⚠️ 40k 资产的向量化在 CPU 上可能数小时；可以先缩小范围（NameFilter/Path Filter）
+
 ---
 
 ## 六、Niri 配置详解（home/niri/）
@@ -780,6 +796,7 @@ nixos-DMS/
 | 关闭加密盘（卸载+锁） | `sudo vault-close` |
 | 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-backup` |
 | 手动触发 Immich 备份 | `sudo systemctl start immich-backup` |
+| 清理 Immich 重复照片（按需，不常驻） | `sudo systemctl start immich-deduper` → `http://127.0.0.1:8086`；用完 `sudo systemctl stop immich-deduper` |
 | 局域网访问 Immich | `http://<NixOS 局域网 IP>:2283`（`host=""` + 放行 2283） |
 | Immich 本机访问 | `http://localhost:2283` |
 | Tailscale 登录（首次，远程用） | `sudo tailscale up` |

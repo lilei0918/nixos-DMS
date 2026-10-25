@@ -88,6 +88,9 @@
 
     ../../system/immich-backup.nix
 
+    # 重复照片清理（按需启动、不常驻；rootful podman + appimage 无关，见文件头注释）
+    ../../system/immich-deduper.nix
+
     # 远程访问（Tailscale）：当前只做局域网访问，暂不导入；需要时取消注释并
     # 执行 `sudo tailscale up`（配置见 system/tailscale.nix）
     # ../../system/tailscale.nix

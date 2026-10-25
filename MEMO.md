@@ -16,6 +16,7 @@
 | 备份信任根/凭据 | `sudo bash scripts/backup-credentials.sh` |
 | 编辑机密 | `sops secrets/secrets.yaml` |
 | 查看系统信息 | `fastfetch` |
+| 清理 Immich 重复照片（按需） | `sudo systemctl start immich-deduper`（用完 `stop`） |
 
 fish/zsh 别名（任意目录可用，绝对路径）：`rebuild` `test`/`nix-test` `boot` `rollback` `cleanup` `update` `check` `fmt`。
 
@@ -229,3 +230,45 @@ nix flake init -t ~/nixos-DMS#node             # Node.js
 | 构建失败（空间不足） | `sudo nix-collect-garbage -d` |
 | 模块报 input 不存在 | 先在 `flake.nix` 添加对应 input |
 | 非 Nix 二进制缺库 | 往 `system/nix-ld.nix` 的 `libraries` 补库后 rebuild |
+
+---
+
+## 十三、Immich 重复照片清理（immich-deduper，按需启动）
+
+> 模块：`system/immich-deduper.nix`；**不常驻、不开机自启**，需要时才起。
+> 删除只是把 `asset.status` 改成 `trashed` → 进 Immich 回收站，可恢复。
+
+```bash
+# 1) 启动（首次会拉约 2 GB 镜像；后续秒起）
+sudo systemctl start immich-deduper
+
+# 2) 打开 UI
+xdg-open http://127.0.0.1:8086     # 只有本机能访问
+
+# 3) 看日志 / 状态
+sudo systemctl status immich-deduper
+sudo journalctl -u immich-deduper -f
+
+# 4) 用完停止（容器与 podman 网络一起清理，数据保留）
+sudo systemctl stop immich-deduper
+```
+
+**基本流程**（UI 内）：
+1. `Fetch` 页 → `Get Assets`（选用户；本库约 4 万张）
+2. `Vector` 页 → 生成向量（CPU 版，**最耗时，可能数小时**；可先按 `NameFilter`/`Path Filter` 缩小范围，如排除 `.dng,.png`）
+3. `Similar` 页 → `Find Similar`（阈值从 0.97+ 开始抓完全重复，再逐级降到 0.90/0.80）
+4. 逐组人工确认后删除；`Kept` 标记会保护后续组里的同张照片
+5. 之后到 Immich 的「回收站」确认/彻底删除
+
+**数据与清理**：
+- 数据在 `/var/lib/immich-deduper/{data,qdrant}`；`data/` 属主 `immich`、组 `users`，`lilei` 可读日志（`.../data/logs/deduper.log`）
+- 想彻底重来：`sudo rm -rf /var/lib/immich-deduper`（下次启动自动重建目录）
+- 查/清理镜像：`sudo podman images | grep -E 'immich-deduper|qdrant'`、`sudo podman rmi <id>`
+
+**说明（为什么这样配）**：
+- 用 **rootful** podman：`/srv/immich` 是 `0700 immich:immich`，rootless 读不到缩略图
+- 容器以 `immich` 的 uid 运行 → PostgreSQL `local all all peer` 认作 role `immich`，**不用给角色设密码、不开 5432**
+- 媒体目录同路径只读挂载（`/srv/immich:/srv/immich:ro`）：podman 不生成 `/.dockerenv`，Deduper 判 `IS_DOCKER=false`，不会把路径重映射成 `/immich`
+- UI 只发布到 `127.0.0.1:8086`，不经过防火墙、不暴露局域网
+- 镜像固定在 `razgrizhsu/immich-deduper:0.3.5`（CPU；AMD 核显不支持，上游只有 NVIDIA CUDA 变体）；升级改模块里的 `image` 标签后 `rebuild`
+- 视频/大文件的元数据合并（Metadata Merge, BETA）未启用：媒体只读挂载，写 XMP 会失败
