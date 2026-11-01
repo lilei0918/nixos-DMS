@@ -15,7 +15,7 @@ in {
     folo = {
       name = "Folo";
       comment = "Follow everything in one place";
-      exec = "appimage-run ${home}/Downloads/Folo-1.13.0-linux-x64.AppImage";
+      exec = "appimage-run ${home}/Downloads/Folo-1.14.0-linux-x64.AppImage";
       icon = "applications-internet";
       categories = ["Network" "News"];
       terminal = false;
