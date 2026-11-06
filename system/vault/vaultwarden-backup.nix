@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   ############################################
   # Vaultwarden 数据库在线备份（本地 + DATATB 镜像 + 加密盘归档）
-  # 历史：曾把备份 rsync 到 Arch btrfs 分区（UUID 9dccd22a-…，README 记为 nvme0n1p7），
+  # 历史：曾把备份 rsync 到 Arch btrfs 分区（UUID 9dccd22a-…，即 SK Hynix 盘 p7 槽位），
   #       Arch 已于 2026-09 删除，异盘同步段移除后改镜像到本机数据盘 DATATB。
   # 现在的备份：
   #   1. 本地：sqlite3 .backup → /var/lib/vaultwarden/backups/（保留 7 天）
@@ -9,7 +9,7 @@
   #      （与本地同滚动 7 天；DATATB 为 ntfs3 自动挂载的数据盘）
   #   3. 加密盘（按需，长期归档）：vault 已解锁挂载才 rsync（只增不删）到
   #      /mnt/vault/vaultwarden/backups/；未解锁跳过并留日志
-  # 注：本地、DATATB、加密盘分属 nvme1n1 的不同分区但同属一块物理盘，
+  # 注：本地、DATATB、加密盘分属 ZHITAI 盘的不同分区、同属一块物理盘，
   #     分区/文件系统级冗余有，异盘容灾仍没有；长期归档请定期外导
   #     （U 盘等离线介质）再保一份（习惯同 backup-credentials.sh）。
   # 注：Vaultwarden 新版已移除内置备份，故用 sqlite3 .backup 在线备份（WAL 安全）

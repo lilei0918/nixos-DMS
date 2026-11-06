@@ -2,7 +2,7 @@
 
 加密数据盘 + Vaultwarden 密码管理器。
 
-- `vault.nix`               LUKS 20G 加密盘（nvme1n1p3，UUID `86c742fc-...`）：`sudo vault-open` / `sudo vault-close` 手动管理
+- `vault.nix`               LUKS 20G 加密盘（ZHITAI 盘 p3，LUKS UUID `86c742fc-...`）：`sudo vault-open` / `sudo vault-close` 手动管理
 - `vaultwarden.nix`         Podman + Quadlet 容器（SQLite），TLS 走 sops，仅本机 `https://localhost:8080`
 - `vaultwarden-backup.nix`  每日在线备份：本地（7 天）+ DATATB 镜像 `vaultwarden-backup/` + 加密盘归档（vault 解锁时写入，只增不删）
 - `certs/`                  Vaultwarden 本地 CA 公钥（私钥在 secrets.yaml）

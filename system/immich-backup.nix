@@ -6,10 +6,10 @@
   ############################################
   # Immich 备份（数据库 + 媒体库）
   # 新版 Immich 无内置备份，必须自己备：
-  #   1. 数据库：pg_dumpall 在线导出 → /srv/immich/backups/db/（nvme0n1，与 DB 所在
-  #      nvme1n1 异盘，抗单盘损坏），gzip 压缩，保留 KEEP_DAYS 天
+  #   1. 数据库：pg_dumpall 在线导出 → /srv/immich/backups/db/（SK Hynix 盘，与 DB 所在的
+  #      ZHITAI 根分区异盘，抗单盘损坏），gzip 压缩，保留 KEEP_DAYS 天
   #   2. 媒体：只镜像原图/头像（upload/ library/ profile/）→ DATATB
-  #      （nvme1n1，与媒体所在 nvme0n1 异盘）；thumbs/ encoded-video 可再生成，不备
+  #      （ZHITAI 盘的 DATATB，与媒体所在的 SK Hynix 盘异盘）；thumbs/ encoded-video 可再生成，不备
   # 交叉落盘：任一块盘损坏都能恢复；整机故障仍需定期外导（U 盘）兜底
   # ⚠️ 升级 Immich 前先跑一次备份（数据库迁移单向不可逆）；恢复须用相同/更新版本
   ############################################
@@ -71,7 +71,7 @@
       if mountpoint -q "$DATATB"; then
         mkdir -p "$DATATB_ROOT/db" "$DATATB_ROOT/media"
 
-        # 数据库 dump 第二份（nvme0n1 → nvme1n1）
+        # 数据库 dump 第二份（SK Hynix → ZHITAI）
         rsync -rt --no-perms --no-owner --no-group --delete \
           "$DBDUMP_DIR/" "$DATATB_ROOT/db/"
 
