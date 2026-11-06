@@ -25,41 +25,46 @@ nh os switch .#legion
   - 集成显卡：AMD Radeon Vega Series（当前驱动 `amdgpu`）
   - 独立显卡：NVIDIA RTX 3050 Ti Mobile（`vars/default.nix` 的 `enableNvidia = true`，启用 `nvidia.nix` 的 PRIME offload + RTD3 省电方案；置 false 则由 `nvidia-block.nix` 屏蔽、仅用核显省电）
 - **内存**：32GB
-- **存储**（⚠️ NVMe 设备名 `nvme0n1`/`nvme1n1` 会随 BIOS 枚举顺序变化，**一切以 UUID 为准**，详见下方分区详表）：
-  - **nvme0n1 — SKHynix 512GB**（型号 SKHynix_HFS512GDE9X084N）：Windows 11 系统盘 + **NixOS EFI 分区**（`nvme0n1p6`，NixOS GRUB 引导所在）
-  - **nvme1n1 — ZHITAI 1TB**（型号 ZHITAI TiPlus7100 1TB）：NixOS 主盘（Btrfs 根分区）+ NTFS 数据盘 DATATB + **20G LUKS 加密盘**，用作密码库/个人文件（含 Vaultwarden 备份归档）
+- **存储**（⚠️ 内核设备名 `nvme0n1`/`nvme1n1` 会随 BIOS 枚举顺序变化，本仓库一律用 **磁盘 by-id + 分区 UUID + 文件系统标签**，不写死设备名；下表按**物理盘型号**分节）：
+  - **SK Hynix HFS512GDE9X084N（512GB，GPT）** —— Windows 11 系统盘 + Windows ESP + **NixOS ESP**（NixOS GRUB 引导所在）+ Immich 媒体库
+  - **ZHITAI TiPlus7100 1TB（MBR）** —— NixOS 主盘（Btrfs 根分区）+ NTFS 数据盘 DATATB + **20G LUKS 加密盘**（密码库/个人文件，含 Vaultwarden 备份归档）
 
-### 存储与分区详表（2026-09-05 实测）
+### 存储与分区详表（2026-11-07 实测）
 
-> 数据核实于 2026-09-05（`lsblk` / `blkid`）；核对命令：`lsblk -f`、`sudo blkid`。
-> ⚠️ 设备名（`nvme0n1`/`nvme1n1`、`p1`~`p6`）在不同启动可能互换，**配置与脚本一律用 UUID**，故本表 UUID 才是权威标识。
+> 实测命令（只读）：`lsblk -o NAME,SIZE,TYPE,FSTYPE,PTTYPE,LABEL,UUID,PARTUUID`、`ls -l /dev/disk/by-id /dev/disk/by-uuid`
+> **权威标识 = 磁盘 by-id + 分区 UUID/PARTUUID + 文件系统标签**。`nvme0n1`/`nvme1n1` 这类内核设备名不写死（本机已发生过互换）。
+> 表内 `p1…p7` 是**该盘自身**的分区编号，只在同一块盘内有效。
 
-#### 盘 A：`nvme0n1` — SKHynix 512GB（GPT，Windows 11 + NixOS EFI）
-
-| 分区 | 大小 | 文件系统 | 标签 | 用途 | UUID（FS） | PARTUUID |
-|------|------|---------|------|------|-----------|----------|
-| `nvme0n1p1` | 100 MB | vfat | — | Windows EFI 分区 | `785A-7651` | `2997a151-0dad-410f-9f57-50fef583b05d` |
-| `nvme0n1p2` | 16 MB | — | — | Microsoft Reserved (MSR) | — | `46a4cccd-a73b-4105-a662-a018a613c2d9` |
-| `nvme0n1p3` | 148.5 GB | ntfs | Win11 | Windows 11 系统盘 (C:) | `68D4EDC8D4ED9918` | `e68b0315-6182-4c7f-b465-ae6b74480f0e` |
-| `nvme0n1p4` | 860 MB | ntfs | — | Windows 恢复分区 (WinRE) | `B01E9F761E9F33F6` | `c9a86558-9295-4e88-8553-3061acf3c73e` |
-| `nvme0n1p5` | 571 MB | ntfs | — | Windows 恢复分区 (WinRE) | `6016A3AC16A381A0` | `29f912b6-a781-4cba-8913-41767db0879e` |
-| `nvme0n1p6` | 2 GB | vfat | — | **NixOS EFI**（GRUB 主引导，挂载 `/boot/efi`） | `AC09-EF5B` | `cc17ada6-9af8-4df3-b926-33770fe489cb` |
-
-- 盘 A 另有约 325 GB 未分配空间（原 Arch 根分区 `nvme0n1p7` 已于 2026-09 删除，现为纯双系统）
-
-#### 盘 B：`nvme1n1` — ZHITAI TiPlus7100 1TB（NixOS 主盘）
+#### 盘 1：`by-id/nvme-SKHynix_HFS512GDE9X084N_CJA5N775913905S66`（512GB，GPT）
 
 | 分区 | 大小 | 文件系统 | 标签 | 用途 | UUID（FS） | PARTUUID |
 |------|------|---------|------|------|-----------|----------|
-| `nvme1n1p1` | 783.9 GB | ntfs | DATATB | 数据盘（挂载 `/run/media/lilei/DATATB`） | `FAC6848EC6844D37` | `ebf47cf2-01` |
-| `nvme1n1p2` | 150 GB | btrfs | NIXOS | **NixOS 根分区**（挂载 `/`、`/home`、`/nix`、`/var/log` 等子卷） | `6c9764ff-c293-4be8-801c-982bdb6ed30a` | `ebf47cf2-02` |
-| `nvme1n1p3` | 20 GB | LUKS2 | — | **加密数据盘**（密码库/个人文件，挂载 `/mnt/vault`） | `86c742fc-8de5-4c59-9a30-196484a35695` | `ebf47cf2-03` |
+| `p1` | 100 MiB | vfat | — | Windows EFI 分区 | `785A-7651` | `2997a151-0dad-410f-9f57-50fef583b05d` |
+| `p2` | 16 MiB | — | — | Microsoft Reserved (MSR) | — | `46a4cccd-a73b-4105-a662-a018a613c2d9` |
+| `p3` | 148.4 GiB | ntfs | Win11 | Windows 11 系统盘 (C:) | `68D4EDC8D4ED9918` | `e68b0315-6182-4c7f-b465-ae6b74480f0e` |
+| `p4` | 0.93 GiB | ntfs | — | Windows 恢复分区 (WinRE) | `E05682B656828D4A` | `9a8d033b-45f4-475f-a761-288732bfd65d` |
+| `p5` | 0.56 GiB | ntfs | — | Windows 恢复分区 (WinRE) | `6016A3AC16A381A0` | `29f912b6-a781-4cba-8913-41767db0879e` |
+| `p6` | 2.00 GiB | vfat | — | **NixOS ESP**（GRUB 主引导，挂载 `/boot/efi`） | `AC09-EF5B` | `cc17ada6-9af8-4df3-b926-33770fe489cb` |
+| `p7` | 324.94 GiB | btrfs | IMMICH | **Immich 媒体库**（挂载 `/srv/immich`） | `5c0e846a-5822-4059-bb93-f0256dd2a81c` | `29447188-9240-4817-aaab-61756562a665` |
 
-- nvme1n1p2 的 Btrfs 子卷：`@`→`/`、`@home`→`/home`、`@nix`→`/nix`、`@log`→`/var/log`（见 `hardware-configuration.nix`）
-- `nvme1n1p3` 即 LUKS 加密盘，对应 `vault.nix` 中的 LUKS UUID `86c742fc-...`；解锁后为 ext4，挂载 `/mnt/vault`
-- **DATATB 自动挂载**：已在 `hosts/legion/configuration.nix` 的 `fileSystems."/run/media/lilei/DATATB"` 中配置（`ntfs3` + `x-systemd.automount`，`nofail`，uid=1000/gid=100/umask=022），挂载点与 udisks2 路径保持一致
+- `p7` 是原 Arch 根分区（UUID `9dccd22a-…`，2026-09 删除）释放的空间，2026-10 重建为 Immich 托管库；挂载用 `by-label/IMMICH`
+- Windows 侧占用 `p1` / `p3` / `p4` / `p5`，`p2` 为 MSR
 
-- **多系统引导（2026-09-05 实测）**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI，挂 `/boot/efi`）是**两个独立 ESP**。主引导为 p6 上的 **NixOS GRUB**，开机直接进 GRUB 菜单（最新 NixOS 默认 + `Windows 11`，5 秒倒计时），NixOS 的 generations 也在同一菜单内选择；Windows 原生 EFI 留在 p1 不动。引导细节与 NVRAM 说明见「四.6 `system/boot.nix`」与「九」的『特别注意（多系统引导）』。
+#### 盘 2：`by-id/nvme-ZHITAI_TiPlus7100_1TB_ZTA71T0AB24182L6AD`（1TB，**MBR**）
+
+| 分区 | 大小 | 文件系统 | 标签 | 用途 | UUID（FS） | PARTUUID |
+|------|------|---------|------|------|-----------|----------|
+| `p1` | 783.87 GiB | ntfs | DATATB | 数据盘（挂载 `/run/media/lilei/DATATB`） | `FAC6848EC6844D37` | `ebf47cf2-01` |
+| `p2` | 150.00 GiB | btrfs | NIXOS | **NixOS 根分区**（挂载 `/`、`/home`、`/nix`、`/var/log` 等子卷） | `6c9764ff-c293-4be8-801c-982bdb6ed30a` | `ebf47cf2-02` |
+| `p3` | 20.00 GiB | LUKS2 | — | **加密数据盘**（密码库/个人文件，挂载 `/mnt/vault`） | `86c742fc-8de5-4c59-9a30-196484a35695` | `ebf47cf2-03` |
+
+- 分区表是 **MBR(dos)**，不是 GPT；`hosts/legion/disko-fs.nix` 用 disko 的 legacy `table` + `format = "msdos"` 如实描述（MBR 的 4 个主分区槽位已用 3 个）
+- **物理顺序是 `p1 → p3 → p2`**（`p2` 在盘尾 150 GiB，`p3` 在中间 20 GiB）；编号以本表为准
+- `p2` 的 Btrfs 子卷：`@`→`/`、`@home`→`/home`、`@nix`→`/nix`、`@log`→`/var/log`（见 `hardware-configuration.nix`）
+- `p3` 即 LUKS 加密盘（解锁后 ext4，挂载 `/mnt/vault`），对应 `vault.nix` 里的 LUKS UUID `86c742fc-…`（`cryptsetup open UUID=…`，不依赖分区路径）
+- **DATATB 自动挂载**：已在 `hosts/legion/configuration.nix` 的 `fileSystems."/run/media/lilei/DATATB"` 中配置（`by-label/DATATB`，`ntfs3` + `x-systemd.automount`，`nofail`，uid=1000/gid=100/umask=022）
+
+- **多系统引导（2026-11-07 实测）**：Windows ESP（盘 1 `p1`，`785A-7651`）与 NixOS ESP（盘 1 `p6`，`AC09-EF5B`，挂 `/boot/efi`）是**两个独立 ESP**。主引导为 `AC09-EF5B` 上的 **NixOS GRUB**，开机直接进 GRUB 菜单（最新 NixOS 默认 + `Windows 11`，5 秒倒计时），generations 也在同一菜单内选择；Windows 原生 EFI 留在 `785A-7651` 不动。引导细节与 NVRAM 说明见「四.6 `system/boot.nix`」与「九」。
 - **主机名**：`nixos`（`system/network.nix` 中设置；flake 配置名才是 `legion`）
 - **NixOS 用户**：仅 **`lilei`**（普通用户，加入 `wheel`、`networkmanager`、`video`、`input` 组）。
 - **配置仓库**：`git@github.com:lilei0918/nixos-DMS.git`（本地路径 `/home/lilei/nixos-DMS`），已备份。
@@ -114,7 +119,7 @@ nixos-DMS/
 │   └── legion/              # 主机专属配置（flake 配置名 legion）
 │       ├── configuration.nix   # NixOS 系统配置入口（导入所有模块；DATATB 自动挂载）
 │       ├── hardware-configuration.nix  # 硬件自动生成（勿手动修改）
-│       ├── disko-fs.nix        # disko 声明式分区（重装用，只动 nvme1n1p2，保留 DATATB/加密盘）
+│       ├── disko-fs.nix        # disko 分区描述（未导入，参考/重装用；只动 ZHITAI 盘的 NIXOS 分区 p2）
 │       ├── home.nix            # Home Manager 入口（niri KDL 配置、fcitx5 覆盖等）
 │       └── packages.nix        # 用户级软件包列表
 ├── scripts/                # 运维辅助脚本
@@ -243,7 +248,7 @@ nixos-DMS/
 - 文件系统挂载（Btrfs 子卷，UUID `6c9764ff-c293-4be8-801c-982bdb6ed30a`）：
   - `/` → 子卷 `@`，`compress=zstd,noatime,discard=async`
   - `/home` → 子卷 `@home`、`/nix` → 子卷 `@nix`、`/var/log` → 子卷 `@log`
-  - `/boot/efi` → VFAT，UUID `AC09-EF5B`（nvme0n1p6，NixOS 独立 ESP；权威值以本文件为准），`fmask=0022,dmask=0022`
+  - `/boot/efi` → VFAT，UUID `AC09-EF5B`（SK Hynix 盘 `p6`，NixOS 独立 ESP；权威值以本文件为准），`fmask=0022,dmask=0022`
 - `/tmp`（4G）与 `~/.cache`（6G）为 tmpfs，声明在 `system/tmpfs.nix`（本文件只保留硬件事实）；`~/.cache` 为易失数据，每次开机按需重建
 - `swapDevices = []`（无交换）
 - `networking.useDHCP = lib.mkDefault true`
@@ -275,7 +280,7 @@ nixos-DMS/
 
 **作用**：主引导配置（2026-09-05 起为 GRUB）。
 
-**背景**：`nvme0n1p1`（Windows EFI）与 `nvme0n1p6`（NixOS EFI）是两个独立 ESP，systemd-boot 只会扫描自身所在 ESP，看不到 p1 的 Windows → 改用 GRUB 主引导。
+**背景**：Windows ESP（`785A-7651`）与 NixOS ESP（`AC09-EF5B`）是两个独立 ESP，systemd-boot 只会扫描自身所在 ESP，看不到 Windows 那个 → 改用 GRUB 主引导。
 
 **内容**：
 - `boot.loader.timeout = 5`：菜单 5 秒倒计时，超时进入最新 NixOS generation（默认项）
@@ -513,7 +518,7 @@ nixos-DMS/
 
 ### 26. `system/vault/vault.nix`（加密数据盘）
 
-**作用**：管理 20G LUKS 加密盘（`/dev/nvme1n1p3`，LUKS UUID `86c742fc-8de5-4c59-9a30-196484a35695`），作为密码库 + 个人敏感文件存储。**手动按需解锁**，开机不自动挂载。
+**作用**：管理 20G LUKS 加密盘（ZHITAI 盘 `p3`，LUKS UUID `86c742fc-8de5-4c59-9a30-196484a35695`），作为密码库 + 个人敏感文件存储。**手动按需解锁**，开机不自动挂载。
 
 **关键内容**：
 - `systemd.tmpfiles.rules` 常驻创建挂载点 `/mnt/vault`（加密卷关闭时也保留，便于 `mountpoint` 判断）
@@ -551,7 +556,7 @@ nixos-DMS/
 
 ### 28. `system/vault/vaultwarden-backup.nix`
 
-**作用**：Vaultwarden 数据库每日在线备份（**三层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。原异盘同步目标（Arch btrfs 盘 `nvme0n1p7`，UUID `9dccd22a-…`）于 2026-09 Arch 删除，镜像改落本机数据盘 DATATB。
+**作用**：Vaultwarden 数据库每日在线备份（**三层**）。⚠️ Vaultwarden 新版已移除内置备份（`BACKUP_*` 变量无效），故用 `sqlite3 .backup` 在线备份（WAL 安全）。原异盘同步目标（Arch btrfs 分区，UUID `9dccd22a-…`）于 2026-09 随 Arch 删除；同一槽位后于 2026-10 重建为 Immich 库（UUID `5c0e846a-…`），镜像改落本机数据盘 DATATB。
 
 **三层备份**：
 1. **本地**：`sqlite3 .backup` → `/var/lib/vaultwarden/backups/backup-*.db`（保留 7 天；生成后跑 `PRAGMA integrity_check`，校验失败的文件直接删除并让本次备份失败，避免留坏档）
@@ -560,7 +565,7 @@ nixos-DMS/
 
 **使用**：
 - 手动触发一次：`sudo systemctl start vaultwarden-backup`
-- ⚠️ 本地 / DATATB / 加密盘分属 **nvme1n1 上不同分区但同块物理盘**，提供分区与文件系统级冗余，异盘容灾仍无；长期归档请定期外导（U 盘等离线介质）再保一份（习惯同 `scripts/backup-credentials.sh`）
+- ⚠️ 本地 / DATATB / 加密盘分属 **ZHITAI 盘上不同分区、同一块物理盘**，只有分区与文件系统级冗余，无整盘容灾；长期归档请定期外导（U 盘等离线介质）再保一份（习惯同 `scripts/backup-credentials.sh`）
 
 ### 29. `system/immich.nix`（照片库）
 
@@ -570,9 +575,9 @@ nixos-DMS/
 - `services.immich`：`enable = true`、`host = ""`、`port = 2283`、`openFirewall = true`、`mediaLocation = "/srv/immich"`、`accelerationDevices = ["/dev/dri/renderD128"]`（AMD Vega 核显硬件转码）
 - 数据分布：数据库/缓存/缩略图元数据在 `/var/lib/immich`（根 btrfs）；**托管库（手机上传/Immich 管理的文件）在 `/srv/immich`**
 - **托管库必须在 Linux 文件系统**（btrfs/ext4），不能用 NTFS（属主/权限/大小写不兼容）；**NTFS 上的既有照片无需搬移**，可作「外部库」原地只读索引（见下）
-- **独立分区**：nvme0n1 上 p1..p6 之后的空闲空间（约 325G）用 **cfdisk** 新建 btrfs 分区（fs 标签 `IMMICH`），挂载用 **`by-label`**（设备名会漂移）。一次性创建命令见 `system/immich.nix` 文件头注释。**不建此分区也可先跑**（用默认 `/var/lib/immich`）。
+- **独立分区**：SK Hynix 盘 `p7`（原 Arch 根分区释放的空间，324.94 GiB）用 **cfdisk** 新建 btrfs（标签 `IMMICH`，UUID `5c0e846a-…`），挂载用 **`by-label/IMMICH`**（设备名会漂移）。一次性创建命令见 `system/immich.nix` 文件头注释。**不建此分区也可先跑**（用默认 `/var/lib/immich`）。
 - 默认注册开放，首次访问 `http://<NixOS 局域网 IP>:2283` 注册管理员后可在网页端关闭注册
-- ⚠️ 照片库分属 **nvme0n1（Windows 盘）**，与系统盘 nvme1n1 物理分离，天然异盘；仍建议定期外导备份
+- ⚠️ 照片库在 **SK Hynix 盘（Windows 盘）** 上，与系统盘（ZHITAI）物理分离，天然异盘；仍建议定期外导备份
 
 ### 30. `system/tailscale.nix`（远程访问，**预留，当前未导入**）
 
@@ -596,8 +601,8 @@ nixos-DMS/
 **作用**：新版 Immich 无内置备份，用 systemd oneshot + 每日 timer 备份**数据库 + 媒体库**，交叉落盘抗单盘损坏。
 
 **关键内容**：
-- **数据库**：`runuser -u postgres -- pg_dumpall --clean --if-exists | gzip` → `/srv/immich/backups/db/immich-db-<时间>.sql.gz`（在 nvme0n1，与 DB 所在 nvme1n1 异盘），保留 14 天
-- **媒体**：`rsync -rt --delete` 镜像 `upload/` `library/` `profile/` → `/run/media/lilei/DATATB/immich-backup/media/`（在 nvme1n1，与媒体所在 nvme0n1 异盘）；`thumbs/` `encoded-video/` **不备**（可再生成）
+- **数据库**：`runuser -u postgres -- pg_dumpall --clean --if-exists | gzip` → `/srv/immich/backups/db/immich-db-<时间>.sql.gz`（落在 SK Hynix 盘，与 DB 所在的 ZHITAI 根分区异盘），保留 14 天
+- **媒体**：`rsync -rt --delete` 镜像 `upload/` `library/` `profile/` → `/run/media/lilei/DATATB/immich-backup/media/`（落在 ZHITAI 盘的 DATATB，与媒体所在的 SK Hynix 盘异盘）；`thumbs/` `encoded-video/` **不备**（可再生成）
 - 数据库 dump 另存一份到 `DATATB/immich-backup/db/`
 - 触发：`sudo systemctl start immich-backup`；timer 每日 04:30（`Persistent` 补跑）
 - ⚠️ 备份前 `RequiresMountsFor=/srv/immich`，未挂载则跳过（防写到根盘空目录）
@@ -819,7 +824,7 @@ nixos-DMS/
 | Immich 经尾网出 HTTPS | `sudo tailscale serve --bg --https=443 http://localhost:2283` |
 | 查看尾网状态 | `tailscale status` |
 | 备份信任根/凭据 | `sudo bash scripts/backup-credentials.sh`（到加密盘，默认保留 5 份） |
-| 查看加密盘状态 | `cryptsetup status vault`、`lsblk /dev/nvme1n1p3` |
+| 查看加密盘状态 | `cryptsetup status vault`、`sudo cryptsetup luksUUID /dev/disk/by-uuid/86c742fc-8de5-4c59-9a30-196484a35695` |
 | 运行非 Nix 二进制 | 直接运行解压后的 AppImage/.deb（nix-ld 提供系统库），或 `appimage-run xxx.AppImage` |
 
 ---
@@ -829,17 +834,17 @@ nixos-DMS/
 ### 重装流程（恢复新机器）
 0. **迁移前**：在旧机上解锁加密盘后备份信任根/凭据：`sudo bash scripts/backup-credentials.sh`（备份 sops age key ×2、`~/.ssh/`、opencode/pi/mihomo 凭据，完整源清单见 scripts/README.md）
 1. **分区（二选一）**：
-   - **disko 一键分区**（推荐）：在 NixOS 官方 ISO 中执行，只重建 `nvme1n1p2`（btrfs 根分区），**保留 DATATB 数据盘与加密盘**：
+   - **disko 一键分区**（推荐）：在 NixOS 官方 ISO 中执行，只重建 ZHITAI 盘的 NixOS 分区（`p2`，btrfs 根分区），**保留 DATATB 数据盘与加密盘**：
      ```bash
      git clone https://github.com/lilei0918/nixos-DMS.git && cd nixos-DMS
 
      # 保留 DATATB + 加密盘：只格式化+挂载 btrfs 根分区（分区表已存在）
      nix run github:nix-community/disko -- --mode format,mount hosts/legion/disko-fs.nix
-     # 全新空盘（重建整块 nvme1n1 分区表，DATATB/加密盘不保留）：改用
+     # 全新空盘（重建整块 ZHITAI 盘分区表，DATATB/加密盘不保留）：改用
      # nix run github:nix-community/disko -- --mode create,format,mount hosts/legion/disko-fs.nix
      # ⚠️ 不要用 --mode destroy（会销毁整块盘）
 
-     # 挂载 NixOS EFI（nvme0n1p6，UUID AC09-EF5B；全新硬件需自行创建 EFI 分区并调整）
+     # 挂载 NixOS EFI（SK Hynix 盘 p6，UUID AC09-EF5B；全新硬件需自行创建 EFI 分区并调整）
      mkdir -p /mnt/boot/efi
      mount /dev/disk/by-uuid/AC09-EF5B /mnt/boot/efi
      ```
@@ -906,22 +911,22 @@ nixos-DMS/
 13. **注册已关闭**：`SIGNUPS_ALLOWED=false`，需要开放注册时临时改回 `true` 并重建/重启容器，用完再关。
 14. **Vaultwarden 数据备份**：SQLite 数据在 `/var/lib/vaultwarden/db.sqlite3`，含全部密码（加密存储），备份该文件即备份整个保险库。
 15. **Vaultwarden 证书**：本地 CA + 证书位于 `/var/lib/vaultwarden/tls/`（0700 root），由 sops 解密生成（`secrets.yaml` 的 `vaultwarden_tls_*`），rebuild 不轮换；CA 公钥 `system/vault/certs/vaultwarden-ca.crt` 经 `security.pki.certificateFiles` 写入系统信任，浏览器零警告无需手动导入。换证书流程见「vaultwarden.nix」一节。
-16. **加密盘手动解锁**：LUKS 加密盘（`/dev/nvme1n1p3`，UUID `86c742fc-8de5-4c59-9a30-196484a35695`）开机**不自动挂载**，用 `sudo vault-open` / `sudo vault-close` 管理。**解锁密码 = 全部数据的钥匙**，丢失即永久丢失、无法找回，务必离线备份（纸质 / U 盘，参照 sops age key 的备份习惯）。
+16. **加密盘手动解锁**：LUKS 加密盘（ZHITAI 盘 `p3`，UUID `86c742fc-8de5-4c59-9a30-196484a35695`）开机**不自动挂载**，用 `sudo vault-open` / `sudo vault-close` 管理。**解锁密码 = 全部数据的钥匙**，丢失即永久丢失、无法找回，务必离线备份（纸质 / U 盘，参照 sops age key 的备份习惯）。
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
-18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；镜像副本另有 DATATB `/run/media/lilei/DATATB/vaultwarden-backup/`（随本地 7 天滚动）。本地 / DATATB / 加密盘同属一块物理盘（nvme1n1），建议**定期外导**（U 盘等离线介质）再保一份。
+18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；镜像副本另有 DATATB `/run/media/lilei/DATATB/vaultwarden-backup/`（随本地 7 天滚动）。本地 / DATATB / 加密盘同属一块物理盘（ZHITAI），建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
 20. **nixpkgs**：所有 input 均 follows 统一 nixpkgs（`nix flake update` 可整体升级），无额外 pin。⚠️ `niri` 使用 nixpkgs 自带 `pkgs.niri`（见「六」）。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。
 22. **清理策略**：journal 上限 200M（`services.journald.settings.Journal`）；`/tmp`（4G）与 `~/.cache`（6G）为 tmpfs（`system/tmpfs.nix`），重启即空；系统 GC 每日自动删 7 天前 generation。
 23. **截图**：已用 niri 内置截图（Print/Alt+Print/Ctrl+Print），保存到 `~/Pictures/Screenshots/`；grim/slurp/wl-clip-persist 已移除，旧文档中的 grim 命令不再适用。
 24. **提交前检查**：`nix flake check` 会跑 eval 测试（`tests/`）和 pre-commit（alejandra --check + typos）。`git commit` 前确保 `.nix` 文件已 `alejandra .` 格式化，避免 typos 误报可改 `.typos.toml`。
-25. **Immich**：`services.immich` 为 nixpkgs 原生模块，当前**局域网访问**（`host = ""` + 放行 `2283`），首次访问 `http://<NixOS 局域网 IP>:2283` 注册。托管库（手机上传/Immich 管理的文件）放独立 btrfs 分区 `/srv/immich`（nvme0n1 空闲空间新建，GPT 名 `immich`）；**NTFS 上的既有照片不必搬移**，可在 Immich 后台「外部库」填 NTFS 挂载路径原地只读索引（当前 DATATB 挂载 `umask=022` 全局可读，immich 用户可读）。数据库/缓存/缩略图元数据在 `/var/lib/immich`。升级 Immich 前建议先备份。
+25. **Immich**：`services.immich` 为 nixpkgs 原生模块，当前**局域网访问**（`host = ""` + 放行 `2283`），首次访问 `http://<NixOS 局域网 IP>:2283` 注册。托管库（手机上传/Immich 管理的文件）放独立 btrfs 分区 `/srv/immich`（SK Hynix 盘 `p7`，标签 `IMMICH`，UUID `5c0e846a-…`）；**NTFS 上的既有照片不必搬移**，可在 Immich 后台「外部库」填 NTFS 挂载路径原地只读索引（当前 DATATB 挂载 `umask=022` 全局可读，immich 用户可读）。数据库/缓存/缩略图元数据在 `/var/lib/immich`。升级 Immich 前建议先备份。
 26. **Tailscale + clash-verge 共存（重要）**：clash-verge 的 TUN 会劫持尾网流量与 DNS，已通过**全局扩展配置**放行，无需改订阅：
     - `profiles/Merge.yaml`：`prepend-rules` 加 `100.64.0.0/10` 与 `*.tailscale.com`/`*.tailscale.io`/`*.ts.net` 直连，并设 `tun.route-exclude-address`、`dns.fake-ip-filter`、`nameserver-policy`（`+.ts.net` → `100.100.100.100`）。
     - `profiles/Script.js`：同规则（脚本对配置对象二次兜底）。
     - 这两文件在 `~/.local/share/io.github.clash-verge-rev.clash-verge-rev/profiles/`（**不在本仓库**），订阅更新不会覆盖；改动后在 GUI 重载配置或重启 clash-verge 生效。
     - ⚠️ 若在 GUI 里改过「Tun/DNS 设置」，运行时 `clash-verge.yaml` 会重新生成；上面的 route-exclude / fake-ip-filter 语义仍由 Merge/Script 保证，如失效请在 GUI 对应项核对。
-27. **Immich 备份**：新版无内置备份，`system/immich-backup.nix` 每日 04:30 跑：DB `pg_dumpall` → `/srv/immich/backups/db/`（保留 14 天，nvme0n1）+ 镜像到 DATATB（nvme1n1）；`thumbs/`/`encoded-video` 不备（可重生成）。升级 Immich 前务必先手动跑一次；恢复须用相同/更新版本。手动触发：`sudo systemctl start immich-backup`。
+27. **Immich 备份**：新版无内置备份，`system/immich-backup.nix` 每日 04:30 跑：DB `pg_dumpall` → `/srv/immich/backups/db/`（保留 14 天，SK Hynix 盘）+ 镜像到 DATATB（ZHITAI 盘）；`thumbs/`/`encoded-video` 不备（可重生成）。升级 Immich 前务必先手动跑一次；恢复须用相同/更新版本。手动触发：`sudo systemctl start immich-backup`。
 
 ---
 
@@ -937,7 +942,7 @@ nixos-DMS/
 - **Vaultwarden 登录提示 Invalid master password**：先确认已注册账号（数据库 `/var/lib/vaultwarden/db.sqlite3` 的 `users` 表），再核对邮箱/密码；浏览器扩展的服务器地址填 `https://localhost:8080`。
 - **`vault-open` / `vault-close` command not found**：脚本在 legion 配置（`system/vault/vault.nix`）中，尚未部署或部署的是旧 generation。临时用 `sudo nix-shell -p cryptsetup --run '...'` 命令，或 `nixos-rebuild switch --flake .#legion` 后重试。
 - **`vault-close` 报 target is busy**：有程序正占用 `/mnt/vault`（通常是 Thunar/终端 cwd 在该目录），关掉窗口或 `cd` 离开后重试。可先 `lsof +D /mnt/vault` 查看占用进程。
-- **加密盘解锁提示 wrong passphrase / 无法打开**：确认密码无误，且设备确实是对应分区（`sudo cryptsetup luksUUID /dev/nvme1n1p3` 应等于 `86c742fc-8de5-4c59-9a30-196484a35695`）。密码是唯一钥匙，无法找回。
+- **加密盘解锁提示 wrong passphrase / 无法打开**：确认密码无误，且设备确实是对应分区（`sudo cryptsetup luksUUID /dev/disk/by-uuid/86c742fc-8de5-4c59-9a30-196484a35695` 应仍是 `86c742fc-…`）。密码是唯一钥匙，无法找回。
 - **非 Nix 二进制缺 .so 库**：把缺失的库包（如 `libxcb-*`、`qt6`）加进 `system/nix-ld.nix` 的 `libraries` 后 rebuild。libjpeg.so.8 由自定义 `jpeg-8` 提供。
 
 ---

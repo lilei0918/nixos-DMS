@@ -5,8 +5,9 @@
 }: {
   boot = {
     loader = {
-      # Dual boot: Windows lives on a separate ESP (nvme0n1p1),
-      # GRUB is installed on the NixOS ESP (/boot/efi = nvme0n1p6).
+      # Dual boot: Windows lives on its own ESP (fs UUID 785A-7651, SK Hynix disk),
+      # GRUB is installed on the NixOS ESP (/boot/efi = fs UUID AC09-EF5B, SK Hynix p6).
+      # Never hardcode nvmeXnY here: kernel device names can swap between boots.
       timeout = 5;
 
       grub = {
@@ -19,8 +20,8 @@
         # GRUB theme: nixos-grub-themes 'nixos' (NixOS default look)
         theme = inputs.nixos-grub-themes.packages.${pkgs.stdenv.hostPlatform.system}.nixos;
 
-        # Deterministically add Windows: locate the separate Windows ESP (p1)
-        # by filesystem UUID instead of scanning all disks for bootmgfw.efi,
+        # Deterministically add Windows: locate the separate Windows ESP
+        # (fs UUID 785A-7651) instead of scanning all disks for bootmgfw.efi,
         # which is flaky at boot. No os-prober dependency.
         extraEntries = ''
           menuentry "Windows 11" {

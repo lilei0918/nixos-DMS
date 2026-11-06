@@ -102,13 +102,13 @@ systemctl is-active vaultwarden.service greetd
 
 ---
 
-## 四、加密盘 /mnt/vault（LUKS 20G，nvme1n1p3）
+## 四、加密盘 /mnt/vault（ZHITAI 盘 20G LUKS 分区）
 
 | 操作 | 命令 |
 |------|------|
 | 解锁 + 挂载 | `sudo vault-open` |
 | 卸载 + 锁 | `sudo vault-close` |
-| 查看状态 | `cryptsetup status vault`、`lsblk /dev/nvme1n1p3` |
+| 查看状态 | `cryptsetup status vault`、`sudo cryptsetup luksUUID /dev/disk/by-uuid/86c742fc-8de5-4c59-9a30-196484a35695` |
 | 查占用进程 | `lsof +D /mnt/vault` |
 | 未部署时的等价命令 | `sudo nix-shell -p cryptsetup --run 'cryptsetup open UUID=86c742fc-8de5-4c59-9a30-196484a35695 vault && mount /dev/mapper/vault /mnt/vault'` |
 
