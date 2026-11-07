@@ -86,11 +86,10 @@
 
     ../../system/immich.nix
 
-    # Immich 备份：当前【未启用】（明确不需要备份，省空间）。
-    # ⚠️ 未启用时不会再有 DB dump / 媒体镜像；重装系统会丢 Immich 数据库
-    #    （相册、人物、时间线；媒体原图仍在 /srv/immich 的 SK Hynix p7 上）。
-    # 需要恢复备份能力时，取消下面这行注释并 rebuild 即可。
-    # ../../system/immich-backup.nix
+    # Immich 备份：只备数据库（相册/人物/时间线），**不镜像媒体原图**（省空间）。
+    # 媒体原图只有 /srv/immich（SK Hynix p7）一份，单盘损坏即丢失；
+    # 需要异盘媒体副本时，到 system/immich-backup.nix 取消媒体 rsync 的注释。
+    ../../system/immich-backup.nix
 
     # 重复照片清理（按需启动、不常驻；rootful podman + appimage 无关，见文件头注释）
     ../../system/immich-deduper.nix

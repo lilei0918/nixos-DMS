@@ -4,17 +4,18 @@
   ...
 }: {
   ############################################
-  # Immich 备份（数据库 + 媒体库）
-  # 新版 Immich 无内置备份，必须自己备：
-  #   1. 数据库：pg_dumpall 在线导出 → /srv/immich/backups/db/（SK Hynix 盘，与 DB 所在的
-  #      ZHITAI 根分区异盘，抗单盘损坏），gzip 压缩，保留 KEEP_DAYS 天
-  #   2. 媒体：只镜像原图/头像（upload/ library/ profile/）→ DATATB
-  #      （ZHITAI 盘的 DATATB，与媒体所在的 SK Hynix 盘异盘）；thumbs/ encoded-video 可再生成，不备
-  # 交叉落盘：任一块盘损坏都能恢复；整机故障仍需定期外导（U 盘）兜底
+  # Immich 备份：**只备份数据库**（相册 / 人物 / 时间线等元数据）
+  #   1. 导出：pg_dumpall 在线导出 → /srv/immich/backups/db/（SK Hynix 盘，与 DB 所在的
+  #      ZHITAI 根分区异盘，抗单盘损坏），gzip 压缩，保留 KEEP_DAYS 天（约 242 MiB/份）
+  #   2. 镜像：DB dump 再同步一份到 DATATB（ZHITAI 盘）→ /run/media/lilei/DATATB/immich-backup/db/
+  #
+  # ⚠️ 媒体原图（upload/ library/ profile/）**不再镜像**（2026-11 起，按需省空间）：
+  #    照片/视频只有 /srv/immich（SK Hynix p7）这一份，单盘损坏即丢失；
+  #    需要异盘副本时恢复下面第 3 段的媒体 rsync 循环即可。
   # ⚠️ 升级 Immich 前先跑一次备份（数据库迁移单向不可逆）；恢复须用相同/更新版本
   ############################################
   systemd.services.immich-backup = {
-    description = "Backup Immich database (pg_dumpall) + media library (cross-disk mirror)";
+    description = "Backup Immich database (pg_dumpall, cross-disk mirror)";
 
     after = ["postgresql.service"];
 
@@ -69,22 +70,22 @@
 
       # 3. 镜像到 DATATB（异盘）
       if mountpoint -q "$DATATB"; then
-        mkdir -p "$DATATB_ROOT/db" "$DATATB_ROOT/media"
+        mkdir -p "$DATATB_ROOT/db"
 
         # 数据库 dump 第二份（SK Hynix → ZHITAI）
         rsync -rt --no-perms --no-owner --no-group --delete \
           "$DBDUMP_DIR/" "$DATATB_ROOT/db/"
 
-        # 媒体库原图/头像镜像（--delete 保持同步；NTFS 不支持 POSIX 权限故关掉 perms/owner）
-        for d in upload library profile; do
-          if [ -d "$MEDIA/$d" ]; then
-            mkdir -p "$DATATB_ROOT/media/$d"
-            rsync -rt --no-perms --no-owner --no-group --delete \
-              "$MEDIA/$d/" "$DATATB_ROOT/media/$d/"
-          fi
-        done
+        echo "mirrored db to $DATATB_ROOT/db"
 
-        echo "mirrored db + media to $DATATB_ROOT"
+        # 媒体原图镜像（默认关闭）：需要异盘照片副本时取消下面注释
+        # for d in upload library profile; do
+        #   if [ -d "$MEDIA/$d" ]; then
+        #     mkdir -p "$DATATB_ROOT/media/$d"
+        #     rsync -rt --no-perms --no-owner --no-group --delete \
+        #       "$MEDIA/$d/" "$DATATB_ROOT/media/$d/"
+        #   fi
+        # done
       else
         echo "DATATB not mounted, skip mirror"
       fi

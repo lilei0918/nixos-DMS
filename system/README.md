@@ -22,7 +22,7 @@
 | `nvidia/`      | nvidia.nix（当前启用：offload + RTD3）/ nvidia-block（屏蔽独显），由 `myvars.enableNvidia` 二选一 |
 | `vault/`       | LUKS 加密盘 + Vaultwarden + 每日备份 |
 | `immich.nix`   | Immich 照片库（`services.immich`，仅本机）+ 独立 btrfs 分区 `/srv/immich` |
-| `immich-backup.nix` | Immich 每日备份（DB `pg_dumpall` 异盘 + 媒体镜像到 DATATB）——**当前未导入/未启用** |
+| `immich-backup.nix` | Immich 每日备份：**仅数据库**（`pg_dumpall` 异盘两份）；媒体原图不镜像 |
 | `immich-deduper.nix` | Immich 重复/相似照片清理（rootful podman；**按需 `systemctl start`，不常驻**） |
 | `immich-power-tools.nix` | Immich 批量整理 Web UI（人物/相册/位置/统计/Smart Search；**按需启动，不常驻**） |
 | `tailscale.nix`| Tailscale 尾网（远程访问；**当前预留未导入**，局域网阶段不用） |

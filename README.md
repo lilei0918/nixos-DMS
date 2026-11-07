@@ -153,7 +153,7 @@ nixos-DMS/
 │       ├── vaultwarden-backup.nix  # 每日在线备份（本地 7 天 + DATATB 镜像 + 加密盘归档）
 │       └── certs/               # Vaultwarden 本地 CA 公钥（vaultwarden-ca.crt，私钥走 sops）
 │   ├── immich.nix           # Immich 照片库（独立 btrfs 分区 /srv/immich，仅本机/局域网）
-│   ├── immich-backup.nix    # Immich 每日备份（DB 异盘 + 媒体镜像）——当前未导入/未启用
+│   ├── immich-backup.nix    # Immich 每日备份（**仅数据库**，异盘镜像；不镜像媒体原图）
 │   ├── immich-deduper.nix   # Immich 重复/相似照片清理（按需 systemctl start，不常驻）
 │   ├── immich-power-tools.nix # Immich 批量整理 Web UI（按需 systemctl start，不常驻）
 │   └── tailscale.nix        # Tailscale 尾网（远程访问，serve 出 HTTPS）
@@ -598,15 +598,15 @@ nixos-DMS/
 
 ### 31. `system/immich-backup.nix`（Immich 每日备份）
 
-> **状态：当前未启用** —— `hosts/legion/configuration.nix` 中的 import 已注释（明确不需要 Immich 备份）。
-> 文件保留，需要时取消注释 + `nh os switch .#legion` 即可恢复。
+> **范围：只备份数据库**（相册 / 人物 / 时间线等元数据）。**媒体原图不镜像**（2026-11 起，省空间）——
+> 照片/视频只有 `/srv/immich` 一份，单盘损坏即丢失；需要异盘副本时把模块里媒体 rsync 的注释打开。
 
-**作用**：新版 Immich 无内置备份，用 systemd oneshot + 每日 timer 备份**数据库 + 媒体库**，交叉落盘抗单盘损坏。
+**作用**：新版 Immich 无内置备份，用 systemd oneshot + 每日 timer 备份**数据库**，异盘落两份抗单盘损坏。
 
 **关键内容**：
 - **数据库**：`runuser -u postgres -- pg_dumpall --clean --if-exists | gzip` → `/srv/immich/backups/db/immich-db-<时间>.sql.gz`（落在 SK Hynix 盘，与 DB 所在的 ZHITAI 根分区异盘），保留 14 天
-- **媒体**：`rsync -rt --delete` 镜像 `upload/` `library/` `profile/` → `/run/media/lilei/DATATB/immich-backup/media/`（落在 ZHITAI 盘的 DATATB，与媒体所在的 SK Hynix 盘异盘）；`thumbs/` `encoded-video/` **不备**（可再生成）
-- 数据库 dump 另存一份到 `DATATB/immich-backup/db/`
+- **媒体**：❌ 不再镜像（原 `DATATB/immich-backup/media/` 已弃用，可删）；`upload/` 只有本机一份
+- 数据库 dump 另存一份到 `DATATB/immich-backup/db/`（异盘，约 2.9 GiB / 12 份滚动）
 - 触发：`sudo systemctl start immich-backup`；timer 每日 04:30（`Persistent` 补跑）
 - ⚠️ 备份前 `RequiresMountsFor=/srv/immich`，未挂载则跳过（防写到根盘空目录）
 - ⚠️ **升级 Immich 前先备份**（DB 迁移单向）；恢复须用相同/更新版本
@@ -818,7 +818,7 @@ nixos-DMS/
 | 打开加密盘（解锁+挂载） | `sudo vault-open` |
 | 关闭加密盘（卸载+锁） | `sudo vault-close` |
 | 手动触发 Vaultwarden 备份 | `sudo systemctl start vaultwarden-backup` |
-| Immich 备份（当前未启用） | 重新启用后：`sudo systemctl start immich-backup` |
+| 手动触发 Immich 数据库备份 | `sudo systemctl start immich-backup` |
 | 清理 Immich 重复照片（按需，不常驻） | `sudo systemctl start immich-deduper` → `http://127.0.0.1:8086`；用完 `sudo systemctl stop immich-deduper` |
 | Immich 批量整理（按需，不常驻） | `sudo systemctl start immich-power-tools` → `http://127.0.0.1:8001`；用完 `sudo systemctl stop immich-power-tools` |
 | 局域网访问 Immich | `http://<NixOS 局域网 IP>:2283`（`host=""` + 放行 2283） |
@@ -929,7 +929,7 @@ nixos-DMS/
     - `profiles/Script.js`：同规则（脚本对配置对象二次兜底）。
     - 这两文件在 `~/.local/share/io.github.clash-verge-rev.clash-verge-rev/profiles/`（**不在本仓库**），订阅更新不会覆盖；改动后在 GUI 重载配置或重启 clash-verge 生效。
     - ⚠️ 若在 GUI 里改过「Tun/DNS 设置」，运行时 `clash-verge.yaml` 会重新生成；上面的 route-exclude / fake-ip-filter 语义仍由 Merge/Script 保证，如失效请在 GUI 对应项核对。
-27. **Immich 备份（当前未启用）**：`system/immich-backup.nix` 已写好但**未导入**——你明确不需要备份，所以 DB dump 与媒体镜像都不再生成。要恢复能力：取消 `configuration.nix` 里该 import 的注释 → `nh os switch .#legion`，之后每日 04:30 自动跑（DB `pg_dumpall` 14 天 + 媒体镜像到 DATATB）。⚠️ **未启用期间重装系统会丢 Immich 数据库**（相册/人物/时间线；媒体原图仍在 `/srv/immich`）。若某次要保库，重装前手动导出一份：`sudo -u postgres pg_dumpall --clean --if-exists | gzip > /run/media/lilei/DATATB/immich-db-manual-$(date +%F).sql.gz`。
+27. **Immich 备份（仅数据库）**：`system/immich-backup.nix` 每日 04:30 跑：DB `pg_dumpall --clean` → `/srv/immich/backups/db/`（保留 14 天，约 242 MiB/份，SK Hynix 盘）+ 镜像到 `DATATB/immich-backup/db/`（ZHITAI 盘，异盘）。**媒体原图不镜像**（`DATATB/immich-backup/media/` 已弃用）——需要照片异盘副本时，把模块里媒体 rsync 循环的注释打开再 rebuild。升级 Immich 前先手动跑一次；恢复须用相同/更新版本。手动触发：`sudo systemctl start immich-backup`。
 
 ---
 
