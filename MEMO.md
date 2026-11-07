@@ -348,7 +348,9 @@ sudo bash scripts/backup-credentials.sh          # 信任根/凭据 → /mnt/vau
                                                  #（含 /etc/sops/age/keys.txt、~/.config/sops/age/keys.txt、
                                                  #  ~/.ssh/、opencode auth、mihomo 配置）
 
-sudo systemctl start immich-backup               # Immich DB dump → /srv/immich/backups/db/
+# ⚠️ Immich 备份当前【未启用】，没有 dump。若要保住相册/人物/时间线，重装前手动导出一份：
+sudo -u postgres pg_dumpall --clean --if-exists \
+  | gzip > /run/media/lilei/DATATB/immich-db-manual-$(date +%F).sql.gz
 sudo systemctl start vaultwarden-backup          # Vaultwarden → /run/media/lilei/DATATB/vaultwarden-backup/
 
 # 家目录（@home 会被清空）→ 备份到 DATATB（NTFS，p1，不会被格式化）
@@ -453,6 +455,8 @@ sudo rsync -a /run/media/lilei/DATATB/home-backup/ /home/lilei/
 sudo chown -R lilei:users /home/lilei
 
 # 8.2 Immich 数据库（媒体在 Hynix p7，未动）
+#     ⚠️ 备份已停用：只有你按第 1 步手动导出过 dump 才能恢复；没有 dump 就只能重建空库，
+#        相册/人物/时间线会丢（原图文件仍在 p7 的 upload/ 里，但 Immich 不能直接识别该布局）。
 ls /srv/immich/backups/db/ | tail -3            # 找最新 dump
 sudo systemctl stop immich-server immich-machine-learning
 sudo -u postgres psql -c 'DROP DATABASE IF EXISTS immich;'
@@ -478,7 +482,7 @@ sudo systemctl start vaultwarden
 | 双系统菜单 | GRUB 里有 `Windows 11`，能进 |
 | 桌面 | niri 登录、输入法（`fcitx5-remote -r`）、字体、walker |
 | 仓库状态 | `git -C ~/nixos-DMS status`；第 4 步的 UUID 改动要提交 |
-| 备份链 | `sudo systemctl start immich-backup vaultwarden-backup` 各跑一次成功 |
+| 备份链 | `sudo systemctl start vaultwarden-backup` 跑一次成功（Immich 备份已停用） |
 | 后续切换 | `nh os switch .#legion` 正常 |
 
 ### 10. 常见坑
