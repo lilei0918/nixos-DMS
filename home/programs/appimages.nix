@@ -35,7 +35,11 @@ in {
     folo = {
       name = "Folo";
       comment = "Follow everything in one place";
-      exec = "folo";
+      # %u 必须保留：浏览器把 folo://auth?token=... 交回来时，URL 作为参数传给包装脚本
+      exec = "folo %u";
+      # OAuth 回调走自定义 scheme（Folo 会用 setAsDefaultProtocolClient 注册 folo://、follow://）。
+      # 桌面项里不声明 MimeType 时，GLib/Chrome 可能认为没有可用 handler，登录就回不到应用。
+      mimeType = ["x-scheme-handler/folo" "x-scheme-handler/follow"];
       icon = "applications-internet";
       categories = ["Network" "News"];
       terminal = false;

@@ -231,6 +231,7 @@ nix flake init -t ~/nixos-DMS#node             # Node.js
 | 构建失败（空间不足） | `sudo nix-collect-garbage -d` |
 | 模块报 input 不存在 | 先在 `flake.nix` 添加对应 input |
 | 非 Nix 二进制缺库 | 往 `system/nix-ld.nix` 的 `libraries` 补库后 rebuild |
+| 浏览器登录后回不到应用（Google/OAuth） | 看浏览器最后地址栏的 scheme：自定义协议用 `xdg-mime query default x-scheme-handler/<scheme>` 检查，且对应 `.desktop` 必须声明 `MimeType=x-scheme-handler/<scheme>` + `Exec=... %u`；若是 `http://127.0.0.1:PORT`，用 `ss -ltnp` 确认应用仍在监听该端口 |
 
 ---
 

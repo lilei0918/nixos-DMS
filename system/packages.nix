@@ -7,6 +7,10 @@
     wget
     curl
 
+    # gio/gdbus：xdg-open 在 niri 等非主流桌面下走 `gio open` 分发 URL，
+    # 自定义协议（x-scheme-handler）回调依赖它
+    glib
+
     # git 由 home/programs/git.nix（programs.git.enable）安装，避免双装
     lazygit
 
