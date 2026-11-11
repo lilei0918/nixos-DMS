@@ -27,10 +27,7 @@ in {
     ../../home/programs/thunar.nix
     ../../home/programs/fastfetch.nix
     ../../home/programs/appimages.nix
-    # ElyOffice：暂时停用（2026-11-11）。升级时 flake.lock 把 elyoffice 推到 0.1.13，
-    # 需要重新下载 7 个 AppImage，但 GitHub 下载反复 TLS 断连，导致整次升级失败。
-    # 网络恢复或改用代理后再放开这一行；模块本身与文档都保留。
-    # ../../home/programs/elyoffice.nix
+    ../../home/programs/elyoffice.nix
 
     # -- 浏览器 --
     ../../home/programs/chrome.nix
@@ -41,11 +38,7 @@ in {
     ../../home/programs/AI/vscode.nix
     ../../home/programs/AI/zed.nix
     ../../home/programs/AI/opencode.nix
-    # Codex：暂时停用（2026-11-11）。nixpkgs 的 codex 0.167.0 打包 bug：
-    # aws-lc-sys 在系统 OpenSSL 下 panic（AWS_LC_SYS_USE_SYSTEM=1 requires system AWS-LC），
-    # 导致整次升级构建失败。等上游修复或用旧版覆盖后放开这一行。
-    # 注意：VSCodium 的 Codex 扩展依赖 PATH 里的 codex CLI，停用期间该扩展不可用。
-    # ../../home/programs/AI/codex.nix
+    ../../home/programs/AI/codex.nix
     ../../home/programs/AI/pi.nix
     ../../home/programs/git.nix
     ../../home/programs/dev.nix
