@@ -27,7 +27,10 @@ in {
     ../../home/programs/thunar.nix
     ../../home/programs/fastfetch.nix
     ../../home/programs/appimages.nix
-    ../../home/programs/elyoffice.nix
+    # ElyOffice：暂时停用（2026-11-11）。升级时 flake.lock 把 elyoffice 推到 0.1.13，
+    # 需要重新下载 7 个 AppImage，但 GitHub 下载反复 TLS 断连，导致整次升级失败。
+    # 网络恢复或改用代理后再放开这一行；模块本身与文档都保留。
+    # ../../home/programs/elyoffice.nix
 
     # -- 浏览器 --
     ../../home/programs/chrome.nix
