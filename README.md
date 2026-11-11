@@ -867,6 +867,8 @@ nixos-DMS/
 5. `sudo nixos-rebuild switch --flake .#legion`（或 `rebuild`）——密码 hash、Vaultwarden TLS 证书全部由 sops 自动解密生成，无需手动配置
 
 ### 未启用模块（保留但不导入）
+- `home/programs/AI/codex.nix`：**暂停导入**（2026-11-11，nixpkgs `codex 0.167.0` 的 `aws-lc-sys` 打包 bug 导致升级失败）
+- `home/programs/elyoffice.nix`：**暂停导入**（2026-11-11，ElyOffice 0.1.13 的 AppImage 从 GitHub 下载被阻断）
 - `system/nvidia/nvidia-block.nix`：屏蔽独显配置（仅用核显省电），`vars/default.nix` 的 `enableNvidia = false` 时自动切换导入（与 nvidia.nix 二选一）。当前 `enableNvidia = true`，故本模块未启用。
 - `system/proxy/mihomo.nix`：mihomo 备用方案，启用时注释 clash-verge.nix 的 import（二选一，不可同时开启）。
 - `home/programs/firefox.nix`：Firefox 配置（home.nix 中 import 被注释），需要时取消注释启用。
