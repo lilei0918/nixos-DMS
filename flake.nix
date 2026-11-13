@@ -25,16 +25,6 @@
     nur.url = "github:nix-community/NUR";
 
     # =============================
-    # DankMaterialShell
-    # =============================
-
-    dms = {
-      url = "github:AvengeMedia/DankMaterialShell/stable";
-
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # =============================
     # =============================
     # Secrets
     # =============================

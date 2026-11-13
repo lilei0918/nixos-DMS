@@ -1,7 +1,6 @@
 {
   pkgs,
   lib,
-  inputs,
   myvars,
   ...
 }: let
@@ -15,7 +14,8 @@ in {
 
   imports = [
     # -- DMS / niri --
-    inputs.dms.homeModules.dank-material-shell
+    # DMS 由 nixpkgs 原生模块提供（system/services.nix 的 programs.dux-shell），
+    # 不再导入 inputs.dms 的 Home Manager 模块（该模块未被 enable，属于死代码）。
 
     # niri 手写 KDL 配置（系统层 programs.niri 见 system/niri.nix）
     ../../home/niri/kdl.nix

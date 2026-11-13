@@ -1,9 +1,9 @@
 _: {
   ############################################
-  # DankMaterialShell
+  # Dux Modular Shell (DMS，原 DankMaterialShell)
   ############################################
 
-  programs.dms-shell = {
+  programs.dux-shell = {
     enable = true;
 
     systemd = {

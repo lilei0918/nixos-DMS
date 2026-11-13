@@ -2,7 +2,7 @@
 
 本仓库是 Lei 的 NixOS 配置（flake 化），目标主机 Lenovo Legion R7000P 2021。本文档既是仓库 README，也是面向 **AI 助手（opencode 等）与本人备查**的完整参考手册：覆盖硬件、目录结构、各模块详解、维护流程与排障。
 
-**技术栈**：NixOS（nixos-unstable）+ niri（滚动式 Wayland compositor）+ DankMaterialShell + greetd/tuigreet + Home Manager + sops-nix（age 加密）。主机配置名 `legion`，主机名 `nixos`。
+**技术栈**：NixOS（nixos-unstable）+ niri（滚动式 Wayland compositor）+ Dux Modular Shell（DMS，原 DankMaterialShell） + greetd/tuigreet + Home Manager + sops-nix（age 加密）。主机配置名 `legion`，主机名 `nixos`。
 
 改动配置的流程不变：
 cd nixos-DMS
@@ -203,7 +203,7 @@ nixos-DMS/
   - `nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"`
   - `home-manager`（follows nixpkgs）
   - `nur`（NUR 仓库）
-  - `dms`（DankMaterialShell，`github:AvengeMedia/DankMaterialShell/stable`，follows nixpkgs）
+  - ~~`dms`~~（DankMaterialShell）已移除：DMS 改由 nixpkgs 原生模块 `programs.dux-shell` 提供（2026-11-13）
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
   - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `nixos`）
@@ -316,7 +316,7 @@ nixos-DMS/
 **作用**：系统服务配置（最核心的服务文件）。
 
 **包含内容**：
-- `programs.dms-shell`（DankMaterialShell）：`enable = true`，systemd（`restartIfChanged = true`）、系统监控、动态主题、音频波长、VPN、日历事件全部开启
+- `programs.dux-shell`（Dux Modular Shell，原 DankMaterialShell）：`enable = true`，`systemd.enable = true`、`restartIfChanged = true`；其余特性走模块默认（系统监控 / 动态主题 / VPN / 日历等默认开启；cava 已内置，`enableAudioWavelength` 选项已被上游移除）
 - ⚠️ 未启用 `services.xserver`（纯 Wayland；X 应用走 `xwayland-satellite`，AMD 图形由 `hardware.graphics` 提供）
 - `services.dbus.enable = true`，`packages` 包含 `bluez`
 - **电源调度**：`services.tuned`（`enable = true`、`settings.dynamic_tuning`、`ppdSupport`，PPD 默认档 `power-saver`）；`services.power-profiles-daemon.enable = false`（与 tuned 冲突，必须关）
@@ -486,7 +486,6 @@ nixos-DMS/
 **关键内容**：
 - `home.username = myvars.username`，`home.homeDirectory = myvars.homeDirectory`，`home.stateVersion = "25.05"`
 - `imports` 列表包含：
-  - `inputs.dms.homeModules.dank-material-shell`
   - `../../home/niri/kdl.nix`（niri 手写 KDL 配置链接）
   - `../../home/programs/rime.nix`、`AI/vscode.nix`、`chrome.nix`、`dev.nix`、`elyoffice.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
