@@ -13,23 +13,60 @@
   xdg.configFile."opencode/opencode.jsonc".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
-      // 火山方舟（Volcengine Ark）OpenAI 兼容端点。
-      // 凭据不写进仓库：provider 从服务进程环境的 ARK_API_KEY 读取。
-      // 设置方式（任选）：opencode service set env ARK_API_KEY 'ark-...'
-      //                   或 opencode auth login ark --method key
+      // 火山方舟 Coding Plan（OpenAI 兼容协议）。
+      // 文档：https://ark.volcengine.com/region:cn-beijing/docs/coding-plan-personal-ai-opencode
+      // ⚠️ Base URL 必须是 /api/coding/v3；用 /api/v3 不消耗套餐额度，会额外计费（实测已 403 欠费）。
+      // 凭据：opencode auth login ark --method key（存 opencode.db，ACP 私有服务也能读到）。
       "providers": {
         "ark": {
-          "name": "Volcengine Ark",
+          "name": "Volcengine Ark (Coding Plan)",
           "env": ["ARK_API_KEY"],
           "package": "@opencode/ai/providers/openai-compatible",
           "settings": {
-            "baseURL": "https://ark.cn-beijing.volces.com/api/v3"
+            "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3"
           },
           "models": {
-            "deepseek-v4-1-flash-economy-261017": {
-              "name": "DeepSeek V4.1 Flash Economy (Ark)",
+            "ark-code-latest": {
+              "name": "ark-code-latest",
               "tool_call": true,
-              "limit": { "context": 131072, "output": 8192 }
+              "limit": { "context": 256000, "output": 32000 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "deepseek-v4.1-flash-economy": {
+              "name": "deepseek-v4.1-flash-economy",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "deepseek-v4.1-flash": {
+              "name": "deepseek-v4.1-flash",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "deepseek-v4-pro": {
+              "name": "deepseek-v4-pro",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "glm-5.3": {
+              "name": "glm-5.3",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "kimi-k3.1-pro": {
+              "name": "kimi-k3.1-pro",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "doubao-seed-2.1-pro": {
+              "name": "doubao-seed-2.1-pro",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
             }
           }
         }
