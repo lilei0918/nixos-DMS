@@ -141,3 +141,11 @@ window-rule {
     default-window-height { fixed 180; }
     open-floating true
 }
+
+// Noctalia 设置窗口：浮动 + 固定尺寸（官方 Niri 文档）
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+}

@@ -1,0 +1,53 @@
+// 主题 + Noctalia 集成（原 DMS 生成的 dms/colors.kdl 内容已冻结到这里）
+// 配色：#a8b665（active）/ #a89984（inactive）/ #e96962（urgent）
+
+layout {
+    // Noctalia 壁纸放在 backdrop 里（官方 Niri 文档 Option 2：固定壁纸）
+    background-color "transparent"
+
+    border {
+        width 2
+        active-color   "#a8b665"
+        inactive-color "#a89984"
+        urgent-color   "#e96962"
+    }
+
+    focus-ring {
+        width 2
+        active-color   "#a8b665"
+        inactive-color "#a89984"
+        urgent-color   "#e96962"
+    }
+
+    shadow {
+        color "#00000070"
+    }
+
+    tab-indicator {
+        active-color   "#a8b665"
+        inactive-color "#a89984"
+        urgent-color   "#e96962"
+    }
+
+    insert-hint {
+        color "#a8b66580"
+    }
+}
+
+recent-windows {
+    highlight {
+        active-color "#555c34"
+        urgent-color "#e96962"
+    }
+}
+
+// Noctalia 文档 Option 2：常规壁纸层放进 niri backdrop
+layer-rule {
+    match namespace="^noctalia-wallpaper"
+    place-within-backdrop true
+}
+
+// 允许 Noctalia 的通知操作 / 窗口激活
+debug {
+    honor-xdg-activation-with-invalid-serial
+}

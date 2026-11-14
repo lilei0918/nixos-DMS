@@ -7,12 +7,8 @@ include "./keybindings.kdl"
 include "./windowrules.kdl"
 include "./spawn-at-startup.kdl"
 
-// 动态配色（DMS 随壁纸生成，换壁纸自动重载；可选 include 防文件不存在时报错）
-include optional=true "dms/colors.kdl"
-include optional=true "dms/layout.kdl"
-include optional=true "dms/outputs.kdl"
-include optional=true "dms/wpblur.kdl"
-include optional=true "dms/alttab.kdl"
+// 主题/配色 + Noctalia 集成（仓库内静态文件；原 DMS 生成内容已冻结于此）
+include "./theme.kdl"
 
 // 输入设备配置
 input {

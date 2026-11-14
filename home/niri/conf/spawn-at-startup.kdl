@@ -1,6 +1,9 @@
 // 自动启动
 // XWayland：niri 25.08 起内置集成（自动 spawn xwayland-satellite），无需手动
 
+// 🧩 Noctalia 桌面壳（bar / launcher / 通知 / 控制中心）
+spawn-at-startup "noctalia"
+
 // ⌨️ 输入法（fcitx5 守护进程，-d 后台运行）
 spawn-at-startup "fcitx5" "-d"
 

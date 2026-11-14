@@ -1,19 +1,5 @@
 _: {
   ############################################
-  # Dux Modular Shell (DMS，原 DankMaterialShell)
-  ############################################
-
-  programs.dux-shell = {
-    enable = true;
-
-    systemd = {
-      enable = true;
-
-      restartIfChanged = true;
-    };
-  };
-
-  ############################################
   # Services
   ############################################
 

@@ -24,6 +24,19 @@ binds {
     super+e { spawn "thunar"; }
     super+b { spawn "google-chrome-stable"; }
 
+    // 🧩 Noctalia（启动器 / 控制中心 / 设置 / 窗口切换；walker 仍保留在 super+d）
+    super+space { spawn-sh "noctalia msg panel-toggle launcher"; }
+    super+s { spawn-sh "noctalia msg panel-toggle control-center"; }
+    super+shift+comma { spawn-sh "noctalia msg settings-toggle"; }
+    Alt+Tab { spawn-sh "noctalia msg window-switcher hold"; }
+
+    // 🔊 音量 / 亮度（Noctalia IPC）
+    XF86AudioRaiseVolume { spawn-sh "noctalia msg volume-up"; }
+    XF86AudioLowerVolume { spawn-sh "noctalia msg volume-down"; }
+    XF86AudioMute { spawn-sh "noctalia msg volume-mute"; }
+    XF86MonBrightnessUp { spawn-sh "noctalia msg brightness-up"; }
+    XF86MonBrightnessDown { spawn-sh "noctalia msg brightness-down"; }
+
     // 📸 截图（niri 内置，Enter/Space 保存，Ctrl+Enter 复制到剪贴板）
     Print { screenshot; }
     Alt+Print { screenshot-window; }

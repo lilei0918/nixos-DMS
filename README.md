@@ -2,7 +2,7 @@
 
 本仓库是 Lei 的 NixOS 配置（flake 化），目标主机 Lenovo Legion R7000P 2021。本文档既是仓库 README，也是面向 **AI 助手（opencode 等）与本人备查**的完整参考手册：覆盖硬件、目录结构、各模块详解、维护流程与排障。
 
-**技术栈**：NixOS（nixos-unstable）+ niri（滚动式 Wayland compositor）+ Dux Modular Shell（DMS，原 DankMaterialShell） + greetd/tuigreet + Home Manager + sops-nix（age 加密）。主机配置名 `legion`，主机名 `nixos`。
+**技术栈**：NixOS（nixos-unstable）+ niri（滚动式 Wayland compositor）+ **Noctalia**（v5，bar/launcher/控制中心/通知；替代原 DMS） + greetd/tuigreet + Home Manager + sops-nix（age 加密）。主机配置名 `legion`，主机名 `nixos`。
 
 改动配置的流程不变：
 cd nixos-DMS
@@ -133,7 +133,7 @@ nixos-DMS/
 │   ├── boot.nix             # 启动引导（GRUB 主引导，双 ESP 双系统菜单）
 │   ├── hardware.nix         # 硬件：GPU 图形、蓝牙、fstrim、btrfs scrub
 │   ├── network.nix          # 网络（NetworkManager、NTP）——防火墙配置已下放到 proxy/*.nix
-│   ├── services.nix         # 系统服务（DMS、PipeWire）
+│   ├── services.nix         # 系统服务（PipeWire/tuned 等；桌面壳已改用 nixpkgs 的 noctalia 包）
 │   ├── secrets.nix          # sops 机密声明
 │   ├── fonts.nix            # 字体（思源黑体/宋体、Inter、JetBrainsMono NF + fontconfig 映射）
 │   ├── input.nix            # 输入法（Fcitx5/Rime）
@@ -203,7 +203,6 @@ nixos-DMS/
   - `nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"`
   - `home-manager`（follows nixpkgs）
   - `nur`（NUR 仓库）
-  - ~~`dms`~~（DankMaterialShell）已移除：DMS 改由 nixpkgs 原生模块 `programs.dux-shell` 提供（2026-11-13）
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
   - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `nixos`）
@@ -316,11 +315,11 @@ nixos-DMS/
 **作用**：系统服务配置（最核心的服务文件）。
 
 **包含内容**：
-- `programs.dux-shell`（Dux Modular Shell，原 DankMaterialShell）：`enable = true`，`systemd.enable = true`、`restartIfChanged = true`；其余特性走模块默认（系统监控 / 动态主题 / VPN / 日历等默认开启；cava 已内置，`enableAudioWavelength` 选项已被上游移除）
+- **桌面壳**：不再使用 DMS 模块。改用 nixpkgs 的 **`noctalia`** 包（`system/packages.nix`），由 niri `spawn-at-startup "noctalia"` 启动；配置走 Noctalia 自己的 `~/.config/noctalia/`（GUI 管理，`super+shift+comma` 打开设置）
 - ⚠️ 未启用 `services.xserver`（纯 Wayland；X 应用走 `xwayland-satellite`，AMD 图形由 `hardware.graphics` 提供）
 - `services.dbus.enable = true`，`packages` 包含 `bluez`
 - **电源调度**：`services.tuned`（`enable = true`、`settings.dynamic_tuning`、`ppdSupport`，PPD 默认档 `power-saver`）；`services.power-profiles-daemon.enable = false`（与 tuned 冲突，必须关）
-- **Legion 静音兜底**：`quiet-fan-boot` / `quiet-fan-resume` / initrd `quiet-fan-initrd` 三处把 EC `platform_profile` 写回 `low-power`（电源键蓝灯），`quiet-fan-boot` 另强制 PPD 档回 `power-saver`（DMS bar 显示正确）。tuned 会持久化被切过的 PPD 档，重启被这些服务强制回静音
+- **Legion 静音兜底**：`quiet-fan-boot` / `quiet-fan-resume` / initrd `quiet-fan-initrd` 三处把 EC `platform_profile` 写回 `low-power`（电源键蓝灯），`quiet-fan-boot` 另强制 PPD 档回 `power-saver`（Noctalia bar 显示正确）。tuned 会持久化被切过的 PPD 档，重启被这些服务强制回静音
 - `services.gvfs.enable = true`，`services.tumbler.enable = true`
 - `services.pipewire`：alsa（含 support32Bit）/pulse/jack/wireplumber 全部开启
 - `security.rtkit.enable = true`
@@ -490,7 +489,7 @@ nixos-DMS/
   - `../../home/programs/rime.nix`、`AI/vscode.nix`、`chrome.nix`、`dev.nix`、`elyoffice.nix`、`walker.nix`、`thunar.nix`、`theme.nix`、`dconf.nix`、`fastfetch.nix`、`git.nix`、`btop.nix`、`AI/zed.nix`、`AI/opencode.nix`、`AI/pi.nix`
     （`firefox.nix` 保留在仓库但当前未导入，需要时取消注释）
   - `../../home/terminal/alacritty.nix`、`fish.nix`、`starship.nix`、`tmux.nix`、`ghostty.nix`、`zsh.nix`
-- **niri**：⚠️ 已放弃 niri-flake（2026-08-30 改）。niri 用 nixpkgs 自带 `programs.niri`（`system/niri.nix`，`pkgs.niri` 26.04，支持 include）；配置为**手写 KDL**（`home/niri/conf/*.kdl`，经 `home/niri/kdl.nix` 链接到 `~/.config/niri/`）。主 `config.kdl` 用 `include` 引入 DMS 生成的 `dms/*.kdl`，实现焦点环随壁纸动态变色。
+- **niri**：⚠️ 已放弃 niri-flake（2026-08-30 改）。niri 用 nixpkgs 自带 `programs.niri`（`system/niri.nix`，`pkgs.niri` 26.04，支持 include）；配置为**手写 KDL**（`home/niri/conf/*.kdl`，经 `home/niri/kdl.nix` 链接到 `~/.config/niri/`）。主 `config.kdl` 用 `include` 引入 `theme.kdl`（配色为原 DMS 主题的静态快照）+ Noctalia 集成设置。
 - `home.packages = lib.mkBefore allPackages`（`allPackages` 来自 `./packages.nix`）
 - Fcitx5/Rime 用户配置：
   - `home.file."~/.local/share/fcitx5/rime/default.custom.yaml"`（声明在 `home/programs/rime.nix`，非 home.nix）：schema `rime_ice`，`page_size: 9`
@@ -649,11 +648,11 @@ nixos-DMS/
 > `home/niri/kdl.nix`（HM 模块）把 `conf/*.kdl` 链接到 `~/.config/niri/`。
 
 ### conf/config.kdl（主配置）
-- 顶部 `include` 分片：`./keybindings.kdl`、`./windowrules.kdl`、`./spawn-at-startup.kdl`
-- **动态配色**：`include optional=true "dms/colors.kdl"` 等 —— DMS 随壁纸生成，换壁纸自动热重载
+- 顶部 `include` 分片：`./keybindings.kdl`、`./windowrules.kdl`、`./spawn-at-startup.kdl`、`./theme.kdl`
+- **主题/集成**：`include "./theme.kdl"` —— 冻结的配色（原 DMS 主题）+ Noctalia 的 `layer-rule` / `debug` 设置
 - **工作区**：`workspace "browser"` / `"note"` / `"code"`（`open-on-workspace` 需先声明）
 - `prefer-no-csd`（禁用客户端装饰）
-- **布局**：背景透明（DMS 提供壁纸层）、focus-ring width 1（**颜色由 dms/colors.kdl 提供，随壁纸变**）、预设列宽 25/50/75/100%、默认 75%、gaps 4、struts 8/8/1/1、`border off`
+- **布局**：背景透明（Noctalia 壁纸层放进 backdrop）、focus-ring/border width 2、颜色 `theme.kdl` 固定、预设列宽 25/50/75/100%、默认 75%、gaps 4、struts 8/8/1/1
 - **输入**：键盘 us + numlock；触控板（tap、natural-scroll、two-finger、button-areas、middle-emulation、accel-profile adaptive）；`focus-follows-mouse`、`workspace-auto-back-and-forth`
 - **输出**：`eDP-2` 1920×1080 @ 165.004Hz scale 1.0；`DP-2` 2560×1600 @ 60.001Hz scale 1.25（外接屏物理位于内屏正上方）
 - **光标**：size 24、`hide-when-typing`、`hide-after-inactive-ms = 1000`
@@ -672,6 +671,11 @@ nixos-DMS/
 | `super+return` | alacritty |
 | `super+shift+return` | ghostty |
 | `super+d` | walker（启动器，spawn-at-startup 已常驻，唤出秒开） |
+| `super+space` | Noctalia 启动器（`noctalia msg panel-toggle launcher`） |
+| `super+s` | Noctalia 控制中心 |
+| `super+shift+comma` | Noctalia 设置 |
+| `Alt+Tab` | Noctalia 窗口切换器 |
+| `XF86Audio*` / `XF86MonBrightness*` | 音量 / 亮度（走 Noctalia IPC） |
 | `super+e` | thunar |
 | `super+b` | google-chrome |
 | `Print` | **niri 内置截图**（保存当前工作区到 `~/Pictures/Screenshots/`） |
