@@ -13,6 +13,8 @@
   xdg.configFile."opencode/opencode.jsonc".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
+      // 默认模型（Zed/opencode 未显式选择时使用）
+      "model": "ark/deepseek-v4-flash",
       // 火山方舟 Coding Plan（OpenAI 兼容协议）。
       // 文档：https://ark.volcengine.com/region:cn-beijing/docs/coding-plan-personal-ai-opencode
       // ⚠️ Base URL 必须是 /api/coding/v3；用 /api/v3 不消耗套餐额度，会额外计费（实测已 403 欠费）。
@@ -30,6 +32,12 @@
               "name": "ark-code-latest",
               "tool_call": true,
               "limit": { "context": 256000, "output": 32000 },
+              "modalities": { "input": ["text", "image"], "output": ["text"] }
+            },
+            "deepseek-v4-flash": {
+              "name": "deepseek-v4-flash",
+              "tool_call": true,
+              "limit": { "context": 1024000, "output": 65536 },
               "modalities": { "input": ["text", "image"], "output": ["text"] }
             },
             "deepseek-v4.1-flash-economy": {
