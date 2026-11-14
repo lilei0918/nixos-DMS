@@ -116,3 +116,5 @@ environment {
 workspace "browser"
 workspace "note"
 workspace "code"
+
+include "noctalia.kdl"

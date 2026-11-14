@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  inputs,
   myvars,
   ...
 }: let
@@ -13,9 +14,9 @@ in {
   ############################################
 
   imports = [
-    # -- DMS / niri --
-    # DMS 由 nixpkgs 原生模块提供（system/services.nix 的 programs.dux-shell），
-    # 不再导入 inputs.dms 的 Home Manager 模块（该模块未被 enable，属于死代码）。
+    # -- Noctalia / niri --
+    # 完整方案：flake 的 HM 模块（包 + 声明式设置 + systemd user service）
+    inputs.noctalia.homeModules.default
 
     # niri 手写 KDL 配置（系统层 programs.niri 见 system/niri.nix）
     ../../home/niri/kdl.nix
@@ -58,6 +59,36 @@ in {
     ../../home/terminal/ghostty.nix
     ../../home/terminal/zsh.nix
   ];
+
+  ############################################
+  # 1.5 Noctalia（桌面壳：包 + 声明式配置 + systemd user service）
+  ############################################
+
+  programs.noctalia = {
+    enable = true;
+
+    # systemd user service：自启 + 崩溃重启 + rebuild 后自动重启
+    systemd.enable = true;
+
+    # 显式指定 flake 包（命中 noctalia.cachix.org；follows nixpkgs 会失效）
+    package = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+    # 声明式设置（写入 ~/.config/noctalia/config.toml；可在 GUI 临时改，rebuild 会覆盖）
+    settings = {
+      theme = {
+        mode = "dark";
+        source = "builtin";
+        builtin = "Catppuccin";
+      };
+
+      wallpaper.enabled = true;
+
+      shell = {
+        # 服务重启时应用不被杀掉（文档推荐：Noctalia 以 user unit 运行时应开启）
+        launch_apps_as_systemd_services = true;
+      };
+    };
+  };
 
   ############################################
   # 2. home：身份 / 状态 / 包 / 环境 / 文件

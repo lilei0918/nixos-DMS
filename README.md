@@ -133,7 +133,7 @@ nixos-DMS/
 │   ├── boot.nix             # 启动引导（GRUB 主引导，双 ESP 双系统菜单）
 │   ├── hardware.nix         # 硬件：GPU 图形、蓝牙、fstrim、btrfs scrub
 │   ├── network.nix          # 网络（NetworkManager、NTP）——防火墙配置已下放到 proxy/*.nix
-│   ├── services.nix         # 系统服务（PipeWire/tuned 等；桌面壳已改用 nixpkgs 的 noctalia 包）
+│   ├── services.nix         # 系统服务（PipeWire/tuned 等；桌面壳 Noctalia 走 HM 模块）
 │   ├── secrets.nix          # sops 机密声明
 │   ├── fonts.nix            # 字体（思源黑体/宋体、Inter、JetBrainsMono NF + fontconfig 映射）
 │   ├── input.nix            # 输入法（Fcitx5/Rime）
@@ -206,6 +206,7 @@ nixos-DMS/
   - `sops-nix`（follows nixpkgs）
   - `pre-commit-hooks`（`github:cachix/git-hooks.nix`，follows nixpkgs，提供 alejandra + typos 钩子）
   - `nixos-grub-themes`（`github:jeslie0/nixos-grub-themes`，follows nixpkgs，提供 GRUB 主题包，boot.nix 用其 `nixos`）
+- `noctalia`（`github:noctalia-dev/noctalia`，**不 follows nixpkgs**：上游 Cachix 按自身 nixpkgs 构建，follows 会使缓存全失效；桌面壳走其 HM 模块）
 - **输入源说明**：
   - ⚠️ **niri 已不使用 niri-flake**（2026-08-30 改）：改用 nixpkgs 自带 `pkgs.niri`（跟随 nixpkgs unstable，26.04，支持 `include` 语法），配置改为手写 KDL（`home/niri/conf/*.kdl`）。曾因 niri-flake 的 nixpkgs pin（`624af66`，libdisplay-info 0.2.0）而锁定 stable 25.08，现已废弃该方案。
 - `outputs`：
@@ -315,7 +316,7 @@ nixos-DMS/
 **作用**：系统服务配置（最核心的服务文件）。
 
 **包含内容**：
-- **桌面壳**：不再使用 DMS 模块。改用 nixpkgs 的 **`noctalia`** 包（`system/packages.nix`），由 niri `spawn-at-startup "noctalia"` 启动；配置走 Noctalia 自己的 `~/.config/noctalia/`（GUI 管理，`super+shift+comma` 打开设置）
+- **桌面壳（Noctalia，完整方案）**：flake input `noctalia`（**唯一不 follows nixpkgs 的 input**，为了命中 `noctalia.cachix.org` 预编译缓存）→ `hosts/legion/home.nix` 导入 `inputs.noctalia.homeModules.default`，用 `programs.noctalia` 声明式配置（theme/wallpaper/`launch_apps_as_systemd_services`），并 `systemd.enable = true`（自启 + 崩溃重启 + rebuild 重启）。**不要**再在 niri 里 `spawn-at-startup "noctalia"`，会起两份抢 IPC socket
 - ⚠️ 未启用 `services.xserver`（纯 Wayland；X 应用走 `xwayland-satellite`，AMD 图形由 `hardware.graphics` 提供）
 - `services.dbus.enable = true`，`packages` 包含 `bluez`
 - **电源调度**：`services.tuned`（`enable = true`、`settings.dynamic_tuning`、`ppdSupport`，PPD 默认档 `power-saver`）；`services.power-profiles-daemon.enable = false`（与 tuned 冲突，必须关）
@@ -921,7 +922,7 @@ nixos-DMS/
 17. **加密盘用 Thunar 管理**：解锁挂载后 `/mnt/vault` 是普通 ext4 目录，可直接复制粘贴。**不要**用 udisks / GNOME Disks 解锁（会挂到动态路径 `/run/media/...`，破坏备份脚本对 `/mnt/vault` 的假设）。
 18. **加密盘备份策略**：备份脚本的加密盘归档只在 vault 解锁时写入 `/mnt/vault/vaultwarden/backups/`（只增不删），未解锁自动跳过并留日志；镜像副本另有 DATATB `/run/media/lilei/DATATB/vaultwarden-backup/`（随本地 7 天滚动）。本地 / DATATB / 加密盘同属一块物理盘（ZHITAI），建议**定期外导**（U 盘等离线介质）再保一份。
 19. **字体（思源）**：系统字体主力为 Source Han 思源黑体/宋体/等宽 + Inter + JetBrainsMono NF；`fonts.enableDefaultPackages = false`，fontconfig 的 `localConf` 做了 ui-*/SF Pro/Noto CJK → 思源的映射，改动注意保持 fontconfig 完整 XML。
-20. **nixpkgs**：所有 input 均 follows 统一 nixpkgs（`nix flake update` 可整体升级），无额外 pin。⚠️ `niri` 使用 nixpkgs 自带 `pkgs.niri`（见「六」）。
+20. **nixpkgs**：除 `noctalia` 外，所有 input 均 follows 统一 nixpkgs（`nix flake update` 可整体升级）；`noctalia` 刻意独立（换取 Cachix 预编译缓存）。⚠️ `niri` 使用 nixpkgs 自带 `pkgs.niri`（见「六」）。
 21. **nix-ld**：非 Nix 二进制（富途 futu、longbridge 等）依赖系统库，靠 `system/nix-ld.nix` 提供；缺库按报错往 `libraries` 补。自定义 `jpeg-8`（libjpeg.so.8 旧 ABI）是手动编译的，勿删。
 22. **清理策略**：journal 上限 200M（`services.journald.settings.Journal`）；`/tmp`（4G）与 `~/.cache`（6G）为 tmpfs（`system/tmpfs.nix`），重启即空；系统 GC 每日自动删 7 天前 generation。
 23. **截图**：已用 niri 内置截图（Print/Alt+Print/Ctrl+Print），保存到 `~/Pictures/Screenshots/`；grim/slurp/wl-clip-persist 已移除，旧文档中的 grim 命令不再适用。

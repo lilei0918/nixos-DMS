@@ -181,6 +181,9 @@ systemctl is-active vaultwarden.service greetd
 | Rime 雾凇未出现 | `fcitx5-remote -r`（触发部署） |
 | Thunar 配置不生效 | `killall Thunar`（重启后生效） |
 | 启动器 / 终端 / 浏览器 | `super+d` walker / `super+return` alacritty / `super+b` chrome |
+| Noctalia 启动器 / 控制中心 / 设置 | `super+space` / `super+s` / `super+shift+comma`（也可 `noctalia msg panel-toggle launcher`） |
+| 重启 Noctalia（systemd user service） | `systemctl --user restart noctalia`；日志 `journalctl --user -u noctalia -f` |
+| 改 Noctalia 设置 | 声明式：改 `hosts/legion/home.nix` 的 `programs.noctalia.settings` → `nh os switch`；GUI 临时改的设置会在下次 rebuild 被覆盖 |
 
 ---
 

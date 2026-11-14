@@ -90,6 +90,17 @@
 
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # =============================
+    # Noctalia（Wayland 桌面壳 + systemd user service + 声明式设置）
+    # 刻意 **不** 写 inputs.nixpkgs.follows：上游 Cachix 按它自己 pin 的 nixpkgs
+    # 构建，follows 会改变 derivation hash → 缓存全失效、必须本地编译。
+    # 本仓库唯一不 follows 的 input（例外说明见 README「二」注 20）
+    # =============================
+
+    noctalia = {
+      url = "github:noctalia-dev/noctalia";
+    };
   };
 
   outputs = {
