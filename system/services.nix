@@ -31,7 +31,9 @@ _: {
 
       pulse.enable = true;
 
-      jack.enable = true;
+      # jack.enable 已在 nixpkgs 弃用（全局 LD_LIBRARY_PATH 污染）；
+      # 没有 JACK 应用，需要时用 `pw-jack <app>` 即可
+      # jack.enable = true;
 
       wireplumber.enable = true;
     };
