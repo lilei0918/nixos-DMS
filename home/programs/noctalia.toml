@@ -1,0 +1,90 @@
+
+[bar.default]
+capsule = true
+capsule_thickness = 0.71999998763203621
+center = [ "clock", "media" ]
+end = [
+    "tray",
+    "cpu",
+    "ram",
+    "clipboard",
+    "network",
+    "bluetooth",
+    "volume",
+    "brightness",
+    "battery",
+    "control-center",
+    "notifications",
+    "session"
+]
+start = [ "launcher", "workspaces", "active_window" ]
+
+[desktop_widgets]
+schema_version = 2
+widget_order = []
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget]
+
+[location]
+address = "shenzhen, China"
+
+[nightlight]
+enabled = true
+
+[shell]
+panel_anchor_bar = "default"
+settings_expand_all_groups = true
+settings_window_translucent = true
+
+    [shell.launcher]
+    search_position = "top"
+
+    [shell.screen_corners]
+    enabled = true
+
+[theme]
+builtin = "Catppuccin"
+community_palette = "Oxocarbon"
+mode = "auto"
+source = "wallpaper"
+wallpaper_scheme = "m3-content"
+
+[wallpaper]
+directory = "/home/lilei/Pictures/Wallpapers"
+transition_on_startup = true
+
+    [wallpaper.automation]
+    recursive = true
+
+    [wallpaper.default]
+    path = "/home/lilei/Pictures/Wallpapers/a_mountain_with_snow_on_it.jpeg"
+
+[widget.control-center]
+enabled = false
+
+[widget.cpu]
+visualization = "none"
+
+[widget.media]
+album_art_only = true
+hide_when_idle = true
+hide_when_no_media = true
+
+[widget.ram]
+visualization = "none"
+
+[widget.taskbar]
+enabled = false
+
+[widget.tray]
+peek = true
+
+[theme.templates]
+enable_builtin_templates = true
+builtin_ids = []
+enable_community_templates = false

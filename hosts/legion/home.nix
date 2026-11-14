@@ -73,21 +73,11 @@ in {
     # 显式指定 flake 包（命中 noctalia.cachix.org；follows nixpkgs 会失效）
     package = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-    # 声明式设置（写入 ~/.config/noctalia/config.toml；可在 GUI 临时改，rebuild 会覆盖）
-    settings = {
-      theme = {
-        mode = "dark";
-        source = "builtin";
-        builtin = "Catppuccin";
-      };
-
-      wallpaper.enabled = true;
-
-      shell = {
-        # 服务重启时应用不被杀掉（文档推荐：Noctalia 以 user unit 运行时应开启）
-        launch_apps_as_systemd_services = true;
-      };
-    };
+    # 声明式设置：直接引用仓库里的 TOML（当前实际配置的固化版本：
+    # location=深圳、壁纸、bar 布局、nightlight；内置模板已关闭）
+    # 注意：GUI 改的设置进入 ~/.local/state/noctalia/settings.toml 并覆盖此文件；
+    # 想把 GUI 调整固化，就把它抄回 home/programs/noctalia.toml 再 switch
+    settings = ../../home/programs/noctalia.toml;
   };
 
   ############################################
