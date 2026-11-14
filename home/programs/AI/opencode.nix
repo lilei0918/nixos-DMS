@@ -13,6 +13,27 @@
   xdg.configFile."opencode/opencode.jsonc".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
+      // 火山方舟（Volcengine Ark）OpenAI 兼容端点。
+      // 凭据不写进仓库：provider 从服务进程环境的 ARK_API_KEY 读取。
+      // 设置方式（任选）：opencode service set env ARK_API_KEY 'ark-...'
+      //                   或 opencode auth login ark --method key
+      "providers": {
+        "ark": {
+          "name": "Volcengine Ark",
+          "env": ["ARK_API_KEY"],
+          "package": "@opencode/ai/providers/openai-compatible",
+          "settings": {
+            "baseURL": "https://ark.cn-beijing.volces.com/api/v3"
+          },
+          "models": {
+            "deepseek-v4-1-flash-economy-261017": {
+              "name": "DeepSeek V4.1 Flash Economy (Ark)",
+              "tool_call": true,
+              "limit": { "context": 131072, "output": 8192 }
+            }
+          }
+        }
+      },
       "permission": {
         "read": {
           "*": "allow",
