@@ -316,7 +316,7 @@ nixos-DMS/
 **作用**：系统服务配置（最核心的服务文件）。
 
 **包含内容**：
-- **桌面壳（Noctalia，完整方案）**：flake input `noctalia`（**唯一不 follows nixpkgs 的 input**，为了命中 `noctalia.cachix.org` 预编译缓存）→ `hosts/legion/home.nix` 导入 `inputs.noctalia.homeModules.default`，用 `programs.noctalia` 声明式配置（theme/wallpaper/`launch_apps_as_systemd_services`），并 `systemd.enable = true`（自启 + 崩溃重启 + rebuild 重启）。**不要**再在 niri 里 `spawn-at-startup "noctalia"`，会起两份抢 IPC socket
+- **桌面壳（Noctalia，完整方案）**：flake input `noctalia`（**唯一不 follows nixpkgs 的 input**，为了命中 `noctalia.cachix.org` 预编译缓存）→ `hosts/legion/home.nix` 导入 `inputs.noctalia.homeModules.default`，用 `programs.noctalia` 声明式配置（theme/wallpaper/`launch_apps_as_systemd_services`），并 `systemd.enable = true`（自启 + 崩溃重启 + rebuild 重启）。**不要**再在 niri 里 `spawn-at-startup "noctalia"`，会起两份抢 IPC socket。⚠️ 两层配置：`~/.config/noctalia/config.toml`（Nix 生成，只读）< `~/.local/state/noctalia/settings.toml`（运行时状态，优先级更高）；改了 Nix 设置没生效时，停服务并移走后者即可回落
 - ⚠️ 未启用 `services.xserver`（纯 Wayland；X 应用走 `xwayland-satellite`，AMD 图形由 `hardware.graphics` 提供）
 - `services.dbus.enable = true`，`packages` 包含 `bluez`
 - **电源调度**：`services.tuned`（`enable = true`、`settings.dynamic_tuning`、`ppdSupport`，PPD 默认档 `power-saver`）；`services.power-profiles-daemon.enable = false`（与 tuned 冲突，必须关）

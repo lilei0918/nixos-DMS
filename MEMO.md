@@ -183,7 +183,7 @@ systemctl is-active vaultwarden.service greetd
 | 启动器 / 终端 / 浏览器 | `super+d` walker / `super+return` alacritty / `super+b` chrome |
 | Noctalia 启动器 / 控制中心 / 设置 | `super+space` / `super+s` / `super+shift+comma`（也可 `noctalia msg panel-toggle launcher`） |
 | 重启 Noctalia（systemd user service） | `systemctl --user restart noctalia`；日志 `journalctl --user -u noctalia -f` |
-| 改 Noctalia 设置 | 声明式：改 `hosts/legion/home.nix` 的 `programs.noctalia.settings` → `nh os switch`；GUI 临时改的设置会在下次 rebuild 被覆盖 |
+| 改 Noctalia 设置 | 声明式：改 `hosts/legion/home.nix` 的 `programs.noctalia.settings` → `nh os switch`。⚠️ 运行时状态存在 `~/.local/state/noctalia/settings.toml`，会盖过 Nix 生成的 `~/.config/noctalia/config.toml`；若改了 Nix 设置却没生效：`systemctl --user stop noctalia && mv ~/.local/state/noctalia/settings.toml{,.bak} && systemctl --user start noctalia` |
 
 ---
 
