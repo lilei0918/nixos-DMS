@@ -105,5 +105,20 @@ _: {
 
     # GNOME Keyring
     pam.services.greetd.enableGnomeKeyring = true;
+
+    # polkit：允许本机普通用户（users 组）免密码挂载/卸载文件系统。
+    # 覆盖场景：Thunar 挂载内置盘（Windows 分区等）走 filesystem-mount-system，
+    # 默认要求 auth_admin（需 polkit 代理弹密码）。有代理（polkit-gnome）时其实
+    # 已可用，此规则作为兜底，避免代理未启动时 Thunar 报"没有授权可执行"。
+    polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        if ((action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+             action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
+             action.id == "org.freedesktop.udisks2.filesystem-unmount-others") &&
+            subject.isInGroup("users")) {
+          return polkit.Result.YES;
+        }
+      });
+    '';
   };
 }

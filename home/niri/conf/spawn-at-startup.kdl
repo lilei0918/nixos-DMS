@@ -4,6 +4,9 @@
 // 🧩 Noctalia 由 systemd user service 启动（programs.noctalia.systemd.enable），
 //    这里不要再 spawn，否则会起两份抢 IPC socket。
 
+// 🔐 权限管理（polkit 认证代理；走 PATH 解析，包在 hosts/legion/packages.nix）
+spawn-at-startup "polkit-gnome-authentication-agent-1"
+
 // ⌨️ 输入法（fcitx5 守护进程，-d 后台运行）
 spawn-at-startup "fcitx5" "-d"
 

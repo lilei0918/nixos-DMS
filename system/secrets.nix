@@ -1,4 +1,4 @@
-{
+{config, ...}: {
   sops = {
     defaultSopsFile = ../secrets/secrets.yaml;
 
@@ -31,6 +31,24 @@
       vaultwarden_tls_server_crt = {
         path = "/var/lib/vaultwarden/tls/server.crt";
       };
+
+      # Aoying Radar 只读账户 API（持仓/止损监控）
+      binance_api_key = {};
+
+      binance_api_secret = {};
+    };
+
+    # Aoying Radar 服务环境文件：systemd user service 通过 EnvironmentFile 读取，
+    # 只读权限 + IP 白名单的 Key，程序仅调用只读接口。
+    templates."aoying-radar-env" = {
+      content = ''
+        BINANCE_API_KEY=${config.sops.placeholder.binance_api_key}
+        BINANCE_API_SECRET=${config.sops.placeholder.binance_api_secret}
+      '';
+      path = "/run/secrets/aoying-radar-env";
+      mode = "0444";
+      owner = "lilei";
+      group = "users";
     };
   };
 }
