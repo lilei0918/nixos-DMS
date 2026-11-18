@@ -12,8 +12,9 @@ _: {
   xdg.desktopEntries.btop = {
     name = "btop";
     comment = "A modern resource monitor";
-    # --title=btop：固定窗口标题，供 niri windowrules.kdl 匹配（btop 半屏宽）
-    exec = "ghostty --title=btop -e btop";
+    # --class=btop：把 Wayland app-id 设为 "btop"，供 niri windowrules.kdl 匹配
+    # （btop 平铺半屏宽）。不用 ghostty：它无法自定义 Wayland app-id。
+    exec = "alacritty --class btop -e btop";
     icon = "utilities-system-monitor";
     terminal = false;
     type = "Application";
