@@ -21,7 +21,7 @@ binds {
     super+shift+return { spawn "ghostty"; }
     super+return { spawn "alacritty"; }
     super+d { spawn "walker"; } // walker 已在 spawn-at-startup 常驻，此处只是唤出
-    super+e { spawn "thunar"; }
+    super+e { spawn "luciole"; }
     super+b { spawn "google-chrome-stable"; }
 
     // 🧩 Noctalia（启动器 / 控制中心 / 设置 / 窗口切换；walker 仍保留在 super+d）

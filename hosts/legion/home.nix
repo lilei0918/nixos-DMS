@@ -18,6 +18,9 @@ in {
     # 完整方案：flake 的 HM 模块（包 + 声明式设置 + systemd user service）
     inputs.noctalia.homeModules.default
 
+    # Luciole（Wayland 原生文件管理器）：flake 的 HM 模块（包 + 声明式基础配置）
+    inputs.luciole.homeModules.default
+
     # niri 手写 KDL 配置（系统层 programs.niri 见 system/niri.nix）
     ../../home/niri/kdl.nix
 
@@ -26,6 +29,7 @@ in {
     ../../home/programs/dconf.nix
     ../../home/programs/walker.nix
     ../../home/programs/thunar.nix
+    ../../home/programs/luciole.nix
     ../../home/programs/fastfetch.nix
     ../../home/programs/appimages.nix
     ../../home/programs/elyoffice.nix
@@ -81,6 +85,11 @@ in {
   };
 
   ############################################
+  # 1.55 Luciole（Wayland 原生文件管理器：包 + 声明式基础配置）
+  # programs.luciole 定义在下方 §3 programs attrset（避免 statix 重复键警告）
+  ############################################
+
+  ############################################
   # 2. home：身份 / 状态 / 包 / 环境 / 文件
   ############################################
 
@@ -128,10 +137,23 @@ in {
   };
 
   ############################################
-  # 3. programs：direnv / home-manager
+  # 3. programs：direnv / home-manager / luciole
   ############################################
 
   programs = {
+    # Luciole（Wayland 原生文件管理器：包 + 声明式基础配置）
+    # 显式指定 flake 包（上游不推 cachix，首次本地编译，一次性成本）
+    luciole = {
+      enable = true;
+
+      package = inputs.luciole.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+      # 声明式基础配置：直接引用仓库里的 TOML；
+      # 注意：GUI 改的设置进入 ~/.config/luciole/settings.toml 并覆盖此文件，
+      # 想把 GUI 调整固化，就把它抄回 home/programs/luciole.toml 再 switch
+      settings = ../../home/programs/luciole.toml;
+    };
+
     direnv = {
       enable = true;
 

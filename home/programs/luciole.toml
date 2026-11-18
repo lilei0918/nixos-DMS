@@ -1,0 +1,20 @@
+# Luciole 声明式基础配置（与 Noctalia 同样的模式）
+# 注意：GUI 改的设置进入 ~/.config/luciole/settings.toml 并覆盖此文件；
+# 想把 GUI 调整固化，就把它抄回这里再 switch。
+
+schema_version = 1
+
+[browser]
+view_mode = "list"
+show_hidden = false
+show_sidebar = true
+show_drives = true
+show_network = true
+activation_mode = "double_click"
+typing_mode = "search"
+switch_to_new_tab = true
+confirm_permanent_deletion = true
+compact_menus = true
+sort_by = "name"
+directories_first = true
+hidden_last = false
