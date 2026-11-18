@@ -12,6 +12,7 @@ with pkgs; [
   #thunderbird
   papers
   readest
+  antigravity-ide
 
   # ─────────────────────────────
   # 💰 金融

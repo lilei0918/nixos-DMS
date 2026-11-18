@@ -15,6 +15,13 @@ window-rule {
     default-column-width { fixed 800; }
 }
 
+// 2.5 btop 专用：半屏宽（放在终端固定宽度规则之后，覆盖其 800px；
+//    标题由 desktop entry 的 ghostty --title=btop 固定）
+window-rule {
+    match app-id="com.mitchellh.ghostty" title="^btop$"
+    default-column-width { proportion 0.5; }
+}
+
 // 3. 浏览器类（全屏启动）
 window-rule {
     match app-id="google-chrome"

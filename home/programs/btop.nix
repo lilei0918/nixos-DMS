@@ -12,7 +12,8 @@ _: {
   xdg.desktopEntries.btop = {
     name = "btop";
     comment = "A modern resource monitor";
-    exec = "ghostty -e btop";
+    # --title=btop：固定窗口标题，供 niri windowrules.kdl 匹配（btop 半屏宽）
+    exec = "ghostty --title=btop -e btop";
     icon = "utilities-system-monitor";
     terminal = false;
     type = "Application";
