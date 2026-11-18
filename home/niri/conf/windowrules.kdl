@@ -15,15 +15,6 @@ window-rule {
     default-column-width { fixed 800; }
 }
 
-// 2.5 btop 专用：平铺半屏宽
-//    匹配 app-id（alacritty --class=btop 设置，窗口创建时即有，比标题可靠）。
-//    不设 open-floating：浮动窗口会被终端自身偏好尺寸（800x600）覆盖，niri 控不了宽度；
-//    平铺时 niri 直接控制列宽，proportion 0.5 = 半屏。
-window-rule {
-    match app-id="^btop$"
-    default-column-width { proportion 0.5; }
-}
-
 // 3. 浏览器类（全屏启动）
 window-rule {
     match app-id="google-chrome"
