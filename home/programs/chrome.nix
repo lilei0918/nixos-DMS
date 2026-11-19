@@ -17,12 +17,14 @@
           "--enable-features=UseOzonePlatform,WebUIDarkMode,DesktopPWAsNotificationIconAndTitle"
           "--enable-native-notifications"
           # 显卡硬件加速
-          "--use-gl=desktop"
+          # ⚠️ 混合双卡（AMD iGPU + NVIDIA dGPU）Wayland 下必须强制 ANGLE 后端：
+          # 旧的 --use-gl=desktop 在 Wayland 不可用 → GPU 进程请求 gl=none 崩溃 →
+          # Chrome 判定"频繁崩溃"永久禁用加速（Brave #52749 同款问题）。
+          # --use-gl=angle 实测让 WebGL 报 ANGLE (AMD radeonsi renoir)，硬件加速正常。
+          "--use-gl=angle"
           "--ignore-gpu-blocklist"
           "--enable-gpu-rasterization"
           "--enable-zero-copy"
-          "--enable-vulkan"
-          "--disable-gpu-driver-bug-workarounds"
           "--enable-hardware-overlays"
           "--enable-accelerated-video-decode"
           "--enable-accelerated-video-encode"
