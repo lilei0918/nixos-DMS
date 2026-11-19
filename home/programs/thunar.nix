@@ -7,8 +7,8 @@
     thunar-media-tags-plugin
   ];
 
-  # inode/directory 默认文件管理器已移交给 Luciole（见 luciole.nix）
   xdg.mimeApps.defaultApplications = {
+    "inode/directory" = "thunar.desktop";
     "application/x-gnome-saved-search" = "thunar.desktop";
   };
 

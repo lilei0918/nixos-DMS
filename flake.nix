@@ -101,15 +101,6 @@
     noctalia = {
       url = "github:noctalia-dev/noctalia";
     };
-
-    # =============================
-    # Luciole（Wayland 原生文件管理器，noctalia-dev 家族）
-    # 同样不 follows nixpkgs：上游 flake 自带锁定 nixpkgs，跟随会改变 derivation hash
-    # =============================
-
-    luciole = {
-      url = "github:noctalia-dev/luciole";
-    };
   };
 
   outputs = {
