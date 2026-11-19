@@ -26,7 +26,7 @@ in {
   #
   # 图标用 freedesktop 通用名（AppImage 自带图标未提取）；
   # Folo 走 `folo` 包装脚本（自动选 ~/Downloads 里最新的版本）；
-  # LocalSend 仍写死版本号，若 AppImage 被移动/删除需同步改此文件。
+  # LocalSend / OpenMarket 写死路径，若 AppImage 被移动/删除需同步改此文件。
   # ============================================================
 
   home.packages = [folo];
@@ -52,6 +52,19 @@ in {
       exec = "appimage-run ${home}/Downloads/LocalSend-1.17.0-linux-x86-64.AppImage";
       icon = "network-transmit-receive";
       categories = ["Network" "Utility"];
+      terminal = false;
+      type = "Application";
+    };
+
+    openmarket = {
+      name = "OpenMarket";
+      comment = "Desktop shell for the OpenMarket chart";
+      # --no-sandbox 与 AppImage 自带 desktop 的 Exec 一致（AppRun 也会自动补）
+      exec = "appimage-run ${home}/Documents/OpenMarket-linux-x86_64.AppImage --no-sandbox %u";
+      # 自定义 scheme：点 openmarket:// 链接时回到应用
+      mimeType = ["x-scheme-handler/openmarket"];
+      icon = "applications-office";
+      categories = ["Finance"];
       terminal = false;
       type = "Application";
     };
