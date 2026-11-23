@@ -227,6 +227,7 @@
         "pre-commit-hooks": "pre-commit-hooks",
         "rime-ice": "rime-ice",
         "sops-nix": "sops-nix",
+        "trading-news-hub": "trading-news-hub",
         "zen-browser": "zen-browser"
       }
     },
@@ -248,6 +249,26 @@
         "owner": "Mic92",
         "repo": "sops-nix",
         "type": "github"
+      }
+    },
+    "trading-news-hub": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795475453,
+        "narHash": "sha256-4kcAanu4HzJ7jeU+BqHj2kYcKoTMXeC3bxqdCW04mBw=",
+        "ref": "refs/heads/main",
+        "rev": "34a03ddc18222e03d9f8e2c438e000efc01d28e1",
+        "revCount": 5,
+        "type": "git",
+        "url": "file:///home/lilei/Documents/trading-news-hub"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/lilei/Documents/trading-news-hub"
       }
     },
     "zen-browser": {
