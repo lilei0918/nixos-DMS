@@ -49,6 +49,7 @@ with pkgs; [
   # ─────────────────────────────
 
   file-roller # 归档管理器（压缩/解压 GUI 前端）
+  peazip # PeaZip 压缩/解压工具（支持多种归档格式）
   xz
   localsend # 局域网文件传输工具（类似 AirDrop）
   duf
