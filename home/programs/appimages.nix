@@ -68,5 +68,16 @@ in {
       terminal = false;
       type = "Application";
     };
+
+    wickline = {
+      name = "Wickline";
+      comment = "Free open-source charting: crypto, stocks, forex, futures";
+      # 写死版本号（v0.1.7），升级时改此路径；与 OpenMarket 一样放 ~/Documents
+      exec = "appimage-run ${home}/Documents/Wickline-Linux-0.1.7.AppImage --no-sandbox %u";
+      icon = "utilities-system-monitor";
+      categories = ["Office" "Finance"];
+      terminal = false;
+      type = "Application";
+    };
   };
 }
