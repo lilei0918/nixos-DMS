@@ -96,6 +96,14 @@ in {
     # 默认端口 8787，本机监听 127.0.0.1
   };
 
+  # 关机时 tnh（uvicorn/WebSocket）收到 SIGTERM 后任务卡住，默认 TimeoutStopSec=90s +
+  # 系统层 DefaultTimeoutStopSec=10s，导致每次关机都被拖满 10 秒（日志里
+  # "timeout graceful shutdown exceeded" 就是它）。这里把停止超时收到 5s，到点强制 SIGKILL。
+  systemd.user.services.trading-news-hub.Service = {
+    TimeoutStopSec = "5s";
+    KillMode = "mixed";
+  };
+
   ############################################
   # 2. home：身份 / 状态 / 包 / 环境 / 文件
   ############################################
