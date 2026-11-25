@@ -101,17 +101,6 @@
     noctalia = {
       url = "github:noctalia-dev/noctalia";
     };
-
-    # =============================
-    # Trading News Hub（EquationNews 全频道资讯 + 桌面通知）
-    # 独立 Home Manager 模块：systemd user service，登录后自启
-    # =============================
-
-    trading-news-hub = {
-      url = "git+file:///home/lilei/Documents/trading-news-hub";
-
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {

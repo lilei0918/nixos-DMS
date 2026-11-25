@@ -21,9 +21,6 @@ in {
     # niri 手写 KDL 配置（系统层 programs.niri 见 system/niri.nix）
     ../../home/niri/kdl.nix
 
-    # -- Trading News Hub（独立 flake 模块：采集 + 通知 + 看板）--
-    inputs.trading-news-hub.homeManagerModules.default
-
     # -- 桌面应用 --
     ../../home/programs/theme.nix
     ../../home/programs/dconf.nix
@@ -82,30 +79,6 @@ in {
     # 注意：GUI 改的设置进入 ~/.local/state/noctalia/settings.toml 并覆盖此文件；
     # 想把 GUI 调整固化，就把它抄回 home/programs/noctalia.toml 再 switch
     settings = ../../home/programs/noctalia.toml;
-  };
-
-  ############################################
-  # 1.6 Trading News Hub（systemd user service）
-  ############################################
-
-  services.trading-news-hub = {
-    enable = true;
-
-    # 与 Windows 的 D:\TradingNews 对应同一块 NTFS 数据盘
-    sharedDir = "/run/media/lilei/DATATB/TradingNews";
-
-    # 默认端口 8787，本机监听 127.0.0.1
-  };
-
-  # 不随登录自启（保留单元，供启动器手动启停，见 services-control.nix）
-  systemd.user.services.trading-news-hub.Install.WantedBy = lib.mkForce [];
-
-  # 关机时 tnh（uvicorn/WebSocket）收到 SIGTERM 后任务卡住，默认 TimeoutStopSec=90s +
-  # 系统层 DefaultTimeoutStopSec=10s，导致每次关机都被拖满 10 秒（日志里
-  # "timeout graceful shutdown exceeded" 就是它）。这里把停止超时收到 5s，到点强制 SIGKILL。
-  systemd.user.services.trading-news-hub.Service = {
-    TimeoutStopSec = "5s";
-    KillMode = "mixed";
   };
 
   ############################################

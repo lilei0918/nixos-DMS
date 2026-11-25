@@ -27,25 +27,5 @@ _: {
       terminal = false;
       type = "Application";
     };
-
-    "trading-news-hub-start" = {
-      name = "Trading News Hub 启动";
-      comment = "启动 tnh 新闻采集/通知（用户服务）";
-      exec = "/run/current-system/sw/bin/systemctl --user start trading-news-hub";
-      icon = "media-playback-start";
-      categories = ["System"];
-      terminal = false;
-      type = "Application";
-    };
-
-    "trading-news-hub-stop" = {
-      name = "Trading News Hub 停止";
-      comment = "停止 tnh 新闻采集/通知（用户服务）";
-      exec = "/run/current-system/sw/bin/systemctl --user stop trading-news-hub";
-      icon = "media-playback-stop";
-      categories = ["System"];
-      terminal = false;
-      type = "Application";
-    };
   };
 }
