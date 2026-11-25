@@ -258,11 +258,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795475670,
-        "narHash": "sha256-+EcgTAhcdn1AQ9DWIn5nEmAo12Sk8SFYAQpRk8DX8L4=",
+        "lastModified": 1795528306,
+        "narHash": "sha256-qMLs7Gbo8izh5AS1akOV1HBIDIvkeqk7RZwjD9MBqdA=",
         "ref": "refs/heads/main",
-        "rev": "f05584ee7fddd78c15453733679fce384b105db9",
-        "revCount": 8,
+        "rev": "ecf6f7892731b26e67cfea96c60a9fb9c8553494",
+        "revCount": 14,
         "type": "git",
         "url": "file:///home/lilei/Documents/trading-news-hub"
       },

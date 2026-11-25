@@ -32,6 +32,7 @@ in {
     ../../home/programs/fastfetch.nix
     ../../home/programs/appimages.nix
     ../../home/programs/elyoffice.nix
+    ../../home/programs/services-control.nix
 
     # -- 浏览器 --
     ../../home/programs/chrome.nix
@@ -95,6 +96,9 @@ in {
 
     # 默认端口 8787，本机监听 127.0.0.1
   };
+
+  # 不随登录自启（保留单元，供启动器手动启停，见 services-control.nix）
+  systemd.user.services.trading-news-hub.Install.WantedBy = lib.mkForce [];
 
   # 关机时 tnh（uvicorn/WebSocket）收到 SIGTERM 后任务卡住，默认 TimeoutStopSec=90s +
   # 系统层 DefaultTimeoutStopSec=10s，导致每次关机都被拖满 10 秒（日志里

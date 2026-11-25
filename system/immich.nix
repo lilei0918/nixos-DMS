@@ -1,4 +1,4 @@
-_: {
+{lib, ...}: {
   ################################
   # 媒体库存储：SK Hynix 盘（Windows 盘）p7 的独立 btrfs 分区挂到 /srv/immich
   ################################
@@ -45,5 +45,22 @@ _: {
 
     # AMD Radeon Vega 核显硬件转码
     accelerationDevices = ["/dev/dri/renderD128"];
+  };
+
+  ################################
+  # 不随系统自启（保留单元，供启动器手动启动/停止）
+  ################################
+  # 只清掉 wantedBy，单元定义仍在：`systemctl start immich-server` 会按
+  # Requires=postgresql.target 拉起 Postgres；Redis/ML 由启动器一并显式启动。
+  systemd = {
+    services = {
+      immich-server.wantedBy = lib.mkForce [];
+
+      immich-machine-learning.wantedBy = lib.mkForce [];
+
+      redis-immich.wantedBy = lib.mkForce [];
+    };
+
+    targets.postgresql.wantedBy = lib.mkForce [];
   };
 }
